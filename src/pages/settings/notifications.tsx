@@ -16,7 +16,7 @@ const NotificationsPage: NextPage = () => {
   return (
     <>
       <Head>
-        <title>{'Safe{Wallet} – Settings – Notifications'}</title>
+        <title>Sophon Safe – Settings – Notifications</title>
       </Head>
 
       <SettingsHeader />

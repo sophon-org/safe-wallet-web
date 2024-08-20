@@ -10,8 +10,6 @@ import { selectCookies, CookieAndTermType, saveCookieAndTermConsent } from '@/st
 import { selectCookieBanner, openCookieBanner, closeCookieBanner } from '@/store/popupSlice'
 
 import css from './styles.module.css'
-import { AppRoutes } from '@/config/routes'
-import ExternalLink from '../ExternalLink'
 
 const COOKIE_AND_TERM_WARNING: Record<CookieAndTermType, string> = {
   [CookieAndTermType.TERMS]: '',
@@ -74,10 +72,9 @@ export const CookieAndTermBanner = ({
         <Grid container alignItems="center">
           <Grid item xs>
             <Typography variant="body2" mb={2}>
-              By browsing this page, you accept our{' '}
-              <ExternalLink href={AppRoutes.terms}>Terms & Conditions</ExternalLink> (last updated August 2024) and the
-              use of necessary cookies. By clicking &quot;Accept all&quot; you additionally agree to the use of Beamer
-              and Analytics cookies as listed below. <ExternalLink href={AppRoutes.cookie}>Cookie policy</ExternalLink>
+              By browsing this page, you accept our Terms & Conditions (last updated August 2024) and the use of
+              necessary cookies. By clicking &quot;Accept all&quot; you additionally agree to the use of Beamer and
+              Analytics cookies as listed below. Cookie policy
             </Typography>
 
             <Grid container alignItems="center" gap={4}>
@@ -88,7 +85,7 @@ export const CookieAndTermBanner = ({
                   <Typography variant="body2">Locally stored data for core functionality</Typography>
                 </Box>
 
-                <Box mb={2}>
+                {/* <Box mb={2}>
                   <CookieCheckbox
                     checkboxProps={{ ...register(CookieAndTermType.UPDATES), id: 'beamer' }}
                     label="Beamer"
@@ -108,7 +105,7 @@ export const CookieAndTermBanner = ({
                   <Typography variant="body2">
                     Opt in for Google Analytics cookies to help us analyze app usage patterns.
                   </Typography>
-                </Box>
+                </Box> */}
               </Grid>
             </Grid>
 

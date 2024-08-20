@@ -11,7 +11,7 @@ const useWalletCanPay = ({
   maxPriorityFeePerGas?: bigint | null
 }) => {
   const [walletBalance] = useWalletBalance()
-
+  return true
   // Take an optimistic approach and assume the wallet can pay
   // if gasLimit, maxFeePerGas or their walletBalance are missing
   if (gasLimit === undefined || maxFeePerGas === undefined || maxFeePerGas === null || walletBalance === undefined)

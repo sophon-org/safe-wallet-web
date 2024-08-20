@@ -48,6 +48,7 @@ const getEncodedSafeTx = (
 const GasMultipliers = {
   [chains.gno]: 1.3,
   [chains.zksync]: 20,
+  [chains['sophon-testnet']]: 20,
 }
 
 const incrementByGasMultiplier = (value: bigint, multiplier: number) => {

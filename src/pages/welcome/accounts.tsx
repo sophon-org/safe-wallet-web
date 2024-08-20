@@ -6,7 +6,7 @@ const Accounts: NextPage = () => {
   return (
     <>
       <Head>
-        <title>{'Safe{Wallet} – My accounts'}</title>
+        <title>Sophon Safe – My accounts</title>
       </Head>
 
       <MyAccounts />

@@ -24,6 +24,7 @@ import {
   prepareTxExecution,
   prepareApproveTxHash,
 } from './sdk'
+import { utils } from 'zksync-ethers'
 import { createWeb3, getUserNonce, getWeb3ReadOnly } from '@/hooks/wallets/web3'
 import { asError } from '@/services/exceptions/utils'
 import chains from '@/config/chains'
@@ -120,15 +121,36 @@ export const dispatchOnChainSigning = async (
   const safeTxHash = await sdk.getTransactionHash(safeTx)
   const eventParams = { txId }
 
-  const options = chainId === chains.zksync ? { gasLimit: ZK_SYNC_ON_CHAIN_SIGNATURE_GAS_LIMIT } : undefined
+  const options = [chains.zksync, chains['sophon-testnet']].includes(chainId)
+    ? { gasLimit: ZK_SYNC_ON_CHAIN_SIGNATURE_GAS_LIMIT }
+    : undefined
 
   try {
     // TODO: This is a workaround until there is a fix for unchecked transactions in the protocol-kit
     const encodedApproveHashTx = await prepareApproveTxHash(safeTxHash, provider)
 
+    const paymasterParams = utils.getPaymasterParams(
+      '0x950e3Bb8C6bab20b56a70550EC037E22032A413e', // Paymaster address
+      {
+        type: 'General',
+        innerInput: new Uint8Array(),
+      },
+    )
+
     await provider.request({
       method: 'eth_sendTransaction',
-      params: [{ from: signerAddress, to: safeAddress, data: encodedApproveHashTx, gas: options?.gasLimit }],
+      params: [
+        {
+          from: signerAddress,
+          to: safeAddress,
+          data: encodedApproveHashTx,
+          gas: options?.gasLimit,
+          customData: {
+            gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+            paymasterParams,
+          },
+        },
+      ],
     })
 
     txDispatch(TxEvent.ONCHAIN_SIGNATURE_REQUESTED, eventParams)

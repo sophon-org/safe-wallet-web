@@ -1,0 +1,33 @@
+diff --git a/node_modules/@safe-global/protocol-kit/dist/src/contracts/utils.js b/node_modules/@safe-global/protocol-kit/dist/src/contracts/utils.js
+index 8d5c5a6..da3c04f 100644
+--- a/node_modules/@safe-global/protocol-kit/dist/src/contracts/utils.js
++++ b/node_modules/@safe-global/protocol-kit/dist/src/contracts/utils.js
+@@ -16,6 +16,7 @@ const safeDeploymentContracts_1 = require("../contracts/safeDeploymentContracts"
+ exports.PREDETERMINED_SALT_NONCE = '0xb1073742015cbcf5a3a4d9d1ae33ecf619439710b89475f92e2abd2117e90f90';
+ const ZKSYNC_MAINNET = 324n;
+ const ZKSYNC_TESTNET = 280n;
++const SOPHON_TESTNET = 531050104n;
+ // For bundle size efficiency we store SafeProxy.sol/GnosisSafeProxy.sol zksync bytecode hash in hex.
+ // To get the values below we need to:
+ // 1. Compile Safe smart contracts for zksync
+@@ -165,7 +166,7 @@ async function predictSafeAddress({ safeProvider, chainId, safeAccountConfig, sa
+     const input = safeProvider.encodeParameters(['address'], [await safeContract.getAddress()]);
+     const from = await safeProxyFactoryContract.getAddress();
+     // On the zkSync Era chain, the counterfactual deployment address is calculated differently
+-    const isZkSyncEraChain = [ZKSYNC_MAINNET, ZKSYNC_TESTNET].includes(chainId);
++    const isZkSyncEraChain = [ZKSYNC_MAINNET, ZKSYNC_TESTNET, SOPHON_TESTNET].includes(chainId);
+     if (isZkSyncEraChain) {
+         const proxyAddress = zkSyncEraCreate2Address(from, safeVersion, salt, input);
+         return safeProvider.getChecksummedAddress(proxyAddress);
+diff --git a/node_modules/@safe-global/protocol-kit/dist/src/utils/eip-3770/config.js b/node_modules/@safe-global/protocol-kit/dist/src/utils/eip-3770/config.js
+index 3194b47..6879a71 100644
+--- a/node_modules/@safe-global/protocol-kit/dist/src/utils/eip-3770/config.js
++++ b/node_modules/@safe-global/protocol-kit/dist/src/utils/eip-3770/config.js
+@@ -234,6 +234,7 @@ exports.networks = [
+     { chainId: 94204209n, shortName: 'polygon-blackberry' },
+     { chainId: 111557560n, shortName: 'cysep' },
+     { chainId: 123420111n, shortName: 'opcelestia-raspberry' },
++    { chainId: 531050104, shortName: 'sophon-testnet' },
+     { chainId: 161221135n, shortName: 'plume-testnet' },
+     { chainId: 168587773n, shortName: 'blastsepolia' },
+     { chainId: 222000222n, shortName: 'kanazawa' },

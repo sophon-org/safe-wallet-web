@@ -101,11 +101,7 @@ function SetNameStep({
             </Grid>
           </Grid>
           <Typography variant="body2" mt={2}>
-            By continuing, you agree to our{' '}
-            <Link href={AppRoutes.terms} passHref legacyBehavior>
-              <MUILink>terms of use</MUILink>
-            </Link>{' '}
-            and{' '}
+            By continuing, you agree to our terms of use and{' '}
             <Link href={AppRoutes.privacy} passHref legacyBehavior>
               <MUILink>privacy policy</MUILink>
             </Link>

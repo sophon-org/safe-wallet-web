@@ -91,7 +91,7 @@ describe('useSafeWalletProvider', () => {
       const resp = result?.current?.signMessage('message', appInfo)
 
       expect(showNotificationSpy).toHaveBeenCalledWith('Signature request', {
-        body: 'test wants you to sign a message. Open the Safe{Wallet} to continue.',
+        body: 'test wants you to sign a message. Open the Sophon Safe to continue.',
       })
 
       expect(mockSetTxFlow.mock.calls[0][0].props).toStrictEqual({
@@ -140,7 +140,7 @@ describe('useSafeWalletProvider', () => {
       const resp2 = result?.current?.signMessage('message', appInfo)
 
       expect(showNotificationSpy).toHaveBeenCalledWith('Signature request', {
-        body: 'test wants you to sign a message. Open the Safe{Wallet} to continue.',
+        body: 'test wants you to sign a message. Open the Sophon Safe to continue.',
       })
 
       // SignMessageOnChainFlow props
@@ -211,7 +211,7 @@ describe('useSafeWalletProvider', () => {
       const resp = result?.current?.signTypedMessage(typedMessage, appInfo)
 
       expect(showNotificationSpy).toHaveBeenCalledWith('Signature request', {
-        body: 'test wants you to sign a message. Open the Safe{Wallet} to continue.',
+        body: 'test wants you to sign a message. Open the Sophon Safe to continue.',
       })
 
       expect(mockSetTxFlow.mock.calls[0][0].props).toStrictEqual({
@@ -261,7 +261,7 @@ describe('useSafeWalletProvider', () => {
       )
 
       expect(showNotificationSpy).toHaveBeenCalledWith('Transaction request', {
-        body: 'test wants to submit a transaction. Open the Safe{Wallet} to continue.',
+        body: 'test wants to submit a transaction. Open the Sophon Safe to continue.',
       })
 
       expect(mockSetTxFlow.mock.calls[0][0].props).toStrictEqual({
