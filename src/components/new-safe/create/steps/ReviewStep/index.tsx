@@ -6,7 +6,11 @@ import { addUndeployedSafe } from '@/features/counterfactual/store/undeployedSaf
 import { getTotalFeeFormatted } from '@/hooks/useGasPrice'
 import type { StepRenderProps } from '@/components/new-safe/CardStepper/useCardStepper'
 import type { NewSafeFormData } from '@/components/new-safe/create'
-import { computeNewSafeAddress, createNewSafe, relaySafeCreation } from '@/components/new-safe/create/logic'
+import {
+  computeNewSafeAddress,
+  relaySafeCreation,
+  signAndExecuteSafeCreation,
+} from '@/components/new-safe/create/logic'
 import { getAvailableSaltNonce } from '@/components/new-safe/create/logic/utils'
 import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
 import css from '@/components/new-safe/create/steps/ReviewStep/styles.module.css'
@@ -235,14 +239,14 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
         )
         onSubmitCallback(taskId)
       } else {
-        await createNewSafe(wallet.provider, {
-          safeAccountConfig: props.safeAccountConfig,
-          saltNonce,
-          options,
-          callback: (txHash) => {
-            onSubmitCallback(undefined, txHash)
-          },
-        })
+        await signAndExecuteSafeCreation(
+          chain,
+          props.safeAccountConfig.owners,
+          props.safeAccountConfig.threshold,
+          Number(saltNonce),
+          wallet,
+          (txHash) => onSubmitCallback(undefined, txHash),
+        )
       }
     } catch (_err) {
       const error = asError(_err)

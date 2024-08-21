@@ -1,5 +1,3 @@
-import ExternalLink from '@/components/common/ExternalLink'
-import { AppRoutes } from '@/config/routes'
 import { Typography } from '@mui/material'
 
 import css from './styles.module.css'

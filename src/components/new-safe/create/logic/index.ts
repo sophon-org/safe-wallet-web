@@ -16,8 +16,10 @@ import type { DeploySafeProps } from '@safe-global/protocol-kit'
 import { isValidSafeVersion } from '@/hooks/coreSDK/safeCoreSDK'
 
 import { backOff } from 'exponential-backoff'
-import { LATEST_SAFE_VERSION } from '@/config/constants'
+import { LATEST_SAFE_VERSION, PAYMASTER_ADDRESSES } from '@/config/constants'
 import { EMPTY_DATA, ZERO_ADDRESS } from '@safe-global/protocol-kit/dist/src/utils/constants'
+import { BrowserProvider, Provider as ZKProvider, Signer, utils } from 'zksync-ethers'
+import { type ConnectedWallet } from '@/hooks/wallets/useOnboard'
 
 export type SafeCreationProps = {
   owners: string[]
@@ -168,6 +170,72 @@ export const relaySafeCreation = async (
   saltNonce: number,
   version?: SafeVersion,
 ) => {
+  const { createProxyWithNonceCallData, proxyFactoryAddress, safeVersion } = await generateCreateProxyWithNonceCallData(
+    chain,
+    owners,
+    threshold,
+    saltNonce,
+    version,
+  )
+
+  const relayResponse = await relayTransaction(chain.chainId, {
+    to: proxyFactoryAddress,
+    data: createProxyWithNonceCallData,
+    version: safeVersion,
+  })
+
+  return relayResponse.taskId
+}
+
+export const signAndExecuteSafeCreation = async (
+  chain: ChainInfo,
+  owners: string[],
+  threshold: number,
+  saltNonce: number,
+  wallet: ConnectedWallet,
+  callback: (txHash: string) => void,
+  version?: SafeVersion,
+) => {
+  const { createProxyWithNonceCallData, proxyFactoryAddress } = await generateCreateProxyWithNonceCallData(
+    chain,
+    owners,
+    threshold,
+    saltNonce,
+    version,
+  )
+  const paymasterParams = utils.getPaymasterParams(
+    PAYMASTER_ADDRESSES[chain.chainId], // Paymaster address
+    {
+      type: 'General',
+      innerInput: new Uint8Array(),
+    },
+  )
+  const browserProvider = new BrowserProvider(wallet.provider)
+  const signer = Signer.from(
+    await browserProvider.getSigner(),
+    Number(chain.chainId),
+    new ZKProvider(chain.rpcUri.value, { name: chain.chainName, chainId: Number(chain.chainId) }),
+  )
+  const tx = await signer.sendTransaction({
+    type: utils.EIP712_TX_TYPE,
+    from: wallet.address,
+    to: proxyFactoryAddress,
+    data: createProxyWithNonceCallData,
+    customData: {
+      gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+      paymasterParams,
+    },
+  })
+  callback(tx.hash)
+}
+
+const generateCreateProxyWithNonceCallData = async (
+  chain: ChainInfo,
+  owners: string[],
+  threshold: number,
+  saltNonce: number,
+  version?: SafeVersion,
+) => {
   const safeVersion = version ?? LATEST_SAFE_VERSION
 
   const readOnlyProxyFactoryContract = await getReadOnlyProxyFactoryContract(safeVersion)
@@ -176,7 +244,6 @@ export const relaySafeCreation = async (
   const fallbackHandlerAddress = await readOnlyFallbackHandlerContract.getAddress()
   const readOnlySafeContract = await getReadOnlyGnosisSafeContract(chain, safeVersion)
   const safeContractAddress = await readOnlySafeContract.getAddress()
-
   const callData = {
     owners,
     threshold,
@@ -199,18 +266,10 @@ export const relaySafeCreation = async (
     callData.payment,
     callData.paymentReceiver,
   ])
-
   const createProxyWithNonceCallData = readOnlyProxyFactoryContract.encode('createProxyWithNonce', [
     safeContractAddress,
     initializer,
     BigInt(saltNonce),
   ])
-
-  const relayResponse = await relayTransaction(chain.chainId, {
-    to: proxyFactoryAddress,
-    data: createProxyWithNonceCallData,
-    version: safeVersion,
-  })
-
-  return relayResponse.taskId
+  return { createProxyWithNonceCallData, proxyFactoryAddress, safeVersion }
 }
