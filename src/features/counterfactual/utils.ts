@@ -56,6 +56,7 @@ export const dispatchTxExecutionAndDeploySafe = async (
 
   let result: ContractTransactionResponse | undefined
   try {
+    // TODODEN
     const signedTx = await tryOffChainTxSigning(safeTx, await sdk.getContractVersion(), sdk)
     const signer = await getUncheckedSigner(provider)
 

@@ -1,6 +1,11 @@
 import { isSmartContractWallet } from '@/utils/wallets'
 import type { MultiSendCallOnlyContractImplementationType } from '@safe-global/protocol-kit'
-import { relayTransaction, type SafeInfo, type TransactionDetails } from '@safe-global/safe-gateway-typescript-sdk'
+import {
+  type ChainInfo,
+  relayTransaction,
+  type SafeInfo,
+  type TransactionDetails,
+} from '@safe-global/safe-gateway-typescript-sdk'
 import type {
   SafeTransaction,
   Transaction,
@@ -80,6 +85,7 @@ export const dispatchTxProposal = async ({
 /**
  * Sign a transaction
  */
+// TODODEN
 export const dispatchTxSigning = async (
   safeTx: SafeTransaction,
   safeVersion: SafeInfo['version'],
@@ -109,6 +115,7 @@ const ZK_SYNC_ON_CHAIN_SIGNATURE_GAS_LIMIT = 4_500_000
 /**
  * On-Chain sign a transaction
  */
+// TODODEN
 export const dispatchOnChainSigning = async (
   safeTx: SafeTransaction,
   txId: string,
@@ -269,6 +276,7 @@ export const dispatchCustomTxSpeedUp = async (
 /**
  * Execute a transaction
  */
+// TODODEN
 export const dispatchTxExecution = async (
   safeTx: SafeTransaction,
   txOptions: TransactionOptions,
@@ -277,6 +285,7 @@ export const dispatchTxExecution = async (
   signerAddress: string,
   safeAddress: string,
   isSmartAccount: boolean,
+  chain: ChainInfo,
 ): Promise<string> => {
   const sdk = await getSafeSDKWithSigner(provider)
   const eventParams = { txId }
@@ -299,7 +308,7 @@ export const dispatchTxExecution = async (
         transactionResponse: null,
       }
     } else {
-      result = await sdk.executeTransaction(safeTx, txOptions)
+      result = await sdk.executeTransaction(safeTx, txOptions, chain)
     }
     txDispatch(TxEvent.EXECUTING, eventParams)
   } catch (error) {
@@ -388,6 +397,7 @@ export const dispatchBatchExecution = async (
 /**
  * Execute a module transaction
  */
+// TODODEN
 export const dispatchModuleTxExecution = async (
   tx: Transaction,
   provider: Eip1193Provider,

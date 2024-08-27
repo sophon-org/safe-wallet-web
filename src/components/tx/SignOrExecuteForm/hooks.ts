@@ -19,6 +19,7 @@ import { getSafeTxGas, getNonces } from '@/services/tx/tx-sender/recommendedNonc
 import useAsync from '@/hooks/useAsync'
 import { useUpdateBatch } from '@/hooks/useDraftBatch'
 import { type TransactionDetails } from '@safe-global/safe-gateway-typescript-sdk'
+import { useCurrentChain } from '@/hooks/useChains'
 
 type TxActions = {
   addToBatch: (safeTx?: SafeTransaction, origin?: string) => Promise<string>
@@ -35,6 +36,7 @@ type TxActions = {
 export const useTxActions = (): TxActions => {
   const { safe } = useSafeInfo()
   const onboard = useOnboard()
+  const chain = useCurrentChain()
   const wallet = useWallet()
   const [addTxToBatch] = useUpdateBatch()
 
@@ -128,7 +130,16 @@ export const useTxActions = (): TxActions => {
       } else {
         const isSmartAccount = await isSmartContractWallet(wallet.chainId, wallet.address)
 
-        await dispatchTxExecution(safeTx, txOptions, txId, wallet.provider, wallet.address, safeAddress, isSmartAccount)
+        await dispatchTxExecution(
+          safeTx,
+          txOptions,
+          txId,
+          wallet.provider,
+          wallet.address,
+          safeAddress,
+          isSmartAccount,
+          chain,
+        )
       }
 
       return txId
