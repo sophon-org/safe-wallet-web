@@ -1,8 +1,8 @@
 diff --git a/node_modules/zksync-ethers/build-esm/signer.js b/node_modules/zksync-ethers/build-esm/signer.js
-index c050f66..8c7f534 100644
+index c050f66..df8d9ca 100644
 --- a/node_modules/zksync-ethers/build-esm/signer.js
 +++ b/node_modules/zksync-ethers/build-esm/signer.js
-@@ -581,12 +581,17 @@ export class Signer extends AdapterL2(ethers.JsonRpcSigner) {
+@@ -581,7 +581,7 @@ export class Signer extends AdapterL2(ethers.JsonRpcSigner) {
          if (tx.gasPrice && (tx.maxFeePerGas || tx.maxPriorityFeePerGas)) {
              throw new Error('Provide combination of maxFeePerGas and maxPriorityFeePerGas or provide gasPrice. Not both!');
          }
@@ -11,22 +11,11 @@ index c050f66..8c7f534 100644
              throw new Error('Initialize provider L2');
          }
          if (!tx.gasLimit ||
-             (!tx.gasPrice && (!tx.maxFeePerGas || !tx.maxPriorityFeePerGas))) {
--            const fee = await this.providerL2.estimateFee(tx);
-+            const txToEstimate = {};
-+            if (tx.from) txToEstimate.from = tx.from;
-+            if (tx.to) txToEstimate.to = tx.to;
-+            if (tx.data) txToEstimate.data = tx.data;
-+            if (tx.value) txToEstimate.value = tx.value;
-+            const fee = await this.providerL2.estimateFee(txToEstimate);
-             tx.gasLimit ?? (tx.gasLimit = fee.gasLimit);
-             if (!tx.gasPrice && tx.type === 0) {
-                 tx.gasPrice = fee.maxFeePerGas;
 diff --git a/node_modules/zksync-ethers/build/signer.js b/node_modules/zksync-ethers/build/signer.js
-index 83ff5d9..c5e38d9 100644
+index 83ff5d9..5059d33 100644
 --- a/node_modules/zksync-ethers/build/signer.js
 +++ b/node_modules/zksync-ethers/build/signer.js
-@@ -585,12 +585,17 @@ class Signer extends (0, adapters_1.AdapterL2)(ethers_1.ethers.JsonRpcSigner) {
+@@ -585,7 +585,7 @@ class Signer extends (0, adapters_1.AdapterL2)(ethers_1.ethers.JsonRpcSigner) {
          if (tx.gasPrice && (tx.maxFeePerGas || tx.maxPriorityFeePerGas)) {
              throw new Error('Provide combination of maxFeePerGas and maxPriorityFeePerGas or provide gasPrice. Not both!');
          }
@@ -35,14 +24,3 @@ index 83ff5d9..c5e38d9 100644
              throw new Error('Initialize provider L2');
          }
          if (!tx.gasLimit ||
-             (!tx.gasPrice && (!tx.maxFeePerGas || !tx.maxPriorityFeePerGas))) {
--            const fee = await this.providerL2.estimateFee(tx);
-+            const txToEstimate = {};
-+            if (tx.from) txToEstimate.from = tx.from;
-+            if (tx.to) txToEstimate.to = tx.to;
-+            if (tx.data) txToEstimate.data = tx.data;
-+            if (tx.value) txToEstimate.value = tx.value;
-+            const fee = await this.providerL2.estimateFee(txToEstimate);
-             tx.gasLimit ?? (tx.gasLimit = fee.gasLimit);
-             if (!tx.gasPrice && tx.type === 0) {
-                 tx.gasPrice = fee.maxFeePerGas;
