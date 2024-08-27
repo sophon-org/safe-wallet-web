@@ -276,7 +276,6 @@ export const dispatchCustomTxSpeedUp = async (
 /**
  * Execute a transaction
  */
-// TODODEN
 export const dispatchTxExecution = async (
   safeTx: SafeTransaction,
   txOptions: TransactionOptions,

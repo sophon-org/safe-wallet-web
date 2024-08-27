@@ -138,7 +138,7 @@ export const useTxActions = (): TxActions => {
           wallet.address,
           safeAddress,
           isSmartAccount,
-          chain,
+          chain!,
         )
       }
 
