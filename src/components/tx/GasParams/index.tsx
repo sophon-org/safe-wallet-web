@@ -1,16 +1,13 @@
 import { getTotalFee } from '@/hooks/useGasPrice'
 import type { ReactElement, SyntheticEvent } from 'react'
-import { Accordion, AccordionDetails, AccordionSummary, Skeleton, Typography, Link, Grid, SvgIcon } from '@mui/material'
+import { Skeleton, Typography, Link, Grid } from '@mui/material'
 import type { ChainInfo } from '@safe-global/safe-gateway-typescript-sdk'
-import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
-import WarningIcon from '@/public/images/notifications/warning.svg'
 import { useCurrentChain } from '@/hooks/useChains'
 import { formatVisualAmount } from '@/utils/formatters'
 import { type AdvancedParameters } from '../AdvancedParams/types'
 import { trackEvent, MODALS_EVENTS } from '@/services/analytics'
 import classnames from 'classnames'
 import css from './styles.module.css'
-import accordionCss from '@/styles/accordion.module.css'
 import madProps from '@/utils/mad-props'
 
 const GasDetail = ({ name, value, isLoading }: { name: string; value: string; isLoading: boolean }): ReactElement => {
@@ -81,7 +78,18 @@ export const _GasParams = ({
 
   return (
     <div className={classnames({ [css.error]: gasLimitError })}>
-      <Accordion
+      {isExecution ? (
+        <Typography display="flex" alignItems="center" width={1}>
+          <span style={{ flex: '1' }}>Estimated fee </span>
+          <span>Free (Sponsored by Sophon)</span>
+        </Typography>
+      ) : (
+        <Typography>
+          Signing the transaction with nonce&nbsp;
+          {nonce !== undefined ? nonce : <Skeleton variant="text" sx={{ display: 'inline-block', minWidth: '2em' }} />}
+        </Typography>
+      )}
+      {/* <Accordion
         elevation={0}
         onChange={onChangeExpand}
         className={classnames({ [css.withExecutionMethod]: isExecution })}
@@ -146,7 +154,7 @@ export const _GasParams = ({
 
           {onEdit && EditComponent}
         </AccordionDetails>
-      </Accordion>
+      </Accordion> */}
     </div>
   )
 }

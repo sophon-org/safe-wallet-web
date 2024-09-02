@@ -328,13 +328,14 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
                 name="Est. network fee"
                 value={
                   <>
-                    <NetworkFee totalFee={totalFee} willRelay={willRelay} chain={chain} />
+                    {/* <NetworkFee totalFee={totalFee} willRelay={willRelay} chain={chain} />
 
                     {!willRelay && (
                       <Typography variant="body2" color="text.secondary" mt={1}>
                         You will have to confirm a transaction with your connected wallet.
                       </Typography>
-                    )}
+                    )} */}
+                    <Typography variant="body2">Free (Sponsored by Sophon)</Typography>
                   </>
                 }
               />
