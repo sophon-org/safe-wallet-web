@@ -1,17 +1,8 @@
 // import { getTotalFee } from '@/hooks/useGasPrice'
 // import useWalletBalance from '@/hooks/wallets/useWalletBalance'
 
-const useWalletCanPay = ({
-  gasLimit,
-  maxFeePerGas,
-  maxPriorityFeePerGas,
-}: {
-  gasLimit?: bigint
-  maxFeePerGas?: bigint | null
-  maxPriorityFeePerGas?: bigint | null
-}) => {
+const useWalletCanPay = ({ gasLimit, maxFeePerGas }: { gasLimit?: bigint; maxFeePerGas?: bigint | null }) => {
   // const [walletBalance] = useWalletBalance()
-  return true
   // Take an optimistic approach and assume the wallet can pay
   // if gasLimit, maxFeePerGas or their walletBalance are missing
   // if (gasLimit === undefined || maxFeePerGas === undefined || maxFeePerGas === null || walletBalance === undefined)
@@ -20,6 +11,7 @@ const useWalletCanPay = ({
   // const totalFee = getTotalFee(maxFeePerGas, gasLimit)
 
   // return walletBalance >= totalFee
+  return true
 }
 
 export default useWalletCanPay

@@ -38,6 +38,10 @@ runs:
         curl -O 'https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb'
         sudo apt-get install ./google-chrome-stable_current_amd64.deb
 
+    - name: Install Cypress 13.13.1
+      shell: bash
+      run: npm install cypress@13.13.1 --legacy-peer-deps
+
     - uses: ./.github/workflows/build
       with:
         secrets: ${{ inputs.secrets }}
@@ -61,3 +65,4 @@ runs:
         GITHUB_TOKEN: ${{ fromJSON(inputs.secrets).GITHUB_TOKEN }}
         CYPRESS_PROJECT_ID: ${{ inputs.project_id }}
         CYPRESS_WALLET_CREDENTIALS: ${{ fromJSON(inputs.secrets).CYPRESS_WALLET_CREDENTIALS }}
+        BEAMER_DATA_E2E: ${{ fromJSON(inputs.secrets).BEAMER_DATA_E2E }}

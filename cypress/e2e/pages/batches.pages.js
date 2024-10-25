@@ -62,7 +62,7 @@ function executeTransaction() {
 }
 
 function addToBatchButton() {
-  cy.contains(addToBatchBtn).should('be.visible').and('not.be.disabled').click()
+  cy.get('button').contains(addToBatchBtn).click()
 }
 
 export function openBatchtransactionsModal() {

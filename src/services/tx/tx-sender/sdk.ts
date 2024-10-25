@@ -247,7 +247,6 @@ export const prepareApproveTxHash = async (hash: string, provider: Eip1193Provid
     throw new Error('Transaction hashes can only be approved by Safe owners')
   }
 
-  // @ts-expect-error TS2590: Expression produces a union type that is too complex to represent.
-  const encodedHash = safeContract.encode('approveHash', [hash]) as string
-  return encodedHash
+  // @ts-ignore
+  return safeContract.encode('approveHash', [hash])
 }
