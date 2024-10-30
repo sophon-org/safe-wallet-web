@@ -224,14 +224,15 @@ index 1984a8f..71cbf71 100644
          const proxyAddress = zkSyncEraCreate2Address(from, safeVersion, salt, input);
          return safeProvider.getChecksummedAddress(proxyAddress);
 diff --git a/node_modules/@safe-global/protocol-kit/dist/src/utils/eip-3770/config.js b/node_modules/@safe-global/protocol-kit/dist/src/utils/eip-3770/config.js
-index 00ae69d..1478452 100644
+index 00ae69d..ae7f85e 100644
 --- a/node_modules/@safe-global/protocol-kit/dist/src/utils/eip-3770/config.js
 +++ b/node_modules/@safe-global/protocol-kit/dist/src/utils/eip-3770/config.js
-@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
+@@ -3,6 +3,8 @@ Object.defineProperty(exports, "__esModule", { value: true });
  exports.networks = void 0;
  // https://github.com/ethereum-lists/chains/tree/master/_data/chains
  exports.networks = [
 +    { chainId: 531050104, shortName: 'sophon-testnet' },
++    { chainId: 50104, shortName: 'sophon' },
      { chainId: 1n, shortName: 'eth' },
      { chainId: 3n, shortName: 'rop' },
      { chainId: 4n, shortName: 'rin' },
