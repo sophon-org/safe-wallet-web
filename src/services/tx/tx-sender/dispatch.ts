@@ -38,6 +38,7 @@ import { asError } from '@/services/exceptions/utils'
 import chains from '@/config/chains'
 import { createExistingTx } from './create'
 import { getLatestSafeVersion } from '@/utils/chains'
+import { PAYMASTER_ADDRESSES } from '@/config/constants'
 
 /**
  * Propose a transaction
@@ -149,7 +150,7 @@ export const dispatchOnChainSigning = async (
   const safeTxHash = await sdk.getTransactionHash(safeTx)
   const eventParams = { txId, nonce: safeTx.data.nonce }
 
-  const options = [chains.zksync, chains['sophon-testnet']].includes(chainId)
+  const options = [chains.zksync, chains['sophon-testnet'], chains.sophon].includes(chainId)
     ? { gasLimit: ZK_SYNC_ON_CHAIN_SIGNATURE_GAS_LIMIT }
     : undefined
 
@@ -158,7 +159,7 @@ export const dispatchOnChainSigning = async (
     const encodedApproveHashTx = await prepareApproveTxHash(safeTxHash, provider)
 
     const paymasterParams = utils.getPaymasterParams(
-      '0x950e3Bb8C6bab20b56a70550EC037E22032A413e', // Paymaster address
+      PAYMASTER_ADDRESSES[chainId], // Paymaster address
       {
         type: 'General',
         innerInput: new Uint8Array(),

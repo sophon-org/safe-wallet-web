@@ -34,7 +34,7 @@ index 0e2d1ca..1c82f4d 100644
      }
      /**
 diff --git a/node_modules/@safe-global/protocol-kit/dist/src/contracts/BaseContract.js b/node_modules/@safe-global/protocol-kit/dist/src/contracts/BaseContract.js
-index cf9e599..6ce460f 100644
+index cf9e599..d7e79ee 100644
 --- a/node_modules/@safe-global/protocol-kit/dist/src/contracts/BaseContract.js
 +++ b/node_modules/@safe-global/protocol-kit/dist/src/contracts/BaseContract.js
 @@ -2,6 +2,7 @@
@@ -45,8 +45,11 @@ index cf9e599..6ce460f 100644
  /**
   * Abstract class BaseContract
   * It is designed to be instantiated for different contracts.
-@@ -59,7 +60,7 @@ class BaseContract {
+@@ -57,9 +58,10 @@ class BaseContract {
+                 defaultAbi; // if no customAbi and no abi is present in the safe-deployments we use our hardcoded abi
+         this.runner = runner || safeProvider.getExternalProvider();
          this.safeProvider = safeProvider;
++        this.chainId = chainId.toString();
      }
      async init() {
 -        this.contract = new ethers_1.Contract(this.contractAddress, this.contractAbi, (await this.safeProvider.getExternalSigner()) || this.runner);
@@ -68,7 +71,7 @@ index e5d8633..789300f 100644
       * Returns array of first 10 modules.
       * @returns Array[modules]
 diff --git a/node_modules/@safe-global/protocol-kit/dist/src/contracts/Safe/v1.3.0/SafeContract_v1_3_0.js b/node_modules/@safe-global/protocol-kit/dist/src/contracts/Safe/v1.3.0/SafeContract_v1_3_0.js
-index 87423b0..78bf12a 100644
+index 87423b0..b533261 100644
 --- a/node_modules/@safe-global/protocol-kit/dist/src/contracts/Safe/v1.3.0/SafeContract_v1_3_0.js
 +++ b/node_modules/@safe-global/protocol-kit/dist/src/contracts/Safe/v1.3.0/SafeContract_v1_3_0.js
 @@ -7,6 +7,7 @@ const SafeBaseContract_1 = __importDefault(require("../../../contracts/Safe/Safe
@@ -79,7 +82,7 @@ index 87423b0..78bf12a 100644
  /**
   * SafeContract_v1_3_0  is the implementation specific to the Safe contract version 1.3.0.
   *
-@@ -179,22 +180,47 @@ class SafeContract_v1_3_0 extends SafeBaseContract_1.default {
+@@ -179,22 +180,48 @@ class SafeContract_v1_3_0 extends SafeBaseContract_1.default {
       * @param options - Transaction options.
       * @returns Transaction result.
       */
@@ -102,6 +105,7 @@ index 87423b0..78bf12a 100644
 +    async execTransaction(safeTransaction, options, chain) {
 +        const PAYMASTER_ADDRESSES = {
 +            "531050104": '0x950e3Bb8C6bab20b56a70550EC037E22032A413e',
++            "50104": '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
 +        }
 +        const safeAddress = await this.getAddress()
 +        const paymasterParams = utils.getPaymasterParams(
@@ -143,8 +147,92 @@ index 87423b0..78bf12a 100644
      }
      /**
       * Returns array of first 10 modules.
+diff --git a/node_modules/@safe-global/protocol-kit/dist/src/contracts/Safe/v1.4.1/SafeContract_v1_4_1.js b/node_modules/@safe-global/protocol-kit/dist/src/contracts/Safe/v1.4.1/SafeContract_v1_4_1.js
+index 280c61c..525c424 100644
+--- a/node_modules/@safe-global/protocol-kit/dist/src/contracts/Safe/v1.4.1/SafeContract_v1_4_1.js
++++ b/node_modules/@safe-global/protocol-kit/dist/src/contracts/Safe/v1.4.1/SafeContract_v1_4_1.js
+@@ -179,22 +179,63 @@ class SafeContract_v1_4_1 extends SafeBaseContract_1.default {
+      * @param options - Transaction options.
+      * @returns Transaction result.
+      */
+-    async execTransaction(safeTransaction, options) {
+-        const gasLimit = options?.gasLimit ||
+-            (await this.estimateGas('execTransaction', [
+-                safeTransaction.data.to,
+-                BigInt(safeTransaction.data.value),
+-                safeTransaction.data.data,
+-                safeTransaction.data.operation,
+-                BigInt(safeTransaction.data.safeTxGas),
+-                BigInt(safeTransaction.data.baseGas),
+-                BigInt(safeTransaction.data.gasPrice),
+-                safeTransaction.data.gasToken,
+-                safeTransaction.data.refundReceiver,
+-                safeTransaction.encodedSignatures()
+-            ], options));
+-        const txResponse = await this.contract.execTransaction(safeTransaction.data.to, safeTransaction.data.value, safeTransaction.data.data, safeTransaction.data.operation, safeTransaction.data.safeTxGas, safeTransaction.data.baseGas, safeTransaction.data.gasPrice, safeTransaction.data.gasToken, safeTransaction.data.refundReceiver, safeTransaction.encodedSignatures(), { ...options, gasLimit });
+-        return (0, utils_1.toTxResult)(txResponse, options);
++    async execTransaction(safeTransaction, options, chain) {
++        const PAYMASTER_ADDRESSES = {
++            "531050104": '0x950e3Bb8C6bab20b56a70550EC037E22032A413e',
++            "50104": '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
++        }
++        const safeAddress = await this.getAddress()
++        const paymasterParams = utils.getPaymasterParams(
++            PAYMASTER_ADDRESSES[chain.chainId], // Paymaster address
++            {
++                type: 'General',
++                innerInput: new Uint8Array(),
++            },
++        )
++        const calldata = this.contract.interface.encodeFunctionData('execTransaction', [
++            safeTransaction.data.to,
++            safeTransaction.data.value,
++            safeTransaction.data.data,
++            safeTransaction.data.operation,
++            safeTransaction.data.safeTxGas,
++            safeTransaction.data.baseGas,
++            safeTransaction.data.gasPrice,
++            safeTransaction.data.gasToken,
++            safeTransaction.data.refundReceiver,
++            safeTransaction.encodedSignatures()
++        ]);
++        const browserProvider = new BrowserProvider(this.safeProvider.provider)
++        const signer = Signer.from(
++            await browserProvider.getSigner(),
++            Number(chain.chainId),
++            new ZKProvider(chain.rpcUri.value, { name: chain.chainName, chainId: Number(chain.chainId) }),
++        )
++        const tx = await signer.sendTransaction({
++            type: utils.EIP712_TX_TYPE,
++            from: options.from,
++            to: safeAddress,
++            data: calldata,
++            customData: {
++                gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
++                paymasterParams,
++            },
++        })
++        return tx
++        // const gasLimit = options?.gasLimit ||
++        //     (await this.estimateGas('execTransaction', [
++        //         safeTransaction.data.to,
++        //         BigInt(safeTransaction.data.value),
++        //         safeTransaction.data.data,
++        //         safeTransaction.data.operation,
++        //         BigInt(safeTransaction.data.safeTxGas),
++        //         BigInt(safeTransaction.data.baseGas),
++        //         BigInt(safeTransaction.data.gasPrice),
++        //         safeTransaction.data.gasToken,
++        //         safeTransaction.data.refundReceiver,
++        //         safeTransaction.encodedSignatures()
++        //     ], options));
++        // const txResponse = await this.contract.execTransaction(safeTransaction.data.to, safeTransaction.data.value, safeTransaction.data.data, safeTransaction.data.operation, safeTransaction.data.safeTxGas, safeTransaction.data.baseGas, safeTransaction.data.gasPrice, safeTransaction.data.gasToken, safeTransaction.data.refundReceiver, safeTransaction.encodedSignatures(), { ...options, gasLimit });
++        // return (0, utils_1.toTxResult)(txResponse, options);
+     }
+     /**
+      * Returns array of first 10 modules.
 diff --git a/node_modules/@safe-global/protocol-kit/dist/src/contracts/SafeProxyFactory/v1.3.0/SafeProxyFactoryContract_v1_3_0.js b/node_modules/@safe-global/protocol-kit/dist/src/contracts/SafeProxyFactory/v1.3.0/SafeProxyFactoryContract_v1_3_0.js
-index 1780dad..865911f 100644
+index 1780dad..e742e6d 100644
 --- a/node_modules/@safe-global/protocol-kit/dist/src/contracts/SafeProxyFactory/v1.3.0/SafeProxyFactoryContract_v1_3_0.js
 +++ b/node_modules/@safe-global/protocol-kit/dist/src/contracts/SafeProxyFactory/v1.3.0/SafeProxyFactoryContract_v1_3_0.js
 @@ -5,6 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
@@ -155,7 +243,7 @@ index 1780dad..865911f 100644
  /**
   * SafeProxyFactoryContract_v1_3_0  is the implementation specific to the Safe Proxy Factory contract version 1.3.0.
   *
-@@ -86,21 +87,31 @@ class SafeProxyFactoryContract_v1_3_0 extends SafeProxyFactoryBaseContract_1.def
+@@ -86,21 +87,35 @@ class SafeProxyFactoryContract_v1_3_0 extends SafeProxyFactoryBaseContract_1.def
          if (options && !options.gasLimit) {
              options.gasLimit = (await this.estimateGas('createProxyWithNonce', [safeSingletonAddress, initializer, saltNonceBigInt], { ...options })).toString();
          }
@@ -174,9 +262,13 @@ index 1780dad..865911f 100644
 -            const proxyAddress = proxyCreationEvent.args[0];
 -            return proxyAddress;
 -        });
++        const PAYMASTER_ADDRESSES = {
++            "531050104": '0x950e3Bb8C6bab20b56a70550EC037E22032A413e',
++            "50104": '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
++        }
 +        const txData = this.contract.interface.encodeFunctionData('createProxyWithNonce', [safeSingletonAddress, initializer, saltNonce]);
 +        const paymasterParams = utils.getPaymasterParams(
-+            '0x950e3Bb8C6bab20b56a70550EC037E22032A413e', // Paymaster address
++            PAYMASTER_ADDRESSES[this.chainId], // Paymaster address
 +            {
 +                type: 'General',
 +                innerInput: new Uint8Array(),
@@ -202,24 +294,80 @@ index 1780dad..865911f 100644
          return proxyAddress;
      }
  }
+diff --git a/node_modules/@safe-global/protocol-kit/dist/src/contracts/SafeProxyFactory/v1.4.1/SafeProxyFactoryContract_v1_4_1.js b/node_modules/@safe-global/protocol-kit/dist/src/contracts/SafeProxyFactory/v1.4.1/SafeProxyFactoryContract_v1_4_1.js
+index e098829..64e08fe 100644
+--- a/node_modules/@safe-global/protocol-kit/dist/src/contracts/SafeProxyFactory/v1.4.1/SafeProxyFactoryContract_v1_4_1.js
++++ b/node_modules/@safe-global/protocol-kit/dist/src/contracts/SafeProxyFactory/v1.4.1/SafeProxyFactoryContract_v1_4_1.js
+@@ -79,21 +79,35 @@ class SafeProxyFactoryContract_v1_4_1 extends SafeProxyFactoryBaseContract_1.def
+         if (options && !options.gasLimit) {
+             options.gasLimit = (await this.estimateGas('createProxyWithNonce', [safeSingletonAddress, initializer, saltNonceBigInt], { ...options })).toString();
+         }
+-        const proxyAddress = this.contract
+-            .createProxyWithNonce(safeSingletonAddress, initializer, saltNonce, { ...options })
+-            .then(async (txResponse) => {
+-            if (callback) {
+-                callback(txResponse.hash);
+-            }
+-            const txReceipt = await txResponse.wait();
+-            const events = txReceipt?.logs;
+-            const proxyCreationEvent = events.find((event) => event?.eventName === 'ProxyCreation');
+-            if (!proxyCreationEvent || !proxyCreationEvent.args) {
+-                throw new Error('SafeProxy was not deployed correctly');
+-            }
+-            const proxyAddress = proxyCreationEvent.args[0];
+-            return proxyAddress;
+-        });
++
++        const PAYMASTER_ADDRESSES = {
++            "531050104": '0x950e3Bb8C6bab20b56a70550EC037E22032A413e',
++            "50104": '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
++        }
++        const txData = this.contract.interface.encodeFunctionData('createProxyWithNonce', [safeSingletonAddress, initializer, saltNonce]);
++        const paymasterParams = utils.getPaymasterParams(
++            PAYMASTER_ADDRESSES[this.chainId], // Paymaster address
++            {
++                type: 'General',
++                innerInput: new Uint8Array(),
++            },
++        );
++        const signedTx = await safeProvider.signTransaction({ to: this.contract.address, data: txData, ...options,
++            customData: {
++                gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
++                paymasterParams,
++            }, });
++        const txResponse = await safeProvider.sendTransaction(signedTx);
++        if (callback) {
++            callback(txResponse.hash);
++        }
++        const txReceipt = await txResponse.wait();
++        const events = txReceipt?.logs;
++        const proxyCreationEvent = events.find((event) => event?.eventName === 'ProxyCreation');
++        if (!proxyCreationEvent || !proxyCreationEvent.args) {
++            throw new Error('SafeProxy was not deployed correctly');
++        }
++        const proxyAddress = proxyCreationEvent.args[0];
+         return proxyAddress;
+     }
+ }
 diff --git a/node_modules/@safe-global/protocol-kit/dist/src/contracts/utils.js b/node_modules/@safe-global/protocol-kit/dist/src/contracts/utils.js
-index 1984a8f..71cbf71 100644
+index 1984a8f..daab57e 100644
 --- a/node_modules/@safe-global/protocol-kit/dist/src/contracts/utils.js
 +++ b/node_modules/@safe-global/protocol-kit/dist/src/contracts/utils.js
-@@ -16,6 +16,7 @@ const safeDeploymentContracts_1 = require("../contracts/safeDeploymentContracts"
+@@ -16,6 +16,8 @@ const safeDeploymentContracts_1 = require("../contracts/safeDeploymentContracts"
  exports.PREDETERMINED_SALT_NONCE = '0xb1073742015cbcf5a3a4d9d1ae33ecf619439710b89475f92e2abd2117e90f90';
  const ZKSYNC_MAINNET = 324n;
  const ZKSYNC_TESTNET = 280n;
 +const SOPHON_TESTNET = 531050104n;
++const SOPHON_MAINNET = 50104n;
  // For bundle size efficiency we store SafeProxy.sol/GnosisSafeProxy.sol zksync bytecode hash in hex.
  // To get the values below we need to:
  // 1. Compile Safe smart contracts for zksync
-@@ -165,7 +166,7 @@ async function predictSafeAddress({ safeProvider, chainId, safeAccountConfig, sa
+@@ -165,7 +167,7 @@ async function predictSafeAddress({ safeProvider, chainId, safeAccountConfig, sa
      const input = safeProvider.encodeParameters(['address'], [await safeContract.getAddress()]);
      const from = await safeProxyFactoryContract.getAddress();
      // On the zkSync Era chain, the counterfactual deployment address is calculated differently
 -    const isZkSyncEraChain = [ZKSYNC_MAINNET, ZKSYNC_TESTNET].includes(chainId);
-+    const isZkSyncEraChain = [ZKSYNC_MAINNET, ZKSYNC_TESTNET, SOPHON_TESTNET].includes(chainId);
++    const isZkSyncEraChain = [ZKSYNC_MAINNET, ZKSYNC_TESTNET, SOPHON_TESTNET, SOPHON_MAINNET].includes(chainId);
      if (isZkSyncEraChain) {
          const proxyAddress = zkSyncEraCreate2Address(from, safeVersion, salt, input);
          return safeProvider.getChecksummedAddress(proxyAddress);
