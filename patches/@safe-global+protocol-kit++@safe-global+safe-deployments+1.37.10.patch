@@ -4454,10 +4454,10 @@ index c101c22..8d45416 100644
          "5": "canonical",
          "10": "canonical",
 diff --git a/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe_to_l2_migration.json b/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe_to_l2_migration.json
-index 59ff972..bfe54f9 100644
+index 59ff972..a7fea67 100644
 --- a/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe_to_l2_migration.json
 +++ b/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe_to_l2_migration.json
-@@ -6,10 +6,16 @@
+@@ -6,9 +6,15 @@
          "canonical": {
              "address": "0xfF83F6335d8930cBad1c0D439A841f01888D9f69",
              "codeHash": "0xa83e7be2fa20c96dc9575e3937239d552f3831ea437d7c96397eec8736f0cba0"
@@ -4468,13 +4468,11 @@ index 59ff972..bfe54f9 100644
          }
      },
      "networkAddresses": {
--        "1": "canonical",
 +        "50104": "zksync",
 +        "531050104": "zksync",
-+        "501041": "canonical",
+         "1": "canonical",
          "10": "canonical",
          "56": "canonical",
-         "100": "canonical",
 diff --git a/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe_to_l2_setup.json b/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe_to_l2_setup.json
 index 89ddef4..22d2fd5 100644
 --- a/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe_to_l2_setup.json
@@ -21510,10 +21508,10 @@ index d2368e6..4597304 100644
  }
 \ No newline at end of file
 diff --git a/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/src/assets/v1.4.1/safe_l2.json b/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/src/assets/v1.4.1/safe_l2.json
-index 18eaba1..358de80 100644
+index 18eaba1..ba753cc 100644
 --- a/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/src/assets/v1.4.1/safe_l2.json
 +++ b/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/src/assets/v1.4.1/safe_l2.json
-@@ -1,1255 +1,1259 @@
+@@ -1,1255 +1,1260 @@
  {
 -  "released": true,
 -  "contractName": "SafeL2",
@@ -22491,6 +22489,7 @@ index 18eaba1..358de80 100644
 +    "networkAddresses": {
 +        "50104": "zksync",
 +        "531050104": "zksync",
++        "1": "canonical",
 +        "10": "canonical",
 +        "14": "canonical",
 +        "16": "canonical",
@@ -24893,7 +24892,7 @@ index f841c85..8d45416 100644
  }
 \ No newline at end of file
 diff --git a/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/src/assets/v1.4.1/safe_to_l2_migration.json b/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/src/assets/v1.4.1/safe_to_l2_migration.json
-index 770546e..bfe54f9 100644
+index 770546e..a7fea67 100644
 --- a/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/src/assets/v1.4.1/safe_to_l2_migration.json
 +++ b/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/src/assets/v1.4.1/safe_to_l2_migration.json
 @@ -1,206 +1,212 @@
@@ -25036,7 +25035,7 @@ index 770546e..bfe54f9 100644
 +    "networkAddresses": {
 +        "50104": "zksync",
 +        "531050104": "zksync",
-+        "501041": "canonical",
++        "1": "canonical",
 +        "10": "canonical",
 +        "56": "canonical",
 +        "100": "canonical",
