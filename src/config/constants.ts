@@ -109,7 +109,7 @@ export const REDEFINE_ARTICLE = 'https://safe.mirror.xyz/rInLWZwD_sf7enjoFerj6FI
 export const CHAINALYSIS_OFAC_CONTRACT = '0x40c57923924b5c5c5455c48d93317139addac8fb'
 
 export const PAYMASTER_ADDRESSES = {
-  [chains['sophon-testnet']]: '0x950e3Bb8C6bab20b56a70550EC037E22032A413e',
+  [chains['sophon-testnet']]: '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
   [chains.sophon]: '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
 }
 export const ECOSYSTEM_ID_ADDRESS =

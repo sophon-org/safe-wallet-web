@@ -4392,10 +4392,10 @@ index 9316e57..4597304 100644
          "5": "canonical",
          "10": "canonical",
 diff --git a/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe_l2.json b/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe_l2.json
-index 331dba8..358de80 100644
+index 331dba8..ba753cc 100644
 --- a/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe_l2.json
 +++ b/node_modules/@safe-global/protocol-kit/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe_l2.json
-@@ -6,11 +6,15 @@
+@@ -6,11 +6,16 @@
          "canonical": {
              "address": "0x29fcB43b46531BcA003ddC8FCB67FFE91900C762",
              "codeHash": "0xb1f926978a0f44a2c0ec8fe822418ae969bd8c3f18d61e5103100339894f81ff"
@@ -4406,10 +4406,10 @@ index 331dba8..358de80 100644
          }
      },
      "networkAddresses": {
--        "1": "canonical",
--        "5": "canonical",
 +        "50104": "zksync",
 +        "531050104": "zksync",
+         "1": "canonical",
+-        "5": "canonical",
          "10": "canonical",
          "14": "canonical",
          "16": "canonical",
