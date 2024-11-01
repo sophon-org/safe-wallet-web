@@ -158,7 +158,7 @@ const OwnerPolicyStep = ({
             </Grid>
           </Grid>
 
-          {ownerFields.length > 1 && <CounterfactualHint />}
+          {/* {ownerFields.length > 1 && <CounterfactualHint />} */}
         </Box>
         <Divider />
         <Box className={layoutCss.row}>
