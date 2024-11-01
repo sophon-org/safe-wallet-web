@@ -36,20 +36,6 @@ const staticHints: Record<
   number,
   { title: string; variant: AlertColor; steps: { title: string; text: string | ReactElement }[] }
 > = {
-  1: {
-    title: 'Safe Account creation',
-    variant: 'info',
-    steps: [
-      {
-        title: 'Network fee',
-        text: 'Deploying your Safe Account requires the payment of the associated network fee with your connected wallet. An estimation will be provided in the last step.',
-      },
-      {
-        title: 'Address book privacy',
-        text: 'The name of your Safe Account will be stored in a local address book on your device and can be changed at a later stage. It will not be shared with us or any third party.',
-      },
-    ],
-  },
   2: {
     title: 'Safe Account creation',
     variant: 'info',
