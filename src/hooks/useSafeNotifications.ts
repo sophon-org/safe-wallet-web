@@ -70,6 +70,7 @@ const useSafeNotifications = (): void => {
   useEffect(() => {
     if (safeAddress !== urlSafeAddress) return
     if (!isOwner) return
+    if (version === '1.3.0' || version === '1.3.0+L2') return
 
     const dismissedNotificationTimestamp = dismissedUpdateNotifications?.[chainId]?.[safeAddress]
 

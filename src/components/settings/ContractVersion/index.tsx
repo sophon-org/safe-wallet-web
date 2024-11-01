@@ -30,6 +30,7 @@ export const ContractVersion = () => {
   const isLatestVersion = safe.version && !showUpdateDialog
 
   const latestSafeVersion = getLatestSafeVersion(currentChain)
+  const isSafe130 = safe.version === '1.3.0' || safe.version === '1.3.0+L2'
 
   return (
     <>
@@ -52,7 +53,7 @@ export const ContractVersion = () => {
         )}
       </Typography>
 
-      {safeLoaded && safe.version && showUpdateDialog && (
+      {safeLoaded && safe.version && !isSafe130 && showUpdateDialog && (
         <Alert
           sx={{ mt: 2, borderRadius: '2px', borderColor: '#B0FFC9' }}
           icon={<SvgIcon component={InfoIcon} inheritViewBox color="secondary" />}
