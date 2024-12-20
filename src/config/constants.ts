@@ -112,8 +112,10 @@ export const PAYMASTER_ADDRESSES = {
   [chains['sophon-testnet']]: '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
   [chains.sophon]: '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
 }
+export const SAFE_PASS_URL = 'community.safe.global'
 export const ECOSYSTEM_ID_ADDRESS =
   process.env.NEXT_PUBLIC_ECOSYSTEM_ID_ADDRESS || '0x0000000000000000000000000000000000000000'
+export const MULTICHAIN_HELP_ARTICLE = `${HELP_CENTER_URL}/en/articles/222612-multi-chain-safe`
 
 export const TERMS_LINK =
   process.env.NEXT_PUBLIC_TERMS_LINK ||
