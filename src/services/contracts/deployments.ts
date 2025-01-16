@@ -18,15 +18,14 @@ import { type SafeVersion } from '@safe-global/safe-core-sdk-types'
 const toNetworkAddressList = (addresses: string | string[]) => (Array.isArray(addresses) ? addresses : [addresses])
 
 export const hasCanonicalDeployment = (deployment: SingletonDeploymentV2 | undefined, chainId: string) => {
-  const canonicalAddress = deployment?.deployments.canonical?.address
-
-  if (!canonicalAddress) {
+  const zkSyncAddress = deployment?.deployments.zksync?.address
+  if (!zkSyncAddress) {
     return false
   }
 
   const networkAddresses = toNetworkAddressList(deployment.networkAddresses[chainId])
 
-  return networkAddresses.some((networkAddress) => sameAddress(canonicalAddress, networkAddress))
+  return networkAddresses.some((networkAddress) => sameAddress(zkSyncAddress, networkAddress))
 }
 
 /**

@@ -1,5 +1,5 @@
-import { createNewSafe, relaySafeCreation } from '@/components/new-safe/create/logic'
-import { NetworkFee, SafeSetupOverview } from '@/components/new-safe/create/steps/ReviewStep'
+import { signAndExecuteSafeCreation, relaySafeCreation } from '@/components/new-safe/create/logic'
+import { SafeSetupOverview } from '@/components/new-safe/create/steps/ReviewStep'
 import ReviewRow from '@/components/new-safe/ReviewRow'
 import { TxModalContext } from '@/components/tx-flow'
 import TxCard from '@/components/tx-flow/common/TxCard'
@@ -33,6 +33,7 @@ import useIsWrongChain from '@/hooks/useIsWrongChain'
 import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
 import CheckWallet from '@/components/common/CheckWallet'
 import { getSafeToL2SetupDeployment } from '@safe-global/safe-deployments'
+import { selectRpc } from '@/store/settingsSlice'
 
 const useActivateAccount = (undeployedSafe: UndeployedSafe | undefined) => {
   const chain = useCurrentChain()
@@ -70,6 +71,7 @@ const ActivateAccountFlow = () => {
 
   const chain = useCurrentChain()
   const chainId = useChainId()
+  const customRPCs = useAppSelector(selectRpc)
   const { safeAddress } = useSafeInfo()
   const undeployedSafe = useAppSelector((state) => selectUndeployedSafe(state, chainId, safeAddress))
   const { setTxFlow } = useContext(TxModalContext)
@@ -126,15 +128,23 @@ const ActivateAccountFlow = () => {
 
         onSubmit()
       } else {
-        await createNewSafe(
-          wallet.provider,
-          undeployedSafe.props,
-          safeVersion ?? getLatestSafeVersion(chain),
+        await signAndExecuteSafeCreation(
           chain,
-          options,
+          undeployedSafe.props,
+          wallet,
           onSubmit,
+          safeVersion ?? getLatestSafeVersion(chain),
           isMultichainSafe ? true : undefined,
         )
+        // await createNewSafe(
+        //   wallet.provider,
+        //   undeployedSafe.props,
+        //   safeVersion ?? getLatestSafeVersion(chain),
+        //   chain,
+        //   options,
+        //   onSubmit,
+        //   isMultichainSafe ? true : undefined,
+        // )
       }
     } catch (_err) {
       const err = asError(_err)
@@ -184,7 +194,8 @@ const ActivateAccountFlow = () => {
               name="Est. network fee"
               value={
                 <>
-                  <NetworkFee totalFee={totalFee} isWaived={willRelay || isWrongChain} chain={chain} />
+                  <Typography variant="body2">Free (Sponsored by Sophon)</Typography>
+                  {/* <NetworkFee totalFee={totalFee} isWaived={willRelay || isWrongChain} chain={chain} />
 
                   {!willRelay && (
                     <Typography variant="body2" color="text.secondary" mt={1}>
@@ -192,7 +203,7 @@ const ActivateAccountFlow = () => {
                         ? `Switch your connected wallet to ${chain?.chainName} to see the correct estimated network fee`
                         : 'You will have to confirm a transaction with your connected wallet.'}
                     </Typography>
-                  )}
+                  )} */}
                 </>
               }
             />

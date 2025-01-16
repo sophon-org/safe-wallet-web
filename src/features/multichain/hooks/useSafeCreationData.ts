@@ -61,7 +61,7 @@ const validateAccountConfig = (safeAccountConfig: SafeAccountConfig) => {
     throw new Error(SAFE_CREATION_DATA_ERRORS.PAYMENT_SAFE)
   }
 
-  const setupToL2Address = getSafeToL2SetupDeployment({ version: '1.4.1' })?.defaultAddress
+  const setupToL2Address = getSafeToL2SetupDeployment({ version: '1.4.1' })?.deployments?.zksync?.address
   if (safeAccountConfig.to !== ZERO_ADDRESS && !sameAddress(safeAccountConfig.to, setupToL2Address)) {
     // Unknown setupModules calls cannot be replayed as the target contract is likely not deployed across chains
     throw new Error(SAFE_CREATION_DATA_ERRORS.UNKNOWN_SETUP_MODULES)
@@ -107,6 +107,7 @@ const getCreationDataForChain = async (
   // Safes that were deployed with an unknown mastercopy or < 1.3.0 are not supported.
   const safeVersion = determineMasterCopyVersion(creation.masterCopy, chain.chainId)
   if (!safeVersion || semverSatisfies(safeVersion, '<1.3.0')) {
+    debugger
     throw new Error(SAFE_CREATION_DATA_ERRORS.UNSUPPORTED_IMPLEMENTATION)
   }
 
@@ -119,6 +120,7 @@ const getCreationDataForChain = async (
   const provider = createWeb3ReadOnly(chain, customRpcUrl)
 
   if (!provider) {
+    debugger
     throw new Error(SAFE_CREATION_DATA_ERRORS.NO_PROVIDER)
   }
 
@@ -165,7 +167,6 @@ export const useSafeCreationData = (safeAddress: string, chains: ChainInfo[]): A
   const customRpc = useAppSelector(selectRpc)
 
   const undeployedSafes = useAppSelector(selectUndeployedSafes)
-
   return useAsync<ReplayedSafeProps | undefined>(async () => {
     let lastError: Error | undefined = undefined
     try {

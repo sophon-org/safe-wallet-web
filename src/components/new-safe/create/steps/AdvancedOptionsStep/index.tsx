@@ -67,6 +67,7 @@ const AdvancedOptionsStep = ({ onSubmit, onBack, data, setStep }: StepRenderProp
       },
       chain,
       selectedSafeVersion,
+      true,
     )
   }, [
     chain,

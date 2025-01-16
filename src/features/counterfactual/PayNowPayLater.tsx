@@ -96,13 +96,7 @@ const PayNowPayLater = ({
                 <>
                   <Typography className={css.radioTitle}>Pay now</Typography>
                   <Typography className={css.radioSubtitle} variant="body2" color="text.secondary">
-                    {canRelay ? (
-                      'Sponsored free transaction'
-                    ) : (
-                      <>
-                        &asymp; {totalFee} {chain?.nativeCurrency.symbol}
-                      </>
-                    )}
+                    Free (Sponsored by Sophon)
                   </Typography>
                 </>
               }

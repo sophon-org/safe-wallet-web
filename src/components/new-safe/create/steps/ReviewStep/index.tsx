@@ -7,9 +7,9 @@ import type { StepRenderProps } from '@/components/new-safe/CardStepper/useCardS
 import type { NewSafeFormData } from '@/components/new-safe/create'
 import {
   computeNewSafeAddress,
-  createNewSafe,
   createNewUndeployedSafeWithoutSalt,
   relaySafeCreation,
+  signAndExecuteSafeCreation,
 } from '@/components/new-safe/create/logic'
 import { getAvailableSaltNonce } from '@/components/new-safe/create/logic/utils'
 import css from '@/components/new-safe/create/steps/ReviewStep/styles.module.css'
@@ -31,7 +31,7 @@ import { CREATE_SAFE_CATEGORY, CREATE_SAFE_EVENTS, OVERVIEW_EVENTS, trackEvent }
 import { gtmSetChainId, gtmSetSafeAddress } from '@/services/analytics/gtm'
 import { asError } from '@/services/exceptions/utils'
 import { useAppDispatch, useAppSelector } from '@/store'
-import { FEATURES, hasFeature } from '@/utils/chains'
+import { FEATURES } from '@/utils/chains'
 import { hasRemainingRelays } from '@/utils/relaying'
 import { isWalletRejection } from '@/utils/wallets'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
@@ -49,7 +49,6 @@ import { AppRoutes } from '@/config/routes'
 import { type ReplayedSafeProps } from '@/store/slices'
 import { predictAddressBasedOnReplayData } from '@/features/multichain/utils/utils'
 import { createWeb3ReadOnly, getRpcServiceUrl } from '@/hooks/wallets/web3'
-import { type DeploySafeProps } from '@safe-global/protocol-kit'
 import { updateAddressBook } from '../../logic/address-book'
 import chains from '@/config/chains'
 
@@ -170,13 +169,13 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
     () =>
       chain
         ? createNewUndeployedSafeWithoutSalt(
-          data.safeVersion,
-          {
-            owners: data.owners.map((owner) => owner.address),
-            threshold: data.threshold,
-          },
-          chain,
-        )
+            data.safeVersion,
+            {
+              owners: data.owners.map((owner) => owner.address),
+              threshold: data.threshold,
+            },
+            chain,
+          )
         : undefined,
     [chain, data.owners, data.safeVersion, data.threshold],
   )
@@ -184,9 +183,9 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
   const safePropsForGasEstimation = useMemo(() => {
     return newSafeProps
       ? {
-        ...newSafeProps,
-        saltNonce: Date.now().toString(),
-      }
+          ...newSafeProps,
+          saltNonce: Date.now().toString(),
+        }
       : undefined
   }, [newSafeProps])
 
@@ -231,7 +230,7 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
 
       let safeAddress: string
 
-      if (chain.chainId === chains['zksync']) {
+      if ([chains['zksync'], chains['sophon-testnet'], chains.sophon].some((id) => id === chain.chainId)) {
         safeAddress = await computeNewSafeAddress(
           customRpcUrl || getRpcServiceUrl(chain.rpcUri),
           {
@@ -240,6 +239,7 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
           },
           chain,
           replayedSafeWithNonce.safeVersion,
+          true,
         )
       } else {
         safeAddress = await predictAddressBasedOnReplayData(replayedSafeWithNonce, provider)
@@ -330,17 +330,27 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
         const taskId = await relaySafeCreation(chain, props)
         onSubmitCallback(taskId)
       } else {
-        await createNewSafe(
-          wallet.provider,
-          props,
-          data.safeVersion,
+        await signAndExecuteSafeCreation(
           chain,
-          options,
+          props,
+          wallet,
           (txHash) => {
             onSubmitCallback(undefined, txHash)
           },
+          data.safeVersion,
           true,
         )
+        // await createNewSafe(
+        //   wallet.provider,
+        //   props,
+        //   data.safeVersion,
+        //   chain,
+        //   options,
+        //   (txHash) => {
+        //     onSubmitCallback(undefined, txHash)
+        //   },
+        //   true,
+        // )
       }
     } catch (_err) {
       const error = asError(_err)
@@ -403,7 +413,7 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
               </Box>
             )}
 
-            {payMethod === PayMethod.PayNow && (
+            {/* {payMethod === PayMethod.PayNow && (
               <Grid item>
                 <Typography component="div" mt={2}>
                   You will have to confirm a transaction and pay an estimated fee of{' '}
@@ -411,7 +421,7 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
                   wallet
                 </Typography>
               </Grid>
-            )}
+            )} */}
           </Box>
         </>
       )}

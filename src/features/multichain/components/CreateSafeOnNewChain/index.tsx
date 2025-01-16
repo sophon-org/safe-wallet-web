@@ -14,8 +14,8 @@ import { replayCounterfactualSafeDeployment } from '@/features/counterfactual/ut
 import useChains from '@/hooks/useChains'
 import { useAppDispatch, useAppSelector } from '@/store'
 import { selectRpc } from '@/store/settingsSlice'
-import { createWeb3ReadOnly } from '@/hooks/wallets/web3'
-import { hasMultiChainAddNetworkFeature, predictAddressBasedOnReplayData } from '@/features/multichain/utils/utils'
+import { createWeb3ReadOnly, getRpcServiceUrl } from '@/hooks/wallets/web3'
+import { hasMultiChainAddNetworkFeature } from '@/features/multichain/utils/utils'
 import { sameAddress } from '@/utils/addresses'
 import ExternalLink from '@/components/common/ExternalLink'
 import { useRouter } from 'next/router'
@@ -25,6 +25,7 @@ import { useMemo, useState } from 'react'
 import { useCompatibleNetworks } from '../../hooks/useCompatibleNetworks'
 import { PayMethod } from '@/features/counterfactual/PayNowPayLater'
 import { MULTICHAIN_HELP_ARTICLE } from '@/config/constants'
+import { computeNewSafeAddress } from '@/components/new-safe/create/logic'
 
 type CreateSafeOnNewChainForm = {
   chainId: string
@@ -80,6 +81,7 @@ const ReplaySafeDialog = ({
     try {
       const selectedChain = chain ?? replayableChains?.find((config) => config.chainId === data.chainId)
       if (!safeCreationData || !selectedChain) {
+        debugger
         return
       }
 
@@ -87,12 +89,27 @@ const ReplaySafeDialog = ({
       const customRpcUrl = selectedChain ? customRpc?.[selectedChain.chainId] : undefined
       const provider = createWeb3ReadOnly(selectedChain, customRpcUrl)
       if (!provider) {
+        debugger
+        return
+      }
+
+      if (!chain) {
         return
       }
 
       // 1. Double check that the creation Data will lead to the correct address
-      const predictedAddress = await predictAddressBasedOnReplayData(safeCreationData, provider)
+      const predictedAddress = await computeNewSafeAddress(
+        customRpcUrl || getRpcServiceUrl(chain.rpcUri),
+        {
+          safeAccountConfig: safeCreationData.safeAccountConfig,
+          saltNonce: safeCreationData.saltNonce,
+        },
+        chain,
+        safeCreationData.safeVersion,
+        true,
+      )
       if (!sameAddress(safeAddress, predictedAddress)) {
+        debugger
         setCreationError(new Error('The replayed Safe leads to an unexpected address'))
         return
       }

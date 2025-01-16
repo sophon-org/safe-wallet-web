@@ -36,7 +36,7 @@ export const getAvailableSaltNonce = async (
       throw new Error('Could not initiate RPC')
     }
     let safeAddress: string
-    if (chain.chainId === chains['zksync']) {
+    if ([chains['zksync'], chains['sophon-testnet'], chains.sophon].some((id) => id === chain.chainId)) {
       // ZK-sync is using a different create2 method which is supported by the SDK
       safeAddress = await computeNewSafeAddress(
         rpcUrl,
@@ -46,6 +46,7 @@ export const getAvailableSaltNonce = async (
         },
         chain,
         replayedSafe.safeVersion,
+        true,
       )
     } else {
       safeAddress = await predictAddressBasedOnReplayData(replayedSafe, web3ReadOnly)

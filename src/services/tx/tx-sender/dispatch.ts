@@ -90,7 +90,6 @@ export const dispatchTxProposal = async ({
 /**
  * Sign a transaction
  */
-// TODODEN
 export const dispatchTxSigning = async (
   safeTx: SafeTransaction,
   safeVersion: SafeInfo['version'],
@@ -137,7 +136,6 @@ const ZK_SYNC_ON_CHAIN_SIGNATURE_GAS_LIMIT = 4_500_000
 /**
  * On-Chain sign a transaction
  */
-// TODODEN
 export const dispatchOnChainSigning = async (
   safeTx: SafeTransaction,
   txId: string,
@@ -395,7 +393,6 @@ export const dispatchBatchExecution = async (
 /**
  * Execute a module transaction
  */
-// TODODEN
 export const dispatchModuleTxExecution = async (
   tx: Transaction,
   provider: Eip1193Provider,

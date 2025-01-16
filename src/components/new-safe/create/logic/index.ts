@@ -78,6 +78,7 @@ export const computeNewSafeAddress = async (
   props: DeploySafeProps,
   chain: ChainInfo,
   safeVersion?: SafeVersion,
+  isL1SafeSingleton?: boolean,
 ): Promise<string> => {
   const safeProvider = new SafeProvider({ provider })
 
@@ -89,6 +90,7 @@ export const computeNewSafeAddress = async (
       saltNonce: props.saltNonce,
       safeVersion: safeVersion ?? getLatestSafeVersion(chain),
     },
+    isL1SafeSingleton,
   })
 }
 
@@ -305,4 +307,66 @@ export const assertNewUndeployedSafeProps = (props: UndeployedSafeProps, chain: 
   }
 
   return props
+}
+
+export const signAndExecuteSafeCreation = async (
+  chain: ChainInfo,
+  undeployedSafeProps: UndeployedSafeProps,
+  wallet: ConnectedWallet,
+  callback: (txHash: string) => void,
+  version?: SafeVersion,
+  isL1?: boolean,
+) => {
+  const { createProxyWithNonceCallData, proxyFactoryAddress } = await generateCreateProxyWithNonceCallData(
+    chain,
+    undeployedSafeProps,
+    version,
+    isL1,
+  )
+  const paymasterParams = utils.getPaymasterParams(
+    PAYMASTER_ADDRESSES[chain.chainId], // Paymaster address
+    {
+      type: 'General',
+      innerInput: new Uint8Array(),
+    },
+  )
+  const browserProvider = new BrowserProvider(wallet.provider)
+  const signer = Signer.from(
+    await browserProvider.getSigner(),
+    Number(chain.chainId),
+    new ZKProvider(chain.rpcUri.value, { name: chain.chainName, chainId: Number(chain.chainId) }),
+  )
+  const tx = await signer.sendTransaction({
+    type: utils.EIP712_TX_TYPE,
+    from: wallet.address,
+    to: proxyFactoryAddress,
+    data: createProxyWithNonceCallData,
+    customData: {
+      gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+      paymasterParams,
+    },
+  })
+  callback(tx.hash)
+}
+
+const generateCreateProxyWithNonceCallData = async (
+  chain: ChainInfo,
+  undeployedSafeProps: UndeployedSafeProps,
+  version?: SafeVersion,
+  isL1?: boolean,
+) => {
+  const latestSafeVersion = getLatestSafeVersion(chain)
+  const safeVersion = version ?? latestSafeVersion
+  const readOnlyProxyFactoryContract = await getReadOnlyProxyFactoryContract(safeVersion)
+  const proxyFactoryAddress = await readOnlyProxyFactoryContract.getAddress()
+  const replayedSafeProps = assertNewUndeployedSafeProps(undeployedSafeProps, chain)
+  const createProxyWithNonceCallData = Safe_proxy_factory__factory.createInterface().encodeFunctionData(
+    'createProxyWithNonce',
+    [
+      replayedSafeProps.masterCopy,
+      encodeSafeSetupCall(replayedSafeProps.safeAccountConfig),
+      BigInt(replayedSafeProps.saltNonce),
+    ],
+  )
+  return { createProxyWithNonceCallData, proxyFactoryAddress }
 }
