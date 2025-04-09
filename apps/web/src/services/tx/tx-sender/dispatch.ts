@@ -189,7 +189,7 @@ export const dispatchOnChainSigning = async (
   txDispatch(TxEvent.ONCHAIN_SIGNATURE_SUCCESS, eventParams)
 
   if (isNestedSafe) {
-    const txHashOrParentSafeTxHash = safeTxHash; // Initialize txHashOrParentSafeTxHash
+    const txHashOrParentSafeTxHash = safeTxHash // Initialize txHashOrParentSafeTxHash
     txDispatch(TxEvent.NESTED_SAFE_TX_CREATED, {
       ...eventParams,
       txHashOrParentSafeTxHash,

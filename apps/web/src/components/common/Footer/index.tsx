@@ -34,7 +34,7 @@ const FooterLink = ({ children, href }: { children: ReactNode; href: string }): 
 
 const Footer = (): ReactElement | null => {
   const router = useRouter()
-  const isOfficialHost = useIsOfficialHost()
+  //const isOfficialHost = useIsOfficialHost()
 
   if (!footerPages.some((path) => router.pathname.startsWith(path))) {
     return null
@@ -47,15 +47,13 @@ const Footer = (): ReactElement | null => {
   return (
     <footer className={css.container}>
       <ul>
-        {isOfficialHost ? (
-          <>
-            {/* <li>
+        {/* <li>
               <Typography variant="caption">&copy;2022–{new Date().getFullYear()} Core Contributors GmbH</Typography>
             </li> */}
-            <li>
-              <FooterLink href={getHref(AppRoutes.terms)}>Terms</FooterLink>
-            </li>
-            {/* <li>
+        <li>
+          <FooterLink href={getHref(AppRoutes.terms)}>Terms</FooterLink>
+        </li>
+        {/* <li>
               <FooterLink href={getHref(AppRoutes.privacy)}>Privacy</FooterLink>
             </li>
             <li>
@@ -64,21 +62,17 @@ const Footer = (): ReactElement | null => {
             <li>
               <FooterLink href={getHref(AppRoutes.imprint)}>Imprint</FooterLink>
             </li> */}
-            <li>
-              <FooterLink href={getHref(AppRoutes.cookie)}>Cookie policy</FooterLink>
-            </li>
-            <li>
-              <FooterLink href={getHref(AppRoutes.settings.index)}>Preferences</FooterLink>
-            </li>
-            <li>
-              <ExternalLink href={HELP_CENTER_URL} noIcon sx={{ span: { textDecoration: 'underline' } }}>
-                Help
-              </ExternalLink>
-            </li>
-          </>
-        ) : (
-          <li>This is an unofficial distribution of Sophon Safe</li>
-        )}
+        <li>
+          <FooterLink href={getHref(AppRoutes.cookie)}>Cookie policy</FooterLink>
+        </li>
+        <li>
+          <FooterLink href={getHref(AppRoutes.settings.index)}>Preferences</FooterLink>
+        </li>
+        <li>
+          <ExternalLink href={HELP_CENTER_URL} noIcon sx={{ span: { textDecoration: 'underline' } }}>
+            Help
+          </ExternalLink>
+        </li>
 
         <li>
           <ExternalLink href={`${packageJson.homepage}/releases/tag/v${packageJson.version}`} noIcon>

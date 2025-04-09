@@ -349,12 +349,12 @@ export const extractCounterfactualSafeSetup = (
   chainId: string | undefined,
 ):
   | {
-    owners: string[]
-    threshold: number
-    fallbackHandler: string | undefined
-    safeVersion: SafeVersion | undefined
-    saltNonce: string | undefined
-  }
+      owners: string[]
+      threshold: number
+      fallbackHandler: string | undefined
+      safeVersion: SafeVersion | undefined
+      saltNonce: string | undefined
+    }
   | undefined => {
   if (!undeployedSafe || !chainId || !undeployedSafe.props.safeAccountConfig) {
     return undefined
