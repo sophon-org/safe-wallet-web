@@ -8,9 +8,9 @@ import {
   SidebarListItemText,
 } from '@/components/sidebar/SidebarList'
 import { loadBeamer } from '@/services/beamer'
-import { useAppDispatch, useAppSelector } from '@/store'
+import { useAppSelector } from '@/store'
 import { CookieAndTermType, hasConsentFor } from '@/store/cookiesAndTermsSlice'
-import { openCookieBanner } from '@/store/popupSlice'
+//import { openCookieBanner } from '@/store/popupSlice'
 //import BeamerIcon from '@/public/images/sidebar/whats-new.svg'
 import HelpCenterIcon from '@/public/images/sidebar/help-center.svg'
 import { Link, ListItem, SvgIcon, Typography } from '@mui/material'
@@ -23,7 +23,7 @@ import darkPalette from '@/components/theme/darkPalette'
 import ProtofireLogo from '@/public/images/protofire-logo.svg'
 
 const SidebarFooter = (): ReactElement => {
-  const dispatch = useAppDispatch()
+  //const dispatch = useAppDispatch()
   const chain = useCurrentChain()
   const hasBeamerConsent = useAppSelector((state) => hasConsentFor(state, CookieAndTermType.UPDATES))
 
@@ -34,11 +34,11 @@ const SidebarFooter = (): ReactElement => {
     }
   }, [hasBeamerConsent, chain?.shortName])
 
-  const handleBeamer = () => {
-    if (!hasBeamerConsent) {
-      dispatch(openCookieBanner({ warningKey: CookieAndTermType.UPDATES }))
-    }
-  }
+  // const handleBeamer = () => {
+  //   if (!hasBeamerConsent) {
+  //     dispatch(openCookieBanner({ warningKey: CookieAndTermType.UPDATES }))
+  //   }
+  // }
 
   return (
     <SidebarList>
