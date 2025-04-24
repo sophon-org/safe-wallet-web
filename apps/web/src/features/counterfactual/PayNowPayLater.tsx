@@ -1,6 +1,5 @@
 import type { ChangeEvent, Dispatch, SetStateAction } from 'react'
 import classnames from 'classnames'
-import { useCurrentChain } from '@/hooks/useChains'
 import CheckRoundedIcon from '@mui/icons-material/CheckRounded'
 import {
   FormControl,
@@ -22,20 +21,14 @@ export const enum PayMethod {
 }
 
 const PayNowPayLater = ({
-  totalFee,
-  canRelay,
   isMultiChain,
   payMethod,
   setPayMethod,
 }: {
-  totalFee: string
-  canRelay: boolean
   isMultiChain: boolean
   payMethod: PayMethod
   setPayMethod: Dispatch<SetStateAction<PayMethod>>
 }) => {
-  const chain = useCurrentChain()
-
   const onChoosePayMethod = (_: ChangeEvent<HTMLInputElement>, newPayMethod: string) => {
     setPayMethod(newPayMethod as PayMethod)
   }

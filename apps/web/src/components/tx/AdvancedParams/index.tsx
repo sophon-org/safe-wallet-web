@@ -46,14 +46,7 @@ const AdvancedParams = ({
       willRelay={willRelay}
     />
   ) : (
-    <GasParams
-      params={params}
-      isExecution={willExecute}
-      isEIP1559={isEIP1559}
-      gasLimitError={gasLimitError}
-      onEdit={onEditOpen}
-      willRelay={willRelay}
-    />
+    <GasParams params={params} isExecution={willExecute} gasLimitError={gasLimitError} onEdit={onEditOpen} />
   )
 }
 

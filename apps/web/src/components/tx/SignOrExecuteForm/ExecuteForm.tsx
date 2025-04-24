@@ -124,10 +124,7 @@ export const ExecuteForm = ({
     setTxFlow(<SuccessScreenFlow txId={executedTxId} />, undefined, false)
   }
 
-  const walletCanPay = useWalletCanPay({
-    gasLimit,
-    maxFeePerGas: advancedParams.maxFeePerGas,
-  })
+  const walletCanPay = useWalletCanPay()
 
   const cannotPropose = !isOwner && !onlyExecute
   const submitDisabled =

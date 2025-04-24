@@ -14,9 +14,8 @@ import { useCallback, useState } from 'react'
 import GasParams from '@/components/tx/GasParams'
 import { asError } from '@/services/exceptions/utils'
 import { getTxOptions } from '@/utils/transactions'
-import { useCurrentChain, useHasFeature } from '@/hooks/useChains'
+import { useCurrentChain } from '@/hooks/useChains'
 import { SimpleTxWatcher } from '@/utils/SimpleTxWatcher'
-import { FEATURES } from '@/utils/chains'
 import { isWalletRejection } from '@/utils/wallets'
 import { type TransactionOptions } from '@safe-global/safe-core-sdk-types'
 import { PendingTxType, type PendingProcessingTx } from '@/store/pendingTxsSlice'
@@ -52,7 +51,6 @@ export const SpeedUpModal = ({
 }: Props) => {
   const [speedUpFee] = useGasPrice(true)
   const [waitingForConfirmation, setWaitingForConfirmation] = useState(false)
-  const isEIP1559 = useHasFeature(FEATURES.EIP1559)
 
   const wallet = useWallet()
   const onboard = useOnboard()
@@ -189,8 +187,6 @@ export const SpeedUpModal = ({
                   maxPriorityFeePerGas: speedUpFee.maxPriorityFeePerGas,
                 }}
                 isExecution={true}
-                isEIP1559={isEIP1559}
-                willRelay={false}
               />
             )}
           </Box>

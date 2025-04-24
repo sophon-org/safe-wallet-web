@@ -133,10 +133,7 @@ export const ExecuteThroughRoleForm = ({
     setTxFlow(<SuccessScreenFlow txId={txId} />, undefined, false)
   }
 
-  const walletCanPay = useWalletCanPay({
-    gasLimit,
-    maxFeePerGas: advancedParams.maxFeePerGas,
-  })
+  const walletCanPay = useWalletCanPay()
 
   const submitDisabled = !txThroughRole || isPending || disableSubmit || (needsRiskConfirmation && !isRiskConfirmed)
 

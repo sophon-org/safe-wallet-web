@@ -2,7 +2,6 @@ import type { NamedAddress } from '@/components/new-safe/create/types'
 import EthHashInfo from '@/components/common/EthHashInfo'
 import { safeCreationDispatch, SafeCreationEvent } from '@/features/counterfactual/services/safeCreationEvents'
 import NetworkLogosList from '@/features/multichain/components/NetworkLogosList'
-import { getTotalFeeFormatted } from '@/hooks/useGasPrice'
 import type { StepRenderProps } from '@/components/new-safe/CardStepper/useCardStepper'
 import type { NewSafeFormData } from '@/components/new-safe/create'
 import {
@@ -14,7 +13,6 @@ import {
 import { getAvailableSaltNonce } from '@/components/new-safe/create/logic/utils'
 import css from '@/components/new-safe/create/steps/ReviewStep/styles.module.css'
 import layoutCss from '@/components/new-safe/create/styles.module.css'
-import { useEstimateSafeCreationGas } from '@/components/new-safe/create/useEstimateSafeCreationGas'
 import useSyncSafeCreationStep from '@/components/new-safe/create/useSyncSafeCreationStep'
 import ReviewRow from '@/components/new-safe/ReviewRow'
 import ErrorMessage from '@/components/tx/ErrorMessage'
@@ -22,7 +20,6 @@ import { ExecutionMethod, ExecutionMethodSelector } from '@/components/tx/Execut
 import PayNowPayLater, { PayMethod } from '@/features/counterfactual/PayNowPayLater'
 import { CF_TX_GROUP_KEY, replayCounterfactualSafeDeployment } from '@/features/counterfactual/utils'
 import { useCurrentChain, useHasFeature } from '@/hooks/useChains'
-import useGasPrice from '@/hooks/useGasPrice'
 import useIsWrongChain from '@/hooks/useIsWrongChain'
 import { useLeastRemainingRelays } from '@/hooks/useRemainingRelays'
 import useWalletCanPay from '@/hooks/useWalletCanPay'
@@ -157,7 +154,6 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
   const wallet = useWallet()
   const dispatch = useAppDispatch()
   const router = useRouter()
-  const [gasPrice] = useGasPrice()
   const customRpc = useAppSelector(selectRpc)
   const [payMethod, setPayMethod] = useState(PayMethod.PayLater)
   const [executionMethod, setExecutionMethod] = useState(ExecutionMethod.RELAY)
@@ -191,24 +187,8 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
     [chain, data.owners, data.safeVersion, data.threshold, data.paymentReceiver],
   )
 
-  const safePropsForGasEstimation = useMemo(() => {
-    return newSafeProps
-      ? {
-          ...newSafeProps,
-          saltNonce: Date.now().toString(),
-        }
-      : undefined
-  }, [newSafeProps])
-
   // We estimate with a random nonce as we'll just slightly overestimates like this
-  const { gasLimit } = useEstimateSafeCreationGas(safePropsForGasEstimation, data.safeVersion)
-
-  const maxFeePerGas = gasPrice?.maxFeePerGas
-  // const maxPriorityFeePerGas = gasPrice?.maxPriorityFeePerGas
-
-  const walletCanPay = useWalletCanPay({ gasLimit, maxFeePerGas })
-
-  const totalFee = getTotalFeeFormatted(maxFeePerGas, gasLimit, chain)
+  const walletCanPay = useWalletCanPay()
 
   const allSafes = useAllSafes()
   const knownAddresses = useMemo(() => uniq(allSafes?.map((safe) => safe.address)), [allSafes])
@@ -379,13 +359,7 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
         <>
           <Divider />
           <Box data-testid="pay-now-later-message-box" className={layoutCss.row}>
-            <PayNowPayLater
-              totalFee={totalFee}
-              isMultiChain={isMultiChainDeployment}
-              canRelay={canRelay}
-              payMethod={payMethod}
-              setPayMethod={setPayMethod}
-            />
+            <PayNowPayLater isMultiChain={isMultiChainDeployment} payMethod={payMethod} setPayMethod={setPayMethod} />
 
             {canRelay && payMethod === PayMethod.PayNow && (
               <>

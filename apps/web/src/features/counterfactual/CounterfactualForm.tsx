@@ -96,10 +96,7 @@ export const CounterfactualForm = ({
     setTxFlow(undefined)
   }
 
-  const walletCanPay = useWalletCanPay({
-    gasLimit: gasLimit?.totalGas,
-    maxFeePerGas: advancedParams.maxFeePerGas,
-  })
+  const walletCanPay = useWalletCanPay()
 
   const cannotPropose = !isOwner && !onlyExecute
   const submitDisabled =
