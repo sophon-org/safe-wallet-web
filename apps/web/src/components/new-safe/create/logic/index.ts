@@ -317,13 +317,11 @@ export const signAndExecuteSafeCreation = async (
   wallet: ConnectedWallet,
   callback: (txHash: string) => void,
   version?: SafeVersion,
-  isL1?: boolean,
 ) => {
   const { createProxyWithNonceCallData, proxyFactoryAddress } = await generateCreateProxyWithNonceCallData(
     chain,
     undeployedSafeProps,
     version,
-    isL1,
   )
   const paymasterParams = utils.getPaymasterParams(
     PAYMASTER_ADDRESSES[chain.chainId], // Paymaster address
@@ -355,7 +353,6 @@ const generateCreateProxyWithNonceCallData = async (
   chain: ChainInfo,
   undeployedSafeProps: UndeployedSafeProps,
   version?: SafeVersion,
-  isL1?: boolean,
 ) => {
   const latestSafeVersion = getLatestSafeVersion(chain)
   const safeVersion = version ?? latestSafeVersion

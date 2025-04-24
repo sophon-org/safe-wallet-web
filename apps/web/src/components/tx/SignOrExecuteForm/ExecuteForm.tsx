@@ -105,6 +105,7 @@ export const ExecuteForm = ({
 
     let executedTxId: string
     try {
+      debugger
       executedTxId = await executeTx(txOptions, safeTx, txId, origin, willRelay)
     } catch (_err) {
       const err = asError(_err)

@@ -347,19 +347,7 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
             onSubmitCallback(undefined, txHash)
           },
           data.safeVersion,
-          true,
         )
-        // await createNewSafe(
-        //   wallet.provider,
-        //   props,
-        //   data.safeVersion,
-        //   chain,
-        //   options,
-        //   (txHash) => {
-        //     onSubmitCallback(undefined, txHash)
-        //   },
-        //   true,
-        // )
       }
     } catch (_err) {
       const error = asError(_err)

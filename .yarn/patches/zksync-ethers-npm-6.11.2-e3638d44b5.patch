@@ -1,0 +1,39 @@
+diff --git a/build/signer.js b/build/signer.js
+index 83ff5d917a7650725317c37813a5ecb2c275b3db..e0815e9d558cfa32391744290b8103c9e28b001f 100644
+--- a/build/signer.js
++++ b/build/signer.js
+@@ -585,7 +585,7 @@ class Signer extends (0, adapters_1.AdapterL2)(ethers_1.ethers.JsonRpcSigner) {
+         if (tx.gasPrice && (tx.maxFeePerGas || tx.maxPriorityFeePerGas)) {
+             throw new Error('Provide combination of maxFeePerGas and maxPriorityFeePerGas or provide gasPrice. Not both!');
+         }
+-        if (this.providerL2) {
++        if (!this.providerL2) {
+             throw new Error('Initialize provider L2');
+         }
+         if (!tx.gasLimit ||
+diff --git a/build-esm/signer.js b/build-esm/signer.js
+index c050f66ae79f58728adb2ee63a7a3c9eddede050..df8d9cac4eedfc09576242c642e0573ef47c7c63 100644
+--- a/build-esm/signer.js
++++ b/build-esm/signer.js
+@@ -581,7 +581,7 @@ export class Signer extends AdapterL2(ethers.JsonRpcSigner) {
+         if (tx.gasPrice && (tx.maxFeePerGas || tx.maxPriorityFeePerGas)) {
+             throw new Error('Provide combination of maxFeePerGas and maxPriorityFeePerGas or provide gasPrice. Not both!');
+         }
+-        if (this.providerL2) {
++        if (!this.providerL2) {
+             throw new Error('Initialize provider L2');
+         }
+         if (!tx.gasLimit ||
+diff --git a/src/signer.ts b/src/signer.ts
+index c3881b2aa1e412c9927a55afe2c53e637b8bcb13..d25903916f8d45e6f87852ecb1344d94c068182b 100644
+--- a/src/signer.ts
++++ b/src/signer.ts
+@@ -692,7 +692,7 @@ export class Signer extends AdapterL2(ethers.JsonRpcSigner) {
+         'Provide combination of maxFeePerGas and maxPriorityFeePerGas or provide gasPrice. Not both!'
+       );
+     }
+-    if (this.providerL2) {
++    if (!this.providerL2) {
+       throw new Error('Initialize provider L2');
+     }
+     if (

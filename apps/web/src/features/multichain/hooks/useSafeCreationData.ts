@@ -107,7 +107,6 @@ const getCreationDataForChain = async (
   // Safes that were deployed with an unknown mastercopy or < 1.3.0 are not supported.
   const safeVersion = determineMasterCopyVersion(creation.masterCopy, chain.chainId)
   if (!safeVersion || semverSatisfies(safeVersion, '<1.3.0')) {
-    debugger
     throw new Error(SAFE_CREATION_DATA_ERRORS.UNSUPPORTED_IMPLEMENTATION)
   }
 
@@ -120,7 +119,6 @@ const getCreationDataForChain = async (
   const provider = createWeb3ReadOnly(chain, customRpcUrl)
 
   if (!provider) {
-    debugger
     throw new Error(SAFE_CREATION_DATA_ERRORS.NO_PROVIDER)
   }
 

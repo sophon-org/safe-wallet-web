@@ -27,13 +27,10 @@ import type { DeploySafeProps } from '@safe-global/protocol-kit'
 import { FEATURES } from '@/utils/chains'
 import React, { useContext, useMemo, useState } from 'react'
 import { getLatestSafeVersion } from '@/utils/chains'
-import { sameAddress } from '@/utils/addresses'
 import { useEstimateSafeCreationGas } from '@/components/new-safe/create/useEstimateSafeCreationGas'
 import useIsWrongChain from '@/hooks/useIsWrongChain'
 import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
 import CheckWallet from '@/components/common/CheckWallet'
-import { getSafeToL2SetupDeployment } from '@safe-global/safe-deployments'
-import { selectRpc } from '@/store/settingsSlice'
 
 const useActivateAccount = (undeployedSafe: UndeployedSafe | undefined) => {
   const chain = useCurrentChain()
@@ -71,21 +68,17 @@ const ActivateAccountFlow = () => {
 
   const chain = useCurrentChain()
   const chainId = useChainId()
-  const customRPCs = useAppSelector(selectRpc)
   const { safeAddress } = useSafeInfo()
   const undeployedSafe = useAppSelector((state) => selectUndeployedSafe(state, chainId, safeAddress))
   const { setTxFlow } = useContext(TxModalContext)
   const wallet = useWallet()
-  const { options, totalFee, walletCanPay } = useActivateAccount(undeployedSafe)
+  const { walletCanPay } = useActivateAccount(undeployedSafe)
   const isWrongChain = useIsWrongChain()
 
   const undeployedSafeSetup = useMemo(
     () => extractCounterfactualSafeSetup(undeployedSafe, chainId),
     [undeployedSafe, chainId],
   )
-
-  const safeAccountConfig =
-    undeployedSafe && isPredictedSafeProps(undeployedSafe?.props) ? undeployedSafe?.props.safeAccountConfig : undefined
 
   const ownerAddresses = undeployedSafeSetup?.owners || []
   const [minRelays] = useLeastRemainingRelays(ownerAddresses)
@@ -97,10 +90,6 @@ const ActivateAccountFlow = () => {
   if (!undeployedSafe || !undeployedSafeSetup) return null
 
   const { owners, threshold, safeVersion } = undeployedSafeSetup
-
-  const safeToL2SetupDeployment = getSafeToL2SetupDeployment({ version: '1.4.1', network: chain?.chainId })
-  const safeToL2SetupAddress = safeToL2SetupDeployment?.defaultAddress
-  const isMultichainSafe = sameAddress(safeAccountConfig?.to, safeToL2SetupAddress)
 
   const onSubmit = (txHash?: string) => {
     trackEvent({ ...TX_EVENTS.CREATE, label: TX_TYPES.activate_without_tx })
@@ -134,17 +123,7 @@ const ActivateAccountFlow = () => {
           wallet,
           onSubmit,
           safeVersion ?? getLatestSafeVersion(chain),
-          isMultichainSafe ? true : undefined,
         )
-        // await createNewSafe(
-        //   wallet.provider,
-        //   undeployedSafe.props,
-        //   safeVersion ?? getLatestSafeVersion(chain),
-        //   chain,
-        //   options,
-        //   onSubmit,
-        //   isMultichainSafe ? true : undefined,
-        // )
       }
     } catch (_err) {
       const err = asError(_err)

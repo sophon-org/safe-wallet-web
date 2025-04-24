@@ -7426,7 +7426,7 @@ __metadata:
 
 "@safe-global/protocol-kit@patch:@safe-global/protocol-kit@npm%3A4.1.5#~/.yarn/patches/@safe-global-protocol-kit-npm-4.1.5-15df80b7bc.patch":
   version: 4.1.5
-  resolution: "@safe-global/protocol-kit@patch:@safe-global/protocol-kit@npm%3A4.1.5#~/.yarn/patches/@safe-global-protocol-kit-npm-4.1.5-15df80b7bc.patch::version=4.1.5&hash=d4559d"
+  resolution: "@safe-global/protocol-kit@patch:@safe-global/protocol-kit@npm%3A4.1.5#~/.yarn/patches/@safe-global-protocol-kit-npm-4.1.5-15df80b7bc.patch::version=4.1.5&hash=8f04f7"
   dependencies:
     "@noble/hashes": "npm:^1.3.3"
     "@safe-global/safe-core-sdk-types": "npm:^5.1.0"
@@ -7436,7 +7436,7 @@ __metadata:
     ethereumjs-util: "npm:^7.1.5"
     ethers: "npm:^6.13.1"
     semver: "npm:^7.6.2"
-  checksum: 10/1810ee29140ea4868af817826f1b260c7984f553b26e48fdb05659770c41147e24aec2815024f8a890b7554f40b5c6914f1fc50c59bff27a6e8583d9036a4ae6
+  checksum: 10/7ad548dacde321477e5cea58bada660a2544bc8f491255a162077e13df5c024d6538ea09ce8ae68c64a08bae03e98a814720a4ef8de5399e05dc402754b8ad46
   languageName: node
   linkType: hard
 
@@ -7479,10 +7479,10 @@ __metadata:
 
 "@safe-global/safe-deployments@patch:@safe-global/safe-deployments@npm%3A1.37.28#~/.yarn/patches/@safe-global-safe-deployments-npm-1.37.28-060d6063bb.patch":
   version: 1.37.28
-  resolution: "@safe-global/safe-deployments@patch:@safe-global/safe-deployments@npm%3A1.37.28#~/.yarn/patches/@safe-global-safe-deployments-npm-1.37.28-060d6063bb.patch::version=1.37.28&hash=b223c8"
+  resolution: "@safe-global/safe-deployments@patch:@safe-global/safe-deployments@npm%3A1.37.28#~/.yarn/patches/@safe-global-safe-deployments-npm-1.37.28-060d6063bb.patch::version=1.37.28&hash=125163"
   dependencies:
     semver: "npm:^7.6.2"
-  checksum: 10/0c5ab490c124e1fb646fab35c664f118aaca052734c265188938a30fa8e1f316fc9bb88a4095e7740243c0f3c19f6c3d4e3ab445471adaf4f331ee268f29ee8b
+  checksum: 10/45a92f8a9557dea20823bfe16f089d7f8e0b169e75d87ef1dfdda5720810ef2841b39cd49eb5aba43946b17392ae2c182efd4a6718082b214d2e4ec83c013dd2
   languageName: node
   linkType: hard
 
@@ -7510,7 +7510,6 @@ __metadata:
     patch-package: "npm:^8.0.0"
     prettier: "npm:^3.4.2"
     react-markdown: "npm:9.0.1"
-    zksync-ethers: "npm:6.11.2"
   languageName: unknown
   linkType: soft
 
@@ -7674,6 +7673,7 @@ __metadata:
     typescript: "npm:^5.4.5"
     typescript-plugin-css-modules: "npm:^4.2.2"
     webpack: "npm:^5.97.1"
+    zksync-ethers: "patch:zksync-ethers@npm%3A6.11.2#~/.yarn/patches/zksync-ethers-npm-6.11.2-e3638d44b5.patch"
     zodiac-roles-deployments: "npm:^2.3.4"
   languageName: unknown
   linkType: soft
@@ -32305,6 +32305,15 @@ __metadata:
   peerDependencies:
     ethers: ^6.7.1
   checksum: 10/75aaaa6b85c215389dddcfbc025528567df5ac7713bf1ad8f4fc780a19711738ed6390c2fa7a227f75f88a9d9ae8fad52b95135322e96ef6608157991517a3bc
+  languageName: node
+  linkType: hard
+
+"zksync-ethers@patch:zksync-ethers@npm%3A6.11.2#~/.yarn/patches/zksync-ethers-npm-6.11.2-e3638d44b5.patch":
+  version: 6.11.2
+  resolution: "zksync-ethers@patch:zksync-ethers@npm%3A6.11.2#~/.yarn/patches/zksync-ethers-npm-6.11.2-e3638d44b5.patch::version=6.11.2&hash=7ae6c0"
+  peerDependencies:
+    ethers: ^6.7.1
+  checksum: 10/54f602af196dad9ece7d8d089e47a072919768775f86d487595f2552de9876f72103d0894bd31b36ddb2241f3e779fd643924a99c65509d8b39304c6896e4311
   languageName: node
   linkType: hard
 

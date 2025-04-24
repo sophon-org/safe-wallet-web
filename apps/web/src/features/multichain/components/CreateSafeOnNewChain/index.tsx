@@ -81,7 +81,6 @@ const ReplaySafeDialog = ({
     try {
       const selectedChain = chain ?? replayableChains?.find((config) => config.chainId === data.chainId)
       if (!safeCreationData || !selectedChain) {
-        debugger
         return
       }
 
@@ -89,7 +88,6 @@ const ReplaySafeDialog = ({
       const customRpcUrl = selectedChain ? customRpc?.[selectedChain.chainId] : undefined
       const provider = createWeb3ReadOnly(selectedChain, customRpcUrl)
       if (!provider) {
-        debugger
         return
       }
 
@@ -109,7 +107,6 @@ const ReplaySafeDialog = ({
         true,
       )
       if (!sameAddress(safeAddress, predictedAddress)) {
-        debugger
         setCreationError(new Error('The replayed Safe leads to an unexpected address'))
         return
       }
