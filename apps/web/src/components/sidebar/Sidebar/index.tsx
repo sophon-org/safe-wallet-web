@@ -53,7 +53,7 @@ const Sidebar = (): ReactElement => {
 
         {/* What's new + Need help? */}
         <SidebarFooter />
-{/* 
+        {/* 
         <Divider flexItem />
 
         <IndexingStatus /> */}
