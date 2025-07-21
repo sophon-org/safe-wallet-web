@@ -31,40 +31,44 @@ import { hasFeature } from '@/utils/chains'
 import type { Overrides } from 'ethers'
 import { trackEvent } from '@/services/analytics'
 import { TX_EVENTS, TX_TYPES } from '@/services/analytics/events/transactions'
+import { useGetMultipleTransactionDetailsQuery } from '@/store/api/gateway'
+import { skipToken } from '@reduxjs/toolkit/query'
 import { isWalletRejection } from '@/utils/wallets'
 import WalletRejectionError from '@/components/tx/SignOrExecuteForm/WalletRejectionError'
-import useUserNonce from '@/components/tx/AdvancedParams/useUserNonce'
-import { getLatestSafeVersion } from '@/utils/chains'
-import { HexEncodedData } from '@/components/transactions/HexEncodedData'
-import { useGetMultipleTransactionDetailsQuery } from '@/store/api/gateway'
-import { skipToken } from '@reduxjs/toolkit/query/react'
 import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
+import { HexEncodedData } from '@/components/transactions/HexEncodedData'
+import { getLatestSafeVersion } from '@/utils/chains'
+import AdvancedParams from '@/components/tx/AdvancedParams'
+import useGasLimit from '@/hooks/useGasLimit'
+import { useAdvancedParams } from '@/components/tx/AdvancedParams/useAdvancedParams'
+import useUserNonce from '@/components/tx/AdvancedParams/useUserNonce'
 
 export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
   const [isSubmittable, setIsSubmittable] = useState<boolean>(true)
   const [submitError, setSubmitError] = useState<Error | undefined>()
   const [isRejectedByUser, setIsRejectedByUser] = useState<Boolean>(false)
-  const [executionMethod, setExecutionMethod] = useState(ExecutionMethod.RELAY)
-  const chain = useCurrentChain()
-  const { safe } = useSafeInfo()
-  const [relays] = useRelaysBySafe()
-  const { setTxFlow } = useContext(TxModalContext)
-  const [gasPrice] = useGasPrice()
+  const [executionMethod, setExecutionMethod] = useState(ExecutionMethod.WALLET)
 
+  const { setTxFlow } = useContext(TxModalContext)
+  const { safe } = useSafeInfo()
+  const chain = useCurrentChain()
+  const wallet = useWallet()
+  const onboard = useOnboard()
+  const [gasPrice] = useGasPrice()
   const userNonce = useUserNonce()
 
-  const latestSafeVersion = getLatestSafeVersion(chain)
-
-  const maxFeePerGas = gasPrice?.maxFeePerGas
-  const maxPriorityFeePerGas = gasPrice?.maxPriorityFeePerGas
-
+  const { maxFeePerGas, maxPriorityFeePerGas } = gasPrice || {}
   const isEIP1559 = chain && hasFeature(chain, FEATURES.EIP1559)
 
-  // Chain has relaying feature and available relays
+  // Estimate gas limit for the bulk transaction
+  const { gasLimit, gasLimitError } = useGasLimit()
+  const [advancedParams, setAdvancedParams] = useAdvancedParams(gasLimit)
+
+  const [relays] = useRelaysBySafe()
   const canRelay = hasRemainingRelays(relays)
   const willRelay = canRelay && executionMethod === ExecutionMethod.RELAY
-  const onboard = useOnboard()
-  const wallet = useWallet()
+
+  const latestSafeVersion = getLatestSafeVersion(chain)
 
   const {
     data: txsWithDetails,
@@ -192,6 +196,16 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
         <ConfirmationTitle variant={ConfirmationTitleTypes.execute} />
 
         <NetworkWarning />
+
+        {/* Add AdvancedParams to show sponsored fee message */}
+        <AdvancedParams
+          willExecute
+          params={advancedParams}
+          recommendedGasLimit={gasLimit}
+          onFormSubmit={setAdvancedParams}
+          gasLimitError={gasLimitError}
+          willRelay={willRelay}
+        />
 
         {canRelay ? (
           <>
