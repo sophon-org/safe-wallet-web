@@ -354,10 +354,11 @@ export const dispatchBatchExecution = async (
   safeAddress: string,
   overrides: Omit<Overrides, 'nonce'> & { nonce: number },
   nonce: number,
+  chain: ChainInfo,
 ) => {
   const groupKey = multiSendTxData
 
-  let result: ContractTransactionResponse
+  let result: ContractTransactionResponse | TransactionResult
   const txIds = txs.map((tx) => tx.txId)
   let signerNonce = overrides.nonce
   let txData = multiSendContract.encode('multiSend', [multiSendTxData])
@@ -366,36 +367,65 @@ export const dispatchBatchExecution = async (
     if (signerNonce === undefined || signerNonce === null) {
       signerNonce = await getUserNonce(signerAddress)
     }
-    const signer = await getUncheckedSigner(provider)
-    // @ts-ignore
-    result = await multiSendContract.contract.connect(signer).multiSend(multiSendTxData, overrides)
+
+    // Check if we're on a chain that supports paymaster
+    const isPaymasterSupported = PAYMASTER_ADDRESSES[chain.chainId]
+
+    if (isPaymasterSupported) {
+      // Use paymaster for bulk transactions - same approach as SDK patch
+      const paymasterParams = utils.getPaymasterParams(
+        PAYMASTER_ADDRESSES[chain.chainId], // Paymaster address
+        {
+          type: 'General',
+          innerInput: new Uint8Array(),
+        },
+      )
+
+      const txTo = await multiSendContract.getAddress()
+
+      // Use zksync-ethers approach like the SDK patch
+      const { BrowserProvider, Provider: ZKProvider, Signer } = await import('zksync-ethers')
+      const browserProvider = new BrowserProvider(provider)
+      const signer = Signer.from(
+        await browserProvider.getSigner(),
+        Number(chain.chainId),
+        new ZKProvider(chain.rpcUri.value, { name: chain.chainName, chainId: Number(chain.chainId) }),
+      )
+
+      const tx = await signer.sendTransaction({
+        type: utils.EIP712_TX_TYPE,
+        from: signerAddress,
+        to: txTo,
+        data: txData,
+        customData: {
+          gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+          paymasterParams,
+        },
+      })
+
+      // Convert TransactionResponse to TransactionResult format
+      result = {
+        hash: tx.hash,
+        transactionResponse: tx,
+      }
+    } else {
+      // Fallback to regular execution without paymaster
+      const signer = await getUncheckedSigner(provider)
+      // @ts-ignore
+      result = await multiSendContract.contract.connect(signer).multiSend(multiSendTxData, overrides)
+    }
 
     txIds.forEach((txId) => {
       txDispatch(TxEvent.EXECUTING, { txId, groupKey, nonce })
     })
-  } catch (err) {
+
+    return result
+  } catch (error) {
     txIds.forEach((txId) => {
-      txDispatch(TxEvent.FAILED, { txId, error: asError(err), groupKey, nonce })
+      txDispatch(TxEvent.FAILED, { txId, error: asError(error), groupKey, nonce })
     })
-    throw err
+    throw error
   }
-  const txTo = await multiSendContract.getAddress()
-
-  txIds.forEach((txId) => {
-    txDispatch(TxEvent.PROCESSING, {
-      txId,
-      txHash: result.hash,
-      groupKey,
-      signerNonce,
-      signerAddress,
-      txType: 'Custom',
-      data: txData,
-      to: txTo,
-      nonce,
-    })
-  })
-
-  return result!.hash
 }
 
 /**
