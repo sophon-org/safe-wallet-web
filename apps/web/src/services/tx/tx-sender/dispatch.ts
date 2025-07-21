@@ -354,6 +354,7 @@ export const dispatchBatchExecution = async (
   safeAddress: string,
   overrides: Omit<Overrides, 'nonce'> & { nonce: number },
   nonce: number,
+  chain: ChainInfo,
 ) => {
   const groupKey = multiSendTxData
 
@@ -368,13 +369,12 @@ export const dispatchBatchExecution = async (
     }
 
     // Check if we're on a chain that supports paymaster
-    const chainId = await provider.request({ method: 'eth_chainId' })
-    const isPaymasterSupported = PAYMASTER_ADDRESSES[chainId]
+    const isPaymasterSupported = PAYMASTER_ADDRESSES[chain.chainId]
 
     if (isPaymasterSupported) {
-      // Use paymaster for bulk transactions
+      // Use paymaster for bulk transactions - same approach as SDK patch
       const paymasterParams = utils.getPaymasterParams(
-        PAYMASTER_ADDRESSES[chainId], // Paymaster address
+        PAYMASTER_ADDRESSES[chain.chainId], // Paymaster address
         {
           type: 'General',
           innerInput: new Uint8Array(),
@@ -383,26 +383,30 @@ export const dispatchBatchExecution = async (
 
       const txTo = await multiSendContract.getAddress()
 
-      const txHash = await provider.request({
-        method: 'eth_sendTransaction',
-        params: [
-          {
-            from: signerAddress,
-            to: txTo,
-            data: txData,
-            gas: overrides.gasLimit?.toString(),
-            customData: {
-              gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
-              paymasterParams,
-            },
-          },
-        ],
+      // Use zksync-ethers approach like the SDK patch
+      const { BrowserProvider, Provider: ZKProvider, Signer } = await import('zksync-ethers')
+      const browserProvider = new BrowserProvider(provider)
+      const signer = Signer.from(
+        await browserProvider.getSigner(),
+        Number(chain.chainId),
+        new ZKProvider(chain.rpcUri.value, { name: chain.chainName, chainId: Number(chain.chainId) }),
+      )
+
+      const tx = await signer.sendTransaction({
+        type: utils.EIP712_TX_TYPE,
+        from: signerAddress,
+        to: txTo,
+        data: txData,
+        customData: {
+          gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+          paymasterParams,
+        },
       })
 
-      // Create result object with the transaction hash
+      // Convert TransactionResponse to TransactionResult format
       result = {
-        hash: txHash as string,
-        transactionResponse: null,
+        hash: tx.hash,
+        transactionResponse: tx,
       }
     } else {
       // Fallback to regular execution without paymaster

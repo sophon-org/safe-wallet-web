@@ -104,7 +104,16 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
   }, [txsWithDetails, multiSendTxs])
 
   const onExecute = async () => {
-    if (!userNonce || !onboard || !wallet || !multiSendTxData || !multiSendContract || !txsWithDetails || !gasPrice)
+    if (
+      !userNonce ||
+      !onboard ||
+      !wallet ||
+      !multiSendTxData ||
+      !multiSendContract ||
+      !txsWithDetails ||
+      !gasPrice ||
+      !chain
+    )
       return
 
     const overrides: Overrides = isEIP1559
@@ -122,6 +131,7 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
       safe.address.value,
       overrides as Overrides & { nonce: number },
       safe.nonce,
+      chain,
     )
   }
 
