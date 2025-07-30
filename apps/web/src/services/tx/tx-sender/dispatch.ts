@@ -490,9 +490,8 @@ export const dispatchSpendingLimitTxExecution = async (
   const id = JSON.stringify(txParams)
 
   let result: ContractTransactionResponse | undefined
-  try {
-    console.log('Called dispatchSpendingLimitTxExecution with params:.........');
 
+  try {
     const isPaymasterSupported = PAYMASTER_ADDRESSES[chain.chainId];
 
     if (isPaymasterSupported) {
@@ -538,8 +537,6 @@ export const dispatchSpendingLimitTxExecution = async (
           paymasterParams,
         },
       })) as unknown as ContractTransactionResponse;
-
-      console.log('Called dispatchSpendingLimitTxExecution with result:', result);
     } else {
       const signer = await getUncheckedSigner(provider)
 
