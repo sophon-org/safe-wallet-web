@@ -401,7 +401,7 @@ export const dispatchBatchExecution = async (
           gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
           paymasterParams,
         },
-      });
+      })
 
       // Convert TransactionResponse to TransactionResult format
       result = {
@@ -445,8 +445,6 @@ export const dispatchModuleTxExecution = async (
 
     txDispatch(TxEvent.EXECUTING, { groupKey: id })
     result = await signer.sendTransaction(tx)
-
-    console.log('Called dispatchModuleTxExecution with result:', result);
   } catch (error) {
     txDispatch(TxEvent.FAILED, { groupKey: id, error: asError(error) })
     throw error
@@ -492,7 +490,7 @@ export const dispatchSpendingLimitTxExecution = async (
   let result: ContractTransactionResponse | undefined
 
   try {
-    const isPaymasterSupported = PAYMASTER_ADDRESSES[chain.chainId];
+    const isPaymasterSupported = PAYMASTER_ADDRESSES[chain.chainId]
 
     if (isPaymasterSupported) {
       // Use paymaster for bulk transactions - same approach as SDK patch
@@ -513,9 +511,9 @@ export const dispatchSpendingLimitTxExecution = async (
         new ZKProvider(chain.rpcUri.value, { name: chain.chainName, chainId: Number(chain.chainId) }),
       )
 
-      const contract = getSpendingLimitContract(chain.chainId, safeModules, signer);
+      const contract = getSpendingLimitContract(chain.chainId, safeModules, signer)
 
-      let txData = await contract.interface.encodeFunctionData('executeAllowanceTransfer', [
+      let txData = contract.interface.encodeFunctionData('executeAllowanceTransfer', [
         txParams.safeAddress,
         txParams.token,
         txParams.to,
@@ -524,7 +522,7 @@ export const dispatchSpendingLimitTxExecution = async (
         txParams.payment,
         txParams.delegate,
         txParams.signature,
-      ]);
+      ])
 
       result = (await signer.sendTransaction({
         type: utils.EIP712_TX_TYPE,
@@ -536,7 +534,7 @@ export const dispatchSpendingLimitTxExecution = async (
           gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
           paymasterParams,
         },
-      })) as unknown as ContractTransactionResponse;
+      })) as unknown as ContractTransactionResponse
     } else {
       const signer = await getUncheckedSigner(provider)
 

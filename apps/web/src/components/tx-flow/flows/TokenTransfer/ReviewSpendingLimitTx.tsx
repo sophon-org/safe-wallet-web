@@ -29,7 +29,7 @@ import { isWalletRejection } from '@/utils/wallets'
 import { safeParseUnits } from '@/utils/formatters'
 import CheckWallet from '@/components/common/CheckWallet'
 import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
-import { ChainInfo } from '@safe-global/safe-gateway-typescript-sdk'
+import type { ChainInfo } from '@safe-global/safe-gateway-typescript-sdk'
 
 export type SpendingLimitTxParams = {
   safeAddress: string
