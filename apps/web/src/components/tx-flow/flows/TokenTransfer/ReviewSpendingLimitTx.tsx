@@ -29,6 +29,7 @@ import { isWalletRejection } from '@/utils/wallets'
 import { safeParseUnits } from '@/utils/formatters'
 import CheckWallet from '@/components/common/CheckWallet'
 import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
+import type { ChainInfo } from '@safe-global/safe-gateway-typescript-sdk'
 
 export type SpendingLimitTxParams = {
   safeAddress: string
@@ -107,9 +108,10 @@ const ReviewSpendingLimitTx = ({
         txParams,
         txOptions,
         wallet.provider,
-        safe.chainId,
+        wallet.address,
         safeAddress,
         safe.modules,
+        currentChain as ChainInfo,
       )
       onSubmit('', true)
       setTxFlow(undefined)

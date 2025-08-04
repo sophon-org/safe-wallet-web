@@ -480,28 +480,79 @@ export const dispatchSpendingLimitTxExecution = async (
   txParams: SpendingLimitTxParams,
   txOptions: TransactionOptions,
   provider: Eip1193Provider,
-  chainId: SafeInfo['chainId'],
+  signerAddress: string,
   safeAddress: string,
   safeModules: SafeInfo['modules'],
+  chain: ChainInfo,
 ) => {
   const id = JSON.stringify(txParams)
 
   let result: ContractTransactionResponse | undefined
-  try {
-    const signer = await getUncheckedSigner(provider)
-    const contract = getSpendingLimitContract(chainId, safeModules, signer)
 
-    result = await contract.executeAllowanceTransfer(
-      txParams.safeAddress,
-      txParams.token,
-      txParams.to,
-      txParams.amount,
-      txParams.paymentToken,
-      txParams.payment,
-      txParams.delegate,
-      txParams.signature,
-      txOptions,
-    )
+  try {
+    const isPaymasterSupported = PAYMASTER_ADDRESSES[chain.chainId]
+
+    if (isPaymasterSupported) {
+      // Use paymaster for bulk transactions - same approach as SDK patch
+      const paymasterParams = utils.getPaymasterParams(
+        PAYMASTER_ADDRESSES[chain.chainId], // Paymaster address
+        {
+          type: 'General',
+          innerInput: new Uint8Array(),
+        },
+      )
+
+      // Use zksync-ethers approach like the SDK patch
+      const { BrowserProvider, Provider: ZKProvider, Signer } = await import('zksync-ethers')
+      const browserProvider = new BrowserProvider(provider)
+      const signer = Signer.from(
+        await browserProvider.getSigner(),
+        Number(chain.chainId),
+        new ZKProvider(chain.rpcUri.value, { name: chain.chainName, chainId: Number(chain.chainId) }),
+      )
+
+      const contract = getSpendingLimitContract(chain.chainId, safeModules, signer)
+
+      let txData = contract.interface.encodeFunctionData('executeAllowanceTransfer', [
+        txParams.safeAddress,
+        txParams.token,
+        txParams.to,
+        txParams.amount,
+        txParams.paymentToken,
+        txParams.payment,
+        txParams.delegate,
+        txParams.signature,
+      ])
+
+      result = (await signer.sendTransaction({
+        type: utils.EIP712_TX_TYPE,
+        from: signerAddress,
+        to: contract.getAddress(),
+        data: txData,
+        ...txOptions,
+        customData: {
+          gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+          paymasterParams,
+        },
+      })) as unknown as ContractTransactionResponse
+    } else {
+      const signer = await getUncheckedSigner(provider)
+
+      const contract = getSpendingLimitContract(chain.chainId, safeModules, signer)
+
+      result = await contract.executeAllowanceTransfer(
+        txParams.safeAddress,
+        txParams.token,
+        txParams.to,
+        txParams.amount,
+        txParams.paymentToken,
+        txParams.payment,
+        txParams.delegate,
+        txParams.signature,
+        txOptions,
+      )
+    }
+
     txDispatch(TxEvent.EXECUTING, { groupKey: id })
   } catch (error) {
     txDispatch(TxEvent.FAILED, { groupKey: id, error: asError(error) })
