@@ -91,8 +91,8 @@
     "react-hook-form": "7.41.1",
     "react-papaparse": "^4.0.2",
     "react-redux": "^9.1.2",
-    "zksync-ethers": "patch:zksync-ethers@npm%3A6.11.2#~/.yarn/patches/zksync-ethers-npm-6.11.2-e3638d44b5.patch",
     "semver": "^7.7.1",
+    "zksync-ethers": "patch:zksync-ethers@npm%3A6.11.2#~/.yarn/patches/zksync-ethers-npm-6.11.2-e3638d44b5.patch",
     "zodiac-roles-deployments": "^2.3.4"
   },
   "devDependencies": {
