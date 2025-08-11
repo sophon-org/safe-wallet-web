@@ -1,5 +1,5 @@
-import type { SafeVersion } from '@safe-global/safe-core-sdk-types'
-import { type Eip1193Provider, type Provider } from 'ethers'
+import type { SafeVersion, TransactionOptions } from '@safe-global/types-kit'
+import { type TransactionResponse, type Eip1193Provider, type Provider } from 'ethers'
 import semverSatisfies from 'semver/functions/satisfies'
 
 import { getSafeInfo, type SafeInfo, type ChainInfo, relayTransaction } from '@safe-global/safe-gateway-typescript-sdk'
@@ -7,15 +7,13 @@ import { getReadOnlyProxyFactoryContract } from '@/services/contracts/safeContra
 import type { UrlObject } from 'url'
 import { AppRoutes } from '@/config/routes'
 import { SAFE_APPS_EVENTS, trackEvent } from '@/services/analytics'
-import { predictSafeAddress, SafeFactory, SafeProvider } from '@safe-global/protocol-kit'
-import type { DeploySafeProps, PredictedSafeProps } from '@safe-global/protocol-kit'
-import { isValidSafeVersion } from '@/hooks/coreSDK/safeCoreSDK'
+import Safe, { predictSafeAddress, SafeProvider } from '@safe-global/protocol-kit'
+import type { PredictedSafeProps } from '@safe-global/protocol-kit'
 
 import { backOff } from 'exponential-backoff'
 import { BrowserProvider, Provider as ZKProvider, Signer, utils } from 'zksync-ethers'
 import { type ConnectedWallet } from '@/hooks/wallets/useOnboard'
 import { EMPTY_DATA, ZERO_ADDRESS } from '@safe-global/protocol-kit/dist/src/utils/constants'
-import { getLatestSafeVersion } from '@/utils/chains'
 import {
   getCompatibilityFallbackHandlerDeployment,
   getProxyFactoryDeployment,
@@ -26,26 +24,20 @@ import {
 import { ECOSYSTEM_ID_ADDRESS, PAYMASTER_ADDRESSES } from '@/config/constants'
 import type { ReplayedSafeProps, UndeployedSafeProps } from '@/store/slices'
 import { activateReplayedSafe, isPredictedSafeProps } from '@/features/counterfactual/utils'
-import { getSafeContractDeployment } from '@/services/contracts/deployments'
-import { Safe__factory, Safe_proxy_factory__factory, Safe_to_l2_setup__factory } from '@/types/contracts'
+import { getSafeContractDeployment } from '@safe-global/utils/services/contracts/deployments'
+import {
+  Safe__factory,
+  Safe_proxy_factory__factory,
+  Safe_to_l2_setup__factory,
+} from '@safe-global/utils/types/contracts'
 import { createWeb3 } from '@/hooks/wallets/web3'
 import { hasMultiChainCreationFeatures } from '@/features/multichain/utils/utils'
+import { getLatestSafeVersion } from '@safe-global/utils/utils/chains'
 
 export type SafeCreationProps = {
   owners: string[]
   threshold: number
   saltNonce: number
-}
-
-const getSafeFactory = async (
-  provider: Eip1193Provider,
-  safeVersion: SafeVersion,
-  isL1SafeSingleton?: boolean,
-): Promise<SafeFactory> => {
-  if (!isValidSafeVersion(safeVersion)) {
-    throw new Error('Invalid Safe version')
-  }
-  return SafeFactory.init({ provider, safeVersion, isL1SafeSingleton })
 }
 
 /**
@@ -54,20 +46,31 @@ const getSafeFactory = async (
 export const createNewSafe = async (
   provider: Eip1193Provider,
   undeployedSafeProps: UndeployedSafeProps,
-  safeVersion: SafeVersion,
   chain: ChainInfo,
-  options: DeploySafeProps['options'],
+  options: TransactionOptions,
   callback: (txHash: string) => void,
   isL1SafeSingleton?: boolean,
 ): Promise<void> => {
-  const safeFactory = await getSafeFactory(provider, safeVersion, isL1SafeSingleton)
-
+  let txResponse: TransactionResponse
   if (isPredictedSafeProps(undeployedSafeProps)) {
-    await safeFactory.deploySafe({ ...undeployedSafeProps, options, callback })
+    const safe = await Safe.init({
+      predictedSafe: undeployedSafeProps,
+      provider,
+      isL1SafeSingleton,
+    })
+
+    const creationTx = await safe.createSafeDeploymentTransaction()
+
+    const signer = await createWeb3(provider).getSigner()
+
+    txResponse = await signer?.sendTransaction({
+      ...creationTx,
+      ...options,
+    })
   } else {
-    const txResponse = await activateReplayedSafe(chain, undeployedSafeProps, createWeb3(provider), options)
-    callback(txResponse.hash)
+    txResponse = await activateReplayedSafe(chain, undeployedSafeProps, createWeb3(provider), options)
   }
+  callback(txResponse.hash)
 }
 
 /**
@@ -75,7 +78,7 @@ export const createNewSafe = async (
  */
 export const computeNewSafeAddress = async (
   provider: Eip1193Provider | string,
-  props: DeploySafeProps,
+  props: PredictedSafeProps,
   chain: ChainInfo,
   safeVersion?: SafeVersion,
   isL1SafeSingleton?: boolean,
@@ -133,7 +136,7 @@ export const estimateSafeCreationGas = async (
 
   const gas = await provider.estimateGas({
     from,
-    to: await readOnlyProxyFactoryContract.getAddress(),
+    to: readOnlyProxyFactoryContract.getAddress(),
     data: encodedSafeCreationTx,
   })
 

@@ -1,4 +1,4 @@
-import { selectUndeployedSafes, type UndeployedSafesState } from '@/features/counterfactual/store/undeployedSafesSlice'
+import { selectUndeployedSafes } from '@/features/counterfactual/store/undeployedSafesSlice'
 import {
   Box,
   Grid,
@@ -23,7 +23,7 @@ import type { AllOwnedSafes } from '@safe-global/safe-gateway-typescript-sdk'
 import { type ChainInfo } from '@safe-global/safe-gateway-typescript-sdk'
 
 import EthHashInfo from '@/components/common/EthHashInfo'
-import { sameAddress } from '@/utils/addresses'
+import { sameAddress } from '@safe-global/utils/utils/addresses'
 import useChains from '@/hooks/useChains'
 import { useAppSelector } from '@/store'
 import { useNotificationPreferences } from './hooks/useNotificationPreferences'
@@ -34,14 +34,15 @@ import { requestNotificationPermission } from './logic'
 import type { NotifiableSafes } from './logic'
 import type { PushNotificationPreferences } from '@/services/push-notifications/preferences'
 import CheckWalletWithPermission from '@/components/common/CheckWalletWithPermission'
-import { Permission } from '@/permissions/types'
+import { Permission } from '@/permissions/config'
 
 import css from './styles.module.css'
 import useAllOwnedSafes from '@/features/myAccounts/hooks/useAllOwnedSafes'
 import useWallet from '@/hooks/wallets/useWallet'
 import { selectAllAddedSafes, type AddedSafesState } from '@/store/addedSafesSlice'
-import { maybePlural } from '@/utils/formatters'
+import { maybePlural } from '@safe-global/utils/utils/formatters'
 import { useNotificationsRenewal } from './hooks/useNotificationsRenewal'
+import type { UndeployedSafesState } from '@safe-global/utils/features/counterfactual/store/types'
 
 // UI logic
 

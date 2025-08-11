@@ -12,11 +12,14 @@ type OwnedSafesCache = {
   }
 }
 
-const useOwnedSafes = (): OwnedSafesCache['walletAddress'] => {
-  const chainId = useChainId()
+const useOwnedSafes = (customChainId?: string): OwnedSafesCache['walletAddress'] => {
+  const currentChainId = useChainId()
+  const chainId = customChainId ?? currentChainId
   const { address: walletAddress } = useWallet() || {}
 
-  const { data: ownedSafes } = useGetOwnedSafesQuery(walletAddress ? { chainId, walletAddress } : skipToken)
+  const { data: ownedSafes } = useGetOwnedSafesQuery(
+    walletAddress ? { chainId, ownerAddress: walletAddress } : skipToken,
+  )
 
   const result = useMemo(() => ({ [chainId]: ownedSafes?.safes ?? [] }), [chainId, ownedSafes])
 

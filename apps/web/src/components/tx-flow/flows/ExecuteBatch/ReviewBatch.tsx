@@ -1,7 +1,6 @@
 import useWallet from '@/hooks/wallets/useWallet'
 import { CircularProgress, Typography, Button, CardActions, Divider, Alert } from '@mui/material'
-import useAsync from '@/hooks/useAsync'
-import { FEATURES } from '@/utils/chains'
+import useAsync from '@safe-global/utils/hooks/useAsync'
 import { getReadOnlyMultiSendCallOnlyContract } from '@/services/contracts/safeContracts'
 import { useCurrentChain } from '@/hooks/useChains'
 import useSafeInfo from '@/hooks/useSafeInfo'
@@ -11,7 +10,7 @@ import type { SyntheticEvent } from 'react'
 import ErrorMessage from '@/components/tx/ErrorMessage'
 import { ExecutionMethod, ExecutionMethodSelector } from '@/components/tx/ExecutionMethodSelector'
 import DecodedTxs from '@/components/tx-flow/flows/ExecuteBatch/DecodedTxs'
-import { TxSimulation } from '@/components/tx/security/tenderly'
+import TxChecks from '@/components/tx-flow/features/TxChecks/TxChecks'
 import { useRelaysBySafe } from '@/hooks/useRemainingRelays'
 import useOnboard from '@/hooks/wallets/useOnboard'
 import { logError, Errors } from '@/services/exceptions'
@@ -21,13 +20,12 @@ import { getMultiSendTxs } from '@/utils/transactions'
 import TxCard from '../../common/TxCard'
 import CheckWallet from '@/components/common/CheckWallet'
 import type { ExecuteBatchFlowProps } from '.'
-import { asError } from '@/services/exceptions/utils'
+import { asError } from '@safe-global/utils/services/exceptions/utils'
 import SendToBlock from '@/components/tx/SendToBlock'
 import ConfirmationTitle, { ConfirmationTitleTypes } from '@/components/tx/SignOrExecuteForm/ConfirmationTitle'
 import commonCss from '@/components/tx-flow/common/styles.module.css'
 import { TxModalContext } from '@/components/tx-flow'
 import useGasPrice from '@/hooks/useGasPrice'
-import { hasFeature } from '@/utils/chains'
 import type { Overrides } from 'ethers'
 import { trackEvent } from '@/services/analytics'
 import { TX_EVENTS, TX_TYPES } from '@/services/analytics/events/transactions'
@@ -42,6 +40,11 @@ import AdvancedParams from '@/components/tx/AdvancedParams'
 import useGasLimit from '@/hooks/useGasLimit'
 import { useAdvancedParams } from '@/components/tx/AdvancedParams/useAdvancedParams'
 import useUserNonce from '@/components/tx/AdvancedParams/useUserNonce'
+import { HexEncodedData } from '@/components/transactions/HexEncodedData'
+import { useGetMultipleTransactionDetailsQuery } from '@/store/api/gateway'
+import { skipToken } from '@reduxjs/toolkit/query/react'
+import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
+import { FEATURES, getLatestSafeVersion, hasFeature } from '@safe-global/utils/utils/chains'
 
 export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
   const [isSubmittable, setIsSubmittable] = useState<boolean>(true)
@@ -90,7 +93,7 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
 
   const [multisendContractAddress = ''] = useAsync(async () => {
     if (!multiSendContract) return ''
-    return await multiSendContract.getAddress()
+    return multiSendContract.getAddress()
   }, [multiSendContract])
 
   const [multiSendTxs] = useAsync(async () => {
@@ -100,7 +103,7 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
 
   const multiSendTxData = useMemo(() => {
     if (!txsWithDetails || !multiSendTxs) return
-    return encodeMultiSendData(multiSendTxs)
+    return encodeMultiSendData(multiSendTxs) as `0x${string}`
   }, [txsWithDetails, multiSendTxs])
 
   const onExecute = async () => {
@@ -128,7 +131,6 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
       multiSendTxData,
       wallet.provider,
       wallet.address,
-      safe.address.value,
       overrides as Overrides & { nonce: number },
       safe.nonce,
       chain,
@@ -187,20 +189,14 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
 
         {multiSendContract && <SendToBlock address={multisendContractAddress} title="Interact with" />}
 
-        {multiSendTxData && <HexEncodedData title="Data (hex-encoded)" hexData={multiSendTxData} />}
+        {multiSendTxData && <HexEncodedData title="Data" hexData={multiSendTxData} />}
 
         <div>
           <DecodedTxs txs={txsWithDetails} />
         </div>
       </TxCard>
 
-      {multiSendTxs && (
-        <TxCard>
-          <Typography variant="h5">Transaction checks</Typography>
-
-          <TxSimulation transactions={multiSendTxs} disabled={submitDisabled} />
-        </TxCard>
-      )}
+      {multiSendTxs && <TxChecks disabled={submitDisabled} transaction={multiSendTxs} />}
 
       <TxCard>
         <ConfirmationTitle variant={ConfirmationTitleTypes.execute} />

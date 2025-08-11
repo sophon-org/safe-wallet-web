@@ -12,22 +12,23 @@ import { createExistingTx, dispatchCustomTxSpeedUp, dispatchSafeTxSpeedUp } from
 import { showNotification } from '@/store/notificationsSlice'
 import { useCallback, useState } from 'react'
 import GasParams from '@/components/tx/GasParams'
-import { asError } from '@/services/exceptions/utils'
+import { asError } from '@safe-global/utils/services/exceptions/utils'
 import { getTxOptions } from '@/utils/transactions'
 import { useCurrentChain } from '@/hooks/useChains'
 import { SimpleTxWatcher } from '@/utils/SimpleTxWatcher'
 import { isWalletRejection } from '@/utils/wallets'
-import { type TransactionOptions } from '@safe-global/safe-core-sdk-types'
+import { type TransactionOptions } from '@safe-global/types-kit'
 import { PendingTxType, type PendingProcessingTx } from '@/store/pendingTxsSlice'
-import useAsync from '@/hooks/useAsync'
+import useAsync from '@safe-global/utils/hooks/useAsync'
 import { MODALS_EVENTS, trackEvent } from '@/services/analytics'
 import { TX_EVENTS } from '@/services/analytics/events/transactions'
 import { getTransactionTrackingType } from '@/services/analytics/tx-tracking'
 import { trackError } from '@/services/exceptions'
-import ErrorCodes from '@/services/exceptions/ErrorCodes'
+import ErrorCodes from '@safe-global/utils/services/exceptions/ErrorCodes'
 import CheckWallet from '@/components/common/CheckWallet'
 import { useLazyGetTransactionDetailsQuery } from '@/store/api/gateway'
 import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
+import { FEATURES } from '@safe-global/utils/utils/chains'
 
 type Props = {
   open: boolean
@@ -60,12 +61,10 @@ export const SpeedUpModal = ({
   const dispatch = useAppDispatch()
   const [trigger] = useLazyGetTransactionDetailsQuery()
   const isDisabled = waitingForConfirmation || !wallet || !speedUpFee || !onboard
-  const [safeTx] = useAsync(async () => {
-    if (!chainInfo?.chainId || !safeAddress) {
-      return null
-    }
-    return createExistingTx(chainInfo.chainId, safeAddress, txId)
-  }, [txId, chainInfo?.chainId, safeAddress])
+  const [safeTx] = useAsync(() => {
+    if (!chainInfo?.chainId) return
+    return createExistingTx(chainInfo.chainId, txId)
+  }, [txId, chainInfo?.chainId])
 
   const safeTxHasSignatures = !!safeTx?.signatures?.size ? true : false
 

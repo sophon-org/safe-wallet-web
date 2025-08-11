@@ -1,27 +1,31 @@
 import notifee, {
-  AuthorizationStatus,
   Event as NotifeeEvent,
   EventType,
   EventDetail,
   AndroidChannel,
+  AuthorizationStatus,
+  AndroidImportance,
+  AndroidVisibility,
 } from '@notifee/react-native'
+import { parseNotification } from './notificationParser'
+import { FirebaseMessagingTypes } from '@react-native-firebase/messaging'
 import { Linking, Platform, Alert as NativeAlert } from 'react-native'
-import { store } from '@/src/store'
 import { updatePromptAttempts, updateLastTimePromptAttempted } from '@/src/store/notificationsSlice'
 import { toggleAppNotifications, toggleDeviceNotifications } from '@/src/store/notificationsSlice'
-
 import { HandleNotificationCallback, LAUNCH_ACTIVITY, PressActionId } from '@/src/store/constants'
+import { getMessaging } from '@react-native-firebase/messaging'
+import { NotificationNavigationHandler } from './notificationNavigationHandler'
 
 import { ChannelId, notificationChannels, withTimeout } from '@/src/utils/notifications'
 import Logger from '@/src/utils/logger'
-
-import { FirebaseMessagingTypes } from '@react-native-firebase/messaging'
-import { router } from 'expo-router'
+import { getStore } from '@/src/store/utils/singletonStore'
 
 interface AlertButton {
   text: string
   onPress: () => void | Promise<void>
 }
+
+type UnsubscribeFunc = () => void
 
 class NotificationsService {
   async getBlockedNotifications(): Promise<Map<ChannelId, boolean>> {
@@ -50,41 +54,89 @@ class NotificationsService {
     }
   }
 
-  async getAllPermissions(shouldOpenSettings = true) {
+  enableNotifications() {
+    try {
+      getStore().dispatch(toggleDeviceNotifications(true))
+      getStore().dispatch(toggleAppNotifications(true))
+      getStore().dispatch(updatePromptAttempts(0))
+      getStore().dispatch(updateLastTimePromptAttempted(0))
+    } catch (error) {
+      Logger.error('Error checking if a user has push notifications permission', error)
+    }
+  }
+
+  async getAllPermissions(shouldOpenSettings = false) {
     try {
       const promises: Promise<string>[] = notificationChannels.map((channel: AndroidChannel) =>
         withTimeout(this.createChannel(channel), 5000),
       )
       // 1 - Creates android's notifications channel
       await Promise.allSettled(promises)
-      // 2 - Verifies granted permission from device
-      let permission = await withTimeout(this.checkCurrentPermissions(), 5000)
-      // 3 - Verifies blocked notifications
+      const { authorizationStatus } = await notifee.requestPermission()
+      // 2 - Verifies blocked notifications
       const blockedNotifications = await withTimeout(this.getBlockedNotifications(), 5000)
       /**
-       * 4 - If permission has not being granted already or blocked notifications are found, open device's settings
-       * so that user can enable DEVICE notifications
+       * 3 - If permission has not being granted already or blocked notifications are found, open device's settings
+       * so that user can enable DEVICE notifications, but ONLY if explicitly requested via shouldOpenSettings
        **/
-      if ((permission !== 'authorized' || blockedNotifications.size !== 0) && shouldOpenSettings) {
-        await this.requestPushNotificationsPermission()
-        permission = await withTimeout(this.checkCurrentPermissions(), 5000)
-      }
-      return { permission, blockedNotifications }
-    } catch (error) {
-      Logger.error('Error occurred while fetching permissions:', error)
+      if (shouldOpenSettings && authorizationStatus === AuthorizationStatus.DENIED) {
+        const settings = await notifee.getNotificationSettings()
 
-      return { permission: 'denied', blockedNotifications: new Set() }
+        if (
+          settings.authorizationStatus === AuthorizationStatus.NOT_DETERMINED ||
+          settings.authorizationStatus === AuthorizationStatus.DENIED
+        ) {
+          await this.openDeviceSettings()
+        }
+      }
+
+      // 4 - Check if the user has enabled device notifications
+      const permission = await withTimeout(this.checkCurrentPermissions(), 5000)
+
+      return {
+        permission,
+        blockedNotifications,
+      }
+    } catch (error) {
+      Logger.error('Error checking if a user has push notifications permission', error)
+      return {
+        permission: 'denied',
+        blockedNotifications: new Map<ChannelId, boolean>(),
+      }
     }
   }
 
   async isDeviceNotificationEnabled() {
-    const permission = await notifee.getNotificationSettings()
+    const settings = await notifee.getNotificationSettings()
 
     const isAuthorized =
-      permission.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
-      permission.authorizationStatus === AuthorizationStatus.PROVISIONAL
+      settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
+      settings.authorizationStatus === AuthorizationStatus.PROVISIONAL
 
     return isAuthorized
+  }
+
+  async getAuthorizationStatus() {
+    const settings = await notifee.getNotificationSettings()
+    return settings.authorizationStatus
+  }
+
+  async isAuthorizationDenied() {
+    const status = await this.getAuthorizationStatus()
+    return status === AuthorizationStatus.DENIED
+  }
+
+  async openDeviceSettings() {
+    await notifee.requestPermission()
+    try {
+      if (Platform.OS === 'ios') {
+        Linking.openURL('app-settings:')
+      } else {
+        Linking.openSettings()
+      }
+    } catch (error) {
+      Logger.error('Error checking if a user has push notifications permission', error)
+    }
   }
 
   defaultButtons = (resolve: (value: boolean) => void): AlertButton[] => [
@@ -95,23 +147,15 @@ class NotificationsService {
          * When user decides to NOT enable notifications, we should register the number of attempts and its dates
          * so we avoid to prompt the user again within a month given a maximum of 3 attempts
          */
-        store.dispatch(updatePromptAttempts(1))
-        store.dispatch(updateLastTimePromptAttempted(Date.now()))
-        router.navigate('/(tabs)')
-
+        getStore().dispatch(updatePromptAttempts(1))
+        getStore().dispatch(updateLastTimePromptAttempted(Date.now()))
         resolve(false)
       },
     },
     {
       text: 'Turn on',
       onPress: async () => {
-        store.dispatch(toggleDeviceNotifications(true))
-        store.dispatch(toggleAppNotifications(true))
-        store.dispatch(updatePromptAttempts(0))
-        store.dispatch(updateLastTimePromptAttempted(0))
-
-        await notifee.requestPermission()
-        this.openSystemSettings()
+        await this.openDeviceSettings()
         resolve(true)
       },
     },
@@ -139,20 +183,16 @@ class NotificationsService {
     }
   }
 
-  openSystemSettings() {
-    if (Platform.OS === 'ios') {
-      Linking.openSettings()
-    } else {
-      notifee.openNotificationSettings()
-    }
-  }
-
   async checkCurrentPermissions() {
     const settings = await notifee.getNotificationSettings()
-    return settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
+
+    const isAuthorized =
+      settings.authorizationStatus === AuthorizationStatus.AUTHORIZED ||
       settings.authorizationStatus === AuthorizationStatus.PROVISIONAL
-      ? 'authorized'
-      : 'denied'
+        ? 'granted'
+        : 'denied'
+
+    return isAuthorized
   }
 
   onForegroundEvent(observer: (event: NotifeeEvent) => Promise<void>): () => void {
@@ -164,19 +204,35 @@ class NotificationsService {
   }
 
   async incrementBadgeCount(incrementBy?: number) {
-    return await notifee.incrementBadgeCount(incrementBy)
+    await notifee.incrementBadgeCount(incrementBy)
+    const newCount = await notifee.getBadgeCount()
+    Logger.info(`Badge incremented by ${incrementBy || 1}, new count: ${newCount}`)
   }
 
   async decrementBadgeCount(decrementBy?: number) {
-    return await notifee.decrementBadgeCount(decrementBy)
+    await notifee.decrementBadgeCount(decrementBy)
+    const newCount = await notifee.getBadgeCount()
+    Logger.info(`Badge decremented by ${decrementBy || 1}, new count: ${newCount}`)
   }
 
   async setBadgeCount(count: number) {
-    return await notifee.setBadgeCount(count)
+    await notifee.setBadgeCount(count)
+    Logger.info(`Badge count set to: ${count}`)
   }
 
   async getBadgeCount() {
-    return await notifee.getBadgeCount()
+    const count = await notifee.getBadgeCount()
+    Logger.info(`Current badge count: ${count}`)
+    return count
+  }
+
+  async clearAllBadges() {
+    try {
+      await this.setBadgeCount(0)
+      Logger.info('All badges cleared manually')
+    } catch (error) {
+      Logger.error('Failed to clear badges manually', error)
+    }
   }
 
   async handleNotificationPress({
@@ -186,12 +242,17 @@ class NotificationsService {
     detail: EventDetail
     callback?: (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => void
   }) {
-    this.decrementBadgeCount(1)
+    await this.clearAllBadges()
+
     if (detail?.notification?.id) {
       await this.cancelTriggerNotification(detail.notification.id)
     }
 
     if (detail?.notification?.data) {
+      await NotificationNavigationHandler.handleNotificationPress(
+        detail.notification.data as FirebaseMessagingTypes.RemoteMessage['data'],
+      )
+
       callback?.(detail.notification as FirebaseMessagingTypes.RemoteMessage)
     }
   }
@@ -255,9 +316,10 @@ class NotificationsService {
         body,
         data,
         android: {
-          smallIcon: 'ic_notification_small',
-          largeIcon: 'ic_notification',
           channelId: channelId ?? ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
+          importance: AndroidImportance.HIGH,
+          visibility: AndroidVisibility.PUBLIC,
+          smallIcon: 'ic_notification',
           pressAction: {
             id: PressActionId.OPEN_NOTIFICATIONS_VIEW,
             launchActivity: LAUNCH_ACTIVITY,
@@ -277,8 +339,65 @@ class NotificationsService {
         },
       })
     } catch (error) {
-      Logger.error('NotificationService.displayNotification :: error', error)
+      Logger.info('NotificationService.displayNotification :: error', error)
     }
+  }
+
+  /**
+   * Initializes all notification handlers
+   */
+  initializeNotificationHandlers(): void {
+    // Core Firebase handlers
+    this.listenForMessagesForeground() // FCM foreground messages
+    this.registerFirebaseNotificationOpenedHandler() // App opened from notification
+
+    Logger.info('NotificationService: Successfully initialized simplified notification handlers')
+  }
+
+  private listenForMessagesForeground = (): UnsubscribeFunc => {
+    return getMessaging().onMessage(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
+      const parsed = parseNotification(remoteMessage.data)
+      this.displayNotification({
+        channelId: ChannelId.DEFAULT_NOTIFICATION_CHANNEL_ID,
+        title: parsed?.title || remoteMessage.notification?.title || '',
+        body: parsed?.body || remoteMessage.notification?.body || '',
+        data: remoteMessage.data,
+      })
+      Logger.info('listenForMessagesForeground: listening for messages in Foreground', remoteMessage)
+    })
+  }
+
+  /**
+   * Registers Firebase messaging handlers for when app is opened from notification
+   */
+  private registerFirebaseNotificationOpenedHandler(): void {
+    // Handle notification opened app when app is in background
+    getMessaging().onNotificationOpenedApp(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage) => {
+      Logger.info('Notification caused app to open from background state:', remoteMessage)
+
+      await this.clearAllBadges()
+
+      if (remoteMessage.data) {
+        await NotificationNavigationHandler.handleNotificationPress(remoteMessage.data)
+      }
+    })
+
+    // Handle notification opened app when app was quit
+    getMessaging()
+      .getInitialNotification()
+      .then(async (remoteMessage: FirebaseMessagingTypes.RemoteMessage | null) => {
+        if (remoteMessage) {
+          Logger.info('Notification caused app to open from quit state:', remoteMessage)
+          if (remoteMessage.data) {
+            // Add extra delay for app startup from killed state
+            setTimeout(async () => {
+              // Clear badge when app is opened from notification
+              await this.clearAllBadges()
+              await NotificationNavigationHandler.handleNotificationPress(remoteMessage.data)
+            }, 1000) // Wait 1 second for app to fully initialize
+          }
+        }
+      })
   }
 }
 

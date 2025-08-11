@@ -94,7 +94,7 @@ export function verifyMandatoryTokensExist() {
 
 export function selectToken(token) {
   clickOnTokenDropdown()
-  cy.get(tokenItem).contains(token).click()
+  cy.get(tokenItem).contains(token).click({ force: true })
   main.verifyValuesExist(tokenBalance, [token])
 }
 
@@ -122,12 +122,13 @@ export function clickOnMaxBtn() {
 }
 
 export function selectSpendingLimitOption() {
-  const input = () => {
-    return cy.get(spendingLimitTxOption).find('input')
-  }
-
   cy.get(spendingLimitTxOption).click()
-  main.checkRadioButtonState(input, constants.checkboxStates.checked)
+  cy.get(spendingLimitTxOption).find('input').should('be.checked')
+}
+
+export function selectStandardOption() {
+  cy.get(standardTx).click()
+  cy.get(standardTx).find('input').should('be.checked')
 }
 
 export function verifyTxOptionExist(options) {
@@ -171,7 +172,7 @@ export function checkTimeDropdownOptions() {
 }
 
 export function verifyDefaultTimeIsSet() {
-  cy.get(timePeriodSection).find('div').contains(timePeriodOptions.oneTime).should('be.visible')
+  cy.get(timePeriodSection).scrollIntoView().find('div').contains(timePeriodOptions.oneTime).should('be.visible')
 }
 
 export function clickOnNewSpendingLimitBtn() {
@@ -184,7 +185,7 @@ export function enterSpendingLimitAmount(amount) {
 }
 
 export function enterBeneficiaryAddress(address) {
-  getBeneficiaryInput().clear().type(address)
+  getBeneficiaryInput().clear({ force: true }).type(address, { force: true })
 }
 
 export function checkBeneficiaryInputValue(value) {

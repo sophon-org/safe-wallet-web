@@ -24,13 +24,11 @@ import useChains, { useCurrentChain } from '@/hooks/useChains'
 import type { NextRouter } from 'next/router'
 import { useRouter } from 'next/router'
 import css from './styles.module.css'
-import { useChainId } from '@/hooks/useChainId'
 import { type ReactElement, useCallback, useMemo, useState } from 'react'
 import { OVERVIEW_EVENTS, OVERVIEW_LABELS, trackEvent } from '@/services/analytics'
-
 import { useAllSafesGrouped } from '@/features/myAccounts/hooks/useAllSafesGrouped'
 import useSafeAddress from '@/hooks/useSafeAddress'
-import { sameAddress } from '@/utils/addresses'
+import { sameAddress } from '@safe-global/utils/utils/addresses'
 import uniq from 'lodash/uniq'
 import { useCompatibleNetworks } from '@/features/multichain/hooks/useCompatibleNetworks'
 import { useSafeCreationData } from '@/features/multichain/hooks/useSafeCreationData'
@@ -39,12 +37,14 @@ import PlusIcon from '@/public/images/common/plus.svg'
 import useAddressBook from '@/hooks/useAddressBook'
 import { CreateSafeOnSpecificChain } from '@/features/multichain/components/CreateSafeOnNewChain'
 import { useGetSafeOverviewQuery } from '@/store/api/gateway'
+import useChainId from '@/hooks/useChainId'
+import useBalances from '@/hooks/useBalances'
+import { skipToken } from '@reduxjs/toolkit/query'
 import { InfoOutlined } from '@mui/icons-material'
 import { selectUndeployedSafe } from '@/store/slices'
-import { skipToken } from '@reduxjs/toolkit/query'
 import { hasMultiChainAddNetworkFeature } from '@/features/multichain/utils/utils'
 
-const ChainIndicatorWithFiatBalance = ({
+export const ChainIndicatorWithFiatBalance = ({
   isSelected,
   chain,
   safeAddress,
@@ -54,18 +54,16 @@ const ChainIndicatorWithFiatBalance = ({
   safeAddress: string
 }) => {
   const undeployedSafe = useAppSelector((state) => selectUndeployedSafe(state, chain.chainId, safeAddress))
-  const { data: safeOverview } = useGetSafeOverviewQuery(
-    undeployedSafe ? skipToken : { safeAddress, chainId: chain.chainId },
-  )
+  const currentChainId = useChainId()
+  const isCurrentChain = currentChainId === chain.chainId
 
-  return (
-    <ChainIndicator
-      responsive={isSelected}
-      chainId={chain.chainId}
-      fiatValue={safeOverview ? safeOverview.fiatTotal : undefined}
-      inline
-    />
+  const { balances } = useBalances()
+  const { data: safeOverview } = useGetSafeOverviewQuery(
+    !isCurrentChain && !undeployedSafe ? { safeAddress, chainId: chain.chainId } : skipToken,
   )
+  const fiatValue = isCurrentChain ? balances.fiatTotal : safeOverview?.fiatTotal
+
+  return <ChainIndicator responsive={isSelected} chainId={chain.chainId} fiatValue={fiatValue} inline />
 }
 
 export const getNetworkLink = (router: NextRouter, safeAddress: string, networkShortName: string) => {
@@ -385,6 +383,7 @@ const NetworkSelector = ({
 
       return (
         <MenuItem
+          data-testid="network-selector-item"
           key={chainId}
           value={chainId}
           sx={{ '&:hover': { backgroundColor: isSelected ? 'transparent' : 'inherit' } }}

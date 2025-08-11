@@ -9,7 +9,8 @@
 
 ## Code Style
 
-More information [here](./docs/code-style.md).
+The packages inside the repo try to follow the same code style, but there might be small differences. Check the `code-style.md`
+file in the package you are working on for specific guidelines.
 We use [semantic commits](https://www.conventionalcommits.org/en/v1.0.0/) for pull request titles and commit messages.
 
 ## CLA
@@ -21,7 +22,7 @@ It is a requirement for all contributors to sign the [Contributor License Agreem
 - When opening a pull request, please make sure to fully fill out the pull request template that will appear in the description text box.
 - Make sure to cover your changes with unit tests.
 - Automatic linting and tests should pass once the workflows are approved by a maintainer.
-- Please follow our [Code Style Guidelines](docs/code-style.md).
+- Please follow our Code Style Guidelines for the package you are working on.
 
 ## Code of Conduct
 

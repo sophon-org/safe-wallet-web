@@ -1,10 +1,8 @@
 import { safelyDecodeURIComponent } from 'expo-router/build/fork/getStateFromPath-forks'
 import React, { useState } from 'react'
-import { useSelector } from 'react-redux'
 
 import { SafeTab } from '@/src/components/SafeTab'
 import { POLLING_INTERVAL } from '@/src/config/constants'
-import { selectActiveSafe } from '@/src/store/activeSafeSlice'
 import {
   Collectible,
   CollectiblePage,
@@ -14,9 +12,14 @@ import {
 import { Fallback } from '../Fallback'
 import { NFTItem } from './NFTItem'
 import { useInfiniteScroll } from '@/src/hooks/useInfiniteScroll'
+import { useDefinedActiveSafe } from '@/src/store/hooks/activeSafe'
+import { NoFunds } from '@/src/features/Assets/components/NoFunds'
+import { AssetError } from '../../Assets.error'
+import { Loader } from '@/src/components/Loader'
+import { getTokenValue } from 'tamagui'
 
 export function NFTsContainer() {
-  const activeSafe = useSelector(selectActiveSafe)
+  const activeSafe = useDefinedActiveSafe()
   const [pageUrl, setPageUrl] = useState<string>()
 
   const { data, isFetching, error, refetch } = useCollectiblesGetCollectiblesV2Query(
@@ -35,16 +38,30 @@ export function NFTsContainer() {
     data,
   })
 
-  if (isFetching || !list?.length || error) {
-    return <Fallback loading={isFetching || !list} hasError={!!error} />
+  if (error) {
+    return (
+      <Fallback loading={isFetching}>
+        <AssetError assetType={'nft'} onRetry={() => refetch()} />
+      </Fallback>
+    )
+  }
+
+  if (!list?.results.length) {
+    return (
+      <Fallback loading={isFetching || !list}>
+        <NoFunds fundsType={'nft'} />
+      </Fallback>
+    )
   }
 
   return (
     <SafeTab.FlatList<Collectible>
       onEndReached={onEndReached}
-      data={list}
+      data={list?.results}
       renderItem={NFTItem}
-      keyExtractor={(item) => item.id}
+      ListFooterComponent={isFetching ? <Loader size={24} /> : undefined}
+      keyExtractor={(item, index) => `${item.address}-${index}`}
+      style={{ marginTop: getTokenValue('$2') }}
     />
   )
 }

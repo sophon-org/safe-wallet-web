@@ -1,76 +1,81 @@
-import DeviceCrypto from 'react-native-device-crypto'
-import * as Keychain from 'react-native-keychain'
-import DeviceInfo from 'react-native-device-info'
-import { Wallet } from 'ethers'
+import { useState, useCallback } from 'react'
+import { HDNodeWallet } from 'ethers'
+import { keyStorageService, walletService, PrivateKeyStorageOptions } from '@/src/services/key-storage'
+import Logger from '@/src/utils/logger'
 
-export const asymmetricKey = 'safe'
-export const keychainGenericPassword = 'safeuser'
+export const useSign = () => {
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
-export function useSign() {
-  // TODO: move it to a global context or reduce
-  const storePrivateKey = async (privateKey: string) => {
-    try {
-      const isEmulator = await DeviceInfo.isEmulator()
-
-      await DeviceCrypto.getOrCreateAsymmetricKey(asymmetricKey, {
-        accessLevel: isEmulator ? 1 : 2,
-        invalidateOnNewBiometry: true,
-      })
-
-      const encryptyedPrivateKey = await DeviceCrypto.encrypt(asymmetricKey, privateKey, {
-        biometryTitle: 'Authenticate',
-        biometrySubTitle: 'Saving key',
-        biometryDescription: 'Please authenticate yourself',
-      })
-
-      await Keychain.setGenericPassword(
-        keychainGenericPassword,
-        JSON.stringify({
-          encryptyedPassword: encryptyedPrivateKey.encryptedText,
-          iv: encryptyedPrivateKey.iv,
-        }),
-      )
-    } catch (err) {
-      console.log(err)
-    }
-  }
-
-  const getPrivateKey = async () => {
-    try {
-      const user = await Keychain.getGenericPassword()
-
-      if (!user) {
-        throw 'user password not found'
+  const storePrivateKey = useCallback(
+    async (
+      userId: string,
+      privateKey: string,
+      options: PrivateKeyStorageOptions = { requireAuthentication: true },
+    ): Promise<boolean> => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        await keyStorageService.storePrivateKey(userId, privateKey, options)
+        return true
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to store private key'
+        setError(errorMessage)
+        Logger.error('storePrivateKey', { userId, error: errorMessage })
+        return false
+      } finally {
+        setIsLoading(false)
       }
+    },
+    [],
+  )
 
-      const { encryptyedPassword, iv } = JSON.parse(user.password)
-      const decryptedKey = await DeviceCrypto.decrypt(asymmetricKey, encryptyedPassword, iv, {
-        biometryTitle: 'Authenticate',
-        biometrySubTitle: 'Signing',
-        biometryDescription: 'Authenticate yourself to sign the text',
-      })
-
-      return decryptedKey
-    } catch (err) {
-      console.log(err)
-    }
-  }
-
-  const createMnemonicAccount = async (mnemonic: string) => {
-    try {
-      if (!mnemonic) {
-        return
+  const getPrivateKey = useCallback(
+    async (
+      userId: string,
+      options: PrivateKeyStorageOptions = { requireAuthentication: true },
+    ): Promise<string | undefined> => {
+      setIsLoading(true)
+      setError(null)
+      try {
+        return await keyStorageService.getPrivateKey(userId, options)
+      } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : 'Failed to get private key'
+        setError(errorMessage)
+        Logger.error('getPrivateKey', { userId, error: errorMessage })
+        return undefined
+      } finally {
+        setIsLoading(false)
       }
+    },
+    [],
+  )
 
-      return Wallet.fromPhrase(mnemonic)
+  const createMnemonicAccount = useCallback(async (mnemonic: string): Promise<HDNodeWallet | undefined> => {
+    setIsLoading(true)
+    setError(null)
+    try {
+      return await walletService.createMnemonicAccount(mnemonic)
     } catch (err) {
-      console.log(err)
+      const errorMessage = err instanceof Error ? err.message : 'Failed to create mnemonic account'
+      setError(errorMessage)
+      Logger.error('createMnemonicAccount', { error: errorMessage })
+      return undefined
+    } finally {
+      setIsLoading(false)
     }
-  }
+  }, [])
 
   return {
     storePrivateKey,
     getPrivateKey,
     createMnemonicAccount,
+    isLoading,
+    error,
   }
 }
+
+// For backward compatibility, also export the functions directly (for now)
+export const storePrivateKey = keyStorageService.storePrivateKey.bind(keyStorageService)
+export const getPrivateKey = keyStorageService.getPrivateKey.bind(keyStorageService)
+export const createMnemonicAccount = walletService.createMnemonicAccount.bind(walletService)

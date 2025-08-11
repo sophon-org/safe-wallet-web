@@ -10,7 +10,7 @@ const invalidAddressNameLengthErrorMsg = 'Maximum 50 symbols'
 
 const safeDataForm = '[data-testid=load-safe-form]'
 const removeOwnerBtn = '[data-testid="remove-owner-btn"]'
-const addOwnerBtn = '[data-testid="add-owner-btn"]'
+const addOwnerBtn = '[data-testid="add-new-signer"]'
 const ownerPolicyStepForm = '[data-testid="owner-policy-step-form"]'
 const addressItem = '[data-testid="address-item"]'
 const nameInput = 'input[name="name"]'
@@ -29,6 +29,7 @@ const transactionStr = 'Transactions'
 const qrErrorMsg = 'The QR could not be read'
 const safeAddressError = 'Address given is not a valid Safe Account address'
 const ownerNameLabel = 'Signer name'
+export const addSafeStr = 'Add existing Safe Account'
 
 const mandatoryNetworks = [constants.networks.sepolia, constants.networks.polygon, constants.networks.ethereum]
 
@@ -192,7 +193,7 @@ export function verifyNameLengthErrorMessage() {
 }
 
 export function inputAddress(address) {
-  cy.get(addressInput).clear().type(address)
+  cy.get(addressInput).should('be.visible').clear().should('exist').type(address, { delay: 50 })
 }
 
 export function verifyAddressInputValue(safeAddress) {

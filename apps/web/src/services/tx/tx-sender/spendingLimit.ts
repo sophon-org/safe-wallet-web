@@ -4,16 +4,17 @@ import {
   getLatestSpendingLimitAddress,
   getDeployedSpendingLimitModuleAddress,
 } from '@/services/contracts/spendingLimitContracts'
-import type { MetaTransactionData } from '@safe-global/safe-core-sdk-types'
+import type { MetaTransactionData } from '@safe-global/types-kit'
 import {
   createAddDelegateTx,
   createEnableModuleTx,
   createResetAllowanceTx,
   createSetAllowanceTx,
 } from '@/services/tx/spendingLimitParams'
-import type { ChainInfo, SafeInfo } from '@safe-global/safe-gateway-typescript-sdk'
+import type { ChainInfo } from '@safe-global/safe-gateway-typescript-sdk'
+import { type SafeState } from '@safe-global/store/gateway/AUTO_GENERATED/safes'
 import { parseUnits } from 'ethers'
-import { currentMinutes } from '@/utils/date'
+import { currentMinutes } from '@safe-global/utils/utils/date'
 import { createMultiSendCallOnlyTx } from '@/services/tx/tx-sender/create'
 
 export type NewSpendingLimitData = {
@@ -28,9 +29,9 @@ export const createNewSpendingLimitTx = async (
   spendingLimits: SpendingLimitState[],
   chainId: string,
   chain: ChainInfo,
-  safeModules: SafeInfo['modules'],
+  safeModules: SafeState['modules'],
   deployed: boolean,
-  tokenDecimals?: number,
+  tokenDecimals?: number | null,
   existingSpendingLimit?: SpendingLimitState,
 ) => {
   const sdk = getSafeSDK()
@@ -49,7 +50,7 @@ export const createNewSpendingLimitTx = async (
     const enableModuleTx = await createEnableModuleTx(
       chain,
       await sdk.getAddress(),
-      await sdk.getContractVersion(),
+      sdk.getContractVersion(),
       spendingLimitAddress,
     )
 
@@ -85,7 +86,7 @@ export const createNewSpendingLimitTx = async (
   const tx = createSetAllowanceTx(
     data.beneficiary,
     data.tokenAddress,
-    parseUnits(data.amount, tokenDecimals).toString(),
+    parseUnits(data.amount, tokenDecimals ?? undefined).toString(),
     parseInt(data.resetTime),
     data.resetTime !== '0' ? currentMinutes() - 30 : 0,
     spendingLimitAddress,

@@ -1,7 +1,6 @@
-import { useTheme } from '@mui/material/styles'
 import { usePathname, useSearchParams } from 'next/navigation'
 import Link, { type LinkProps } from 'next/link'
-import { Alert, Box, Button, ButtonBase, Typography, useMediaQuery } from '@mui/material'
+import { Alert, Box, Button, ButtonBase, Typography } from '@mui/material'
 import AddIcon from '@mui/icons-material/Add'
 import { SafeAppsTag } from '@/config/constants'
 import { AppRoutes } from '@/config/routes'
@@ -15,7 +14,7 @@ import css from './styles.module.css'
 import ChevronRightRoundedIcon from '@mui/icons-material/ChevronRightRounded'
 
 const useOnrampAppUrl = (): string | undefined => {
-  const [onrampApps] = useRemoteSafeApps(SafeAppsTag.ONRAMP)
+  const [onrampApps] = useRemoteSafeApps({ tag: SafeAppsTag.ONRAMP })
   return onrampApps?.[0]?.url
 }
 
@@ -31,7 +30,7 @@ const useBuyCryptoHref = (): LinkProps['href'] | undefined => {
 }
 
 const buttonStyles = {
-  minHeight: '37.5px',
+  height: '42px',
 }
 
 const BuyCryptoOption = ({ name, children }: { name: string; children: ReactNode }) => {
@@ -69,9 +68,6 @@ const _BuyCryptoOptions = ({ rampLink }: { rampLink?: LinkProps['href'] }) => {
 }
 
 const InternalBuyCryptoButton = ({ href, pagePath }: { href?: LinkProps['href']; pagePath: string }) => {
-  const theme = useTheme()
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
-
   if (!href) return null
 
   return (
@@ -80,11 +76,13 @@ const InternalBuyCryptoButton = ({ href, pagePath }: { href?: LinkProps['href'];
         <Link href={href} passHref>
           <Button
             variant="contained"
-            size={isSmallScreen ? 'medium' : 'small'}
+            size="compact"
+            color="background"
             sx={buttonStyles}
-            startIcon={<AddIcon />}
+            startIcon={<AddIcon fontSize="small" />}
             className={css.buyCryptoButton}
             fullWidth
+            disableElevation
           >
             Buy crypto
           </Button>

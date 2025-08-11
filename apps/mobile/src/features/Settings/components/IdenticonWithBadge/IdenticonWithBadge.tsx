@@ -9,9 +9,11 @@ import { Address } from '@/src/types/address'
 type IdenticonWithBadgeProps = {
   address: Address
   badgeContent?: string
+  badgeSize?: number
   size?: number
   testID?: string
   fontSize?: number
+  variant?: 'sm' | 'md'
 }
 
 export const IdenticonWithBadge = ({
@@ -20,12 +22,14 @@ export const IdenticonWithBadge = ({
   badgeContent,
   fontSize = 12,
   size = 56,
+  badgeSize = 28,
+  variant = 'md',
 }: IdenticonWithBadgeProps) => {
   return (
     <View style={styles.container} testID={testID}>
-      <Identicon address={address} rounded size={size} />
-      <View style={styles.badge}>
-        <Skeleton colorMode={'dark'} radius="round" height={28} width={28}>
+      <Identicon address={address} size={size} />
+      <View style={[variant === 'sm' ? styles.badgeSm : styles.badge]}>
+        <Skeleton colorMode={'dark'} radius="round" height={badgeSize} width={badgeSize}>
           {badgeContent && (
             <Badge
               content={badgeContent}
@@ -33,8 +37,9 @@ export const IdenticonWithBadge = ({
                 fontSize,
                 fontWeight: 500,
               }}
-              themeName={'badge_success'}
-              circleProps={{ bordered: true }}
+              circleSize={badgeSize}
+              themeName={'badge_success_variant2'}
+              circleProps={{ bordered: true, borderColor: '$colorContrast' }}
             />
           )}
         </Skeleton>
@@ -51,5 +56,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: -5,
     right: -10,
+  },
+  badgeSm: {
+    position: 'absolute',
+    top: -5,
+    right: -5,
   },
 })

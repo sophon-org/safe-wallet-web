@@ -1,32 +1,118 @@
-import React from 'react'
-import { TouchableOpacity } from 'react-native'
-import { styled, Text, View } from 'tamagui'
+import { styled, Button } from 'tamagui'
 
-interface SafeButtonProps {
-  onPress: () => void
-  label: string
-  variant?: 'primary' | 'secondary'
-}
+export const SafeButton = styled(Button, {
+  variants: {
+    rounded: {
+      true: {
+        borderRadius: 8,
+      },
+    },
 
-export const StyledButtonWrapper = styled(View, {
-  height: 48,
-  alignItems: 'center',
-  justifyContent: 'center',
-  borderRadius: 8,
+    circle: {
+      true: {
+        borderRadius: 100,
+        height: 50,
+        width: 50,
+        padding: 17,
+      },
+    },
+
+    danger: {
+      true: {
+        backgroundColor: '$errorBackground',
+        color: '$error',
+      },
+    },
+
+    success: {
+      true: {
+        backgroundColor: '$success',
+        color: '$color',
+      },
+    },
+
+    primary: {
+      true: {
+        backgroundColor: '$primary',
+        color: '$contrast',
+      },
+    },
+
+    secondary: {
+      true: {
+        backgroundColor: '$backgroundSecondary',
+        color: '$color',
+      },
+    },
+
+    outlined: {
+      true: {
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        borderColor: '$color',
+        color: '$color',
+      },
+    },
+
+    text: {
+      true: {
+        backgroundColor: 'transparent',
+        color: '$primary',
+      },
+    },
+
+    disabled: {
+      true: (_, allProps) => {
+        // @ts-expect-error
+        const isText = allProps.props?.text === true
+        return {
+          backgroundColor: isText ? 'transparent' : '$backgroundDisabled',
+          color: '$colorLight',
+        }
+      },
+    },
+
+    size: {
+      $xl: () => ({
+        fontSize: 14,
+        fontWeight: 700,
+        height: 'auto',
+        margin: 0,
+        paddingVertical: '$3',
+        textProps: {
+          lineHeight: 24,
+        },
+      }),
+      $md: () => ({
+        height: 'auto',
+        paddingVertical: 14,
+        paddingHorizontal: 20,
+        margin: 0,
+        fontWeight: 700,
+        letterSpacing: -0.1,
+        fontSize: 14,
+        scaleIcon: 0.9,
+        scaleSpace: 0.3,
+        textProps: {
+          marginBottom: -2.5,
+        },
+      }),
+      $sm: () => ({
+        height: 36,
+        paddingVertical: '$2',
+        paddingHorizontal: '$3',
+        fontWeight: 600,
+        scaleIcon: 0.8,
+        scaleSpace: 0.2,
+        textProps: {
+          marginBottom: -2.5,
+        },
+      }),
+    },
+  } as const,
+  defaultVariants: {
+    size: '$md',
+    rounded: true,
+    primary: true,
+  },
 })
-
-export function SafeButton({ onPress, label, variant = 'primary' }: SafeButtonProps) {
-  const variantStyles =
-    variant === 'primary'
-      ? { backgroundColor: '$primary', fontColor: '$background' }
-      : { backgroundColor: 'inherit', fontColor: '$primary' }
-  return (
-    <TouchableOpacity onPress={onPress}>
-      <StyledButtonWrapper backgroundColor={variantStyles.backgroundColor}>
-        <Text fontSize="$4" fontWeight={600} color={variantStyles.fontColor}>
-          {label}
-        </Text>
-      </StyledButtonWrapper>
-    </TouchableOpacity>
-  )
-}

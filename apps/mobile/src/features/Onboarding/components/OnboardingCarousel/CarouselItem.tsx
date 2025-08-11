@@ -1,4 +1,6 @@
-import { Text, View, YStack } from 'tamagui'
+import { getTokenValue, Text, View, YStack } from 'tamagui'
+import React from 'react'
+import { Dimensions } from 'react-native'
 
 export type CarouselItem = {
   title: string | React.ReactNode
@@ -8,18 +10,25 @@ export type CarouselItem = {
   imagePosition?: 'top' | 'bottom'
 }
 
+const windowHeight = Dimensions.get('window').height
+const maxGoodHeight = 812
 interface CarouselItemProps {
   item: CarouselItem
+  testID?: string
 }
 
-export const CarouselItem = ({ item: { title, description, image, imagePosition = 'top' } }: CarouselItemProps) => {
+export const CarouselItem = ({
+  item: { title, description, image, imagePosition = 'top' },
+  testID,
+}: CarouselItemProps) => {
+  const gap = windowHeight <= maxGoodHeight ? '$4' : '$8'
   return (
-    <View gap="$8" alignItems="center" justifyContent="center">
+    <View gap={gap} alignItems="center" testID={testID} flex={1}>
       {imagePosition === 'top' && image}
-      <YStack gap="$8" paddingHorizontal="$5">
+      <YStack gap={gap} paddingHorizontal="$5" flex={1}>
         <YStack>{title}</YStack>
 
-        <Text textAlign="center" fontSize={'$4'}>
+        <Text textAlign="center" maxWidth={331} fontSize={'$5'} color={getTokenValue('$color.textContrastDark')}>
           {description}
         </Text>
       </YStack>

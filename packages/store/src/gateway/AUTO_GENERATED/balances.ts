@@ -37,22 +37,44 @@ export type BalancesGetBalancesV1ApiArg = {
 }
 export type BalancesGetSupportedFiatCodesV1ApiResponse = /** status 200  */ string[]
 export type BalancesGetSupportedFiatCodesV1ApiArg = void
-export type Token = {
+export type NativeToken = {
   address: string
-  decimals?: number
+  decimals: number
   logoUri: string
   name: string
   symbol: string
-  type: 'ERC721' | 'ERC20' | 'NATIVE_TOKEN' | 'UNKNOWN'
+  type: 'NATIVE_TOKEN'
+}
+export type Erc20Token = {
+  address: string
+  decimals: number
+  logoUri: string
+  name: string
+  symbol: string
+  type: 'ERC20'
+}
+export type Erc721Token = {
+  address: string
+  decimals: number
+  logoUri: string
+  name: string
+  symbol: string
+  type: 'ERC721'
 }
 export type Balance = {
   balance: string
   fiatBalance: string
   fiatConversion: string
-  tokenInfo: Token
+  tokenInfo: NativeToken | Erc20Token | Erc721Token
+  fiatBalance24hChange?: string | null
 }
 export type Balances = {
   fiatTotal: string
   items: Balance[]
 }
-export const { useBalancesGetBalancesV1Query, useBalancesGetSupportedFiatCodesV1Query } = injectedRtkApi
+export const {
+  useBalancesGetBalancesV1Query,
+  useLazyBalancesGetBalancesV1Query,
+  useBalancesGetSupportedFiatCodesV1Query,
+  useLazyBalancesGetSupportedFiatCodesV1Query,
+} = injectedRtkApi

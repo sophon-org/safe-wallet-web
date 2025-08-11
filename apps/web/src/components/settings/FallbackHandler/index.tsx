@@ -1,15 +1,18 @@
 import NextLink from 'next/link'
-import { Typography, Box, Grid, Paper, Link, Alert } from '@mui/material'
+import { Typography, Box, Grid, Paper, Link } from '@mui/material'
 import semverSatisfies from 'semver/functions/satisfies'
 import type { ReactElement } from 'react'
+import classnames from 'classnames'
 
 import EthHashInfo from '@/components/common/EthHashInfo'
 import useSafeInfo from '@/hooks/useSafeInfo'
-import { BRAND_NAME, HelpCenterArticle } from '@/config/constants'
+import { BRAND_NAME } from '@/config/constants'
 import ExternalLink from '@/components/common/ExternalLink'
 import { useTxBuilderApp } from '@/hooks/safe-apps/useTxBuilderApp'
 import { useCompatibilityFallbackHandlerDeployments } from '@/hooks/useCompatibilityFallbackHandlerDeployments'
-import { useIsOfficialFallbackHandler } from '@/hooks/useIsOfficialFallbackHandler'
+import { useHasUntrustedFallbackHandler } from '@/hooks/useHasUntrustedFallbackHandler'
+import css from '../TransactionGuards/styles.module.css'
+import { HelpCenterArticle } from '@safe-global/utils/config/constants'
 import { useIsTWAPFallbackHandler } from '@/features/swap/hooks/useIsTWAPFallbackHandler'
 
 const FALLBACK_HANDLER_VERSION = '>=1.1.1'
@@ -41,8 +44,8 @@ export const FallbackHandlerWarning = ({
 export const FallbackHandler = (): ReactElement | null => {
   const { safe } = useSafeInfo()
   const fallbackHandlerDeployments = useCompatibilityFallbackHandlerDeployments()
-  const isOfficial = useIsOfficialFallbackHandler()
   const isTWAPFallbackHandler = useIsTWAPFallbackHandler()
+  const isUntrusted = useHasUntrustedFallbackHandler()
 
   const supportsFallbackHandler = !!safe.version && semverSatisfies(safe.version, FALLBACK_HANDLER_VERSION)
 
@@ -59,7 +62,7 @@ export const FallbackHandler = (): ReactElement | null => {
     />
   ) : isTWAPFallbackHandler ? (
     <>This is CoW&apos;s fallback handler. It is needed for this Safe to be able to use the TWAP feature for Swaps.</>
-  ) : !isOfficial ? (
+  ) : isUntrusted ? (
     <FallbackHandlerWarning
       message={
         <>
@@ -98,18 +101,15 @@ export const FallbackHandler = (): ReactElement | null => {
               <ExternalLink href={HelpCenterArticle.FALLBACK_HANDLER}>here</ExternalLink>
             </Typography>
 
-            <Alert
-              severity={!hasFallbackHandler ? 'warning' : isOfficial || isTWAPFallbackHandler ? 'success' : 'info'}
-              icon={false}
-              sx={{ mt: 2 }}
+            <Box
+              className={classnames(css.guardDisplay, {
+                [css.warning]: !hasFallbackHandler,
+                [css.info]: hasFallbackHandler && isUntrusted,
+              })}
+              sx={{ display: 'block !important' }}
             >
               {warning && (
-                <Typography
-                  variant="body2"
-                  sx={{
-                    mb: hasFallbackHandler ? 1 : 0,
-                  }}
-                >
+                <Typography variant="body2" width="100%" mb={hasFallbackHandler ? 1 : 0}>
                   {warning}
                 </Typography>
               )}
@@ -119,12 +119,12 @@ export const FallbackHandler = (): ReactElement | null => {
                   shortAddress={false}
                   name={safe.fallbackHandler.name || fallbackHandlerDeployments?.contractName}
                   address={safe.fallbackHandler.value}
-                  customAvatar={safe.fallbackHandler.logoUri}
+                  customAvatar={safe.fallbackHandler.logoUri || undefined}
                   showCopyButton
                   hasExplorer
                 />
               )}
-            </Alert>
+            </Box>
           </Box>
         </Grid>
       </Grid>

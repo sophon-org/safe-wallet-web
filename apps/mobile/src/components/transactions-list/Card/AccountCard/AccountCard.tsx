@@ -6,6 +6,10 @@ import { IdenticonWithBadge } from '@/src/features/Settings/components/Identicon
 import { Address } from '@/src/types/address'
 import { Chain } from '@safe-global/store/gateway/AUTO_GENERATED/chains'
 import { ChainsDisplay } from '@/src/components/ChainsDisplay'
+import { shouldDisplayPreciseBalance } from '@/src/utils/balance'
+import { formatCurrency, formatCurrencyPrecise } from '@safe-global/utils/utils/formatNumber'
+import { useAppSelector } from '@/src/store/hooks'
+import { selectCurrency } from '@/src/store/settingsSlice'
 
 interface AccountCardProps {
   name: string | Address
@@ -30,6 +34,11 @@ export function AccountCard({
   threshold,
   rightNode,
 }: AccountCardProps) {
+  const currency = useAppSelector(selectCurrency)
+  const formattedBalance = shouldDisplayPreciseBalance(balance, 8)
+    ? formatCurrencyPrecise(balance, currency)
+    : formatCurrency(balance, currency)
+
   return (
     <SafeListItem
       spaced={spaced}
@@ -39,7 +48,7 @@ export function AccountCard({
             {ellipsis(name, 18)}
           </Text>
           <Text fontSize="$4" color="$colorSecondary" fontWeight={400}>
-            ${ellipsis(balance, 14)}
+            {ellipsis(formattedBalance, 14)}
           </Text>
         </View>
       }
@@ -49,7 +58,8 @@ export function AccountCard({
           <IdenticonWithBadge
             testID="threshold-info-badge"
             size={40}
-            fontSize={owners > 9 ? 8 : 12}
+            badgeSize={24}
+            fontSize={owners > 9 ? 9 : 12}
             address={address}
             badgeContent={`${threshold}/${owners}`}
           />

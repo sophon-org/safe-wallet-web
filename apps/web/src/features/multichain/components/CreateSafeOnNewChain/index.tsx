@@ -17,15 +17,17 @@ import { selectRpc } from '@/store/settingsSlice'
 import { createWeb3ReadOnly, getRpcServiceUrl } from '@/hooks/wallets/web3'
 import { hasMultiChainAddNetworkFeature } from '@/features/multichain/utils/utils'
 import { sameAddress } from '@/utils/addresses'
+import { hasMultiChainAddNetworkFeature, predictAddressBasedOnReplayData } from '@/features/multichain/utils/utils'
+import { sameAddress } from '@safe-global/utils/utils/addresses'
 import ExternalLink from '@/components/common/ExternalLink'
 import { useRouter } from 'next/router'
 import ChainIndicator from '@/components/common/ChainIndicator'
 import { type ChainInfo } from '@safe-global/safe-gateway-typescript-sdk'
 import { useMemo, useState } from 'react'
 import { useCompatibleNetworks } from '../../hooks/useCompatibleNetworks'
-import { PayMethod } from '@/features/counterfactual/PayNowPayLater'
 import { MULTICHAIN_HELP_ARTICLE } from '@/config/constants'
 import { computeNewSafeAddress } from '@/components/new-safe/create/logic'
+import { PayMethod } from '@safe-global/utils/features/counterfactual/types'
 
 type CreateSafeOnNewChainForm = {
   chainId: string

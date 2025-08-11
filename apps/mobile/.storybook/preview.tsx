@@ -1,10 +1,9 @@
 import type { Preview } from '@storybook/react'
 import { NavigationIndependentTree } from '@react-navigation/native'
-import { SafeThemeProvider } from '@/src/theme/provider/safeTheme'
-import { View } from 'react-native'
+import { StorybookThemeProvider } from '@/src/theme/provider/storybookTheme'
 import { SafeToastProvider } from '@/src/theme/provider/toastProvider'
 import { SafeAreaProvider } from 'react-native-safe-area-context'
-import { PortalProvider } from 'tamagui'
+import { PortalProvider, View } from 'tamagui'
 
 const preview: Preview = {
   parameters: {
@@ -22,13 +21,13 @@ const preview: Preview = {
         <PortalProvider shouldAddRootHost>
           <NavigationIndependentTree>
             <SafeAreaProvider>
-              <SafeThemeProvider>
+              <StorybookThemeProvider>
                 <SafeToastProvider>
-                  <View style={{ padding: 16, flex: 1 }}>
+                  <View style={{ padding: 16, flex: 1 }} backgroundColor={'$background'}>
                     <Story />
                   </View>
                 </SafeToastProvider>
-              </SafeThemeProvider>
+              </StorybookThemeProvider>
             </SafeAreaProvider>
           </NavigationIndependentTree>
         </PortalProvider>

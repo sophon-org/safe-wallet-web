@@ -1,38 +1,30 @@
-import useWallet from '@/hooks/wallets/useWallet'
-import { useContext, useEffect, useMemo } from 'react'
+import { useContext, useEffect } from 'react'
 import type { ReactElement } from 'react'
-import type { SafeTransaction } from '@safe-global/safe-core-sdk-types'
-import SignOrExecuteForm from '@/components/tx/SignOrExecuteForm'
+import type { SafeTransaction } from '@safe-global/types-kit'
 import type { SafeAppsTxParams } from '.'
-import { trackSafeAppTxCount } from '@/services/safe-apps/track-app-usage-count'
-import { getTxOrigin } from '@/utils/transactions'
-import { createMultiSendCallOnlyTx, createTx, dispatchSafeAppsTx } from '@/services/tx/tx-sender'
-import useOnboard from '@/hooks/wallets/useOnboard'
+import { createMultiSendCallOnlyTx, createTx } from '@/services/tx/tx-sender'
 import useHighlightHiddenTab from '@/hooks/useHighlightHiddenTab'
 import { SafeTxContext } from '@/components/tx-flow/SafeTxProvider'
 import { isTxValid } from '@/components/safe-apps/utils'
 import ErrorMessage from '@/components/tx/ErrorMessage'
-import { asError } from '@/services/exceptions/utils'
+import ReviewTransaction from '@/components/tx/ReviewTransactionV2'
+import { type ReviewTransactionContentProps } from '@/components/tx/ReviewTransactionV2/ReviewTransactionContent'
+import { getTxOrigin } from '@/utils/transactions'
 
 type ReviewSafeAppsTxProps = {
   safeAppsTx: SafeAppsTxParams
-  onSubmit?: (txId: string, safeTxHash: string) => void
-}
+  onSubmit: () => void
+} & ReviewTransactionContentProps
 
 const ReviewSafeAppsTx = ({
-  safeAppsTx: { txs, requestId, params, appId, app },
+  safeAppsTx: { txs, params, app },
   onSubmit,
+  children,
+  ...props
 }: ReviewSafeAppsTxProps): ReactElement => {
-  const onboard = useOnboard()
-  const wallet = useWallet()
-  const { safeTx, setSafeTx, safeTxError, setSafeTxError, setTxOrigin } = useContext(SafeTxContext)
+  const { setSafeTx, safeTxError, setSafeTxError, setTxOrigin } = useContext(SafeTxContext)
 
   useHighlightHiddenTab()
-
-  useEffect(() => {
-    setTxOrigin(app?.url)
-    return () => setTxOrigin(undefined)
-  }, [setTxOrigin, app?.url])
 
   useEffect(() => {
     const createSafeTx = async (): Promise<SafeTransaction> => {
@@ -48,35 +40,26 @@ const ReviewSafeAppsTx = ({
       return tx
     }
 
-    createSafeTx().then(setSafeTx).catch(setSafeTxError)
-  }, [txs, setSafeTx, setSafeTxError, params])
+    createSafeTx()
+      .then((tx) => {
+        setSafeTx(tx)
+        setTxOrigin(getTxOrigin(app))
+      })
+      .catch(setSafeTxError)
+  }, [txs, setSafeTx, setSafeTxError, setTxOrigin, app, params])
 
-  const handleSubmit = async (txId: string) => {
-    if (!safeTx || !onboard || !wallet?.provider) return
-    trackSafeAppTxCount(Number(appId))
-
-    let safeTxHash = ''
-    try {
-      safeTxHash = await dispatchSafeAppsTx(safeTx, requestId, wallet.provider, txId)
-    } catch (error) {
-      setSafeTxError(asError(error))
-    }
-
-    onSubmit?.(txId, safeTxHash)
-  }
-
-  const origin = useMemo(() => getTxOrigin(app), [app])
   const error = !isTxValid(txs)
 
   return (
-    <SignOrExecuteForm onSubmit={handleSubmit} origin={origin} showMethodCall>
+    <ReviewTransaction onSubmit={onSubmit} {...props}>
       {error ? (
         <ErrorMessage error={safeTxError}>
           This Safe App initiated a transaction which cannot be processed. Please get in touch with the developer of
           this Safe App for more information.
         </ErrorMessage>
       ) : null}
-    </SignOrExecuteForm>
+      {children}
+    </ReviewTransaction>
   )
 }
 
