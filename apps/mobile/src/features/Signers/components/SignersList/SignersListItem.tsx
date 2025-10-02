@@ -1,6 +1,5 @@
 import React from 'react'
-import { shortenAddress } from '@/src/utils/formatters'
-import { MenuView } from '@react-native-menu/menu'
+import { MenuView, NativeActionEvent, MenuAction } from '@react-native-menu/menu'
 import { useSignersActions } from './hooks/useSignersActions'
 import { SafeFontIcon } from '@/src/components/SafeFontIcon'
 import { SignersCard } from '@/src/components/transactions-list/Card/SignersCard'
@@ -8,7 +7,12 @@ import { AddressInfo } from '@safe-global/store/gateway/AUTO_GENERATED/transacti
 import { SignerSection } from './SignersList'
 import { View } from 'tamagui'
 import { TouchableOpacity } from 'react-native-gesture-handler'
-import { useRouter } from 'expo-router'
+import { useColorScheme } from 'react-native'
+import { useAppSelector } from '@/src/store/hooks'
+import { selectContactByAddress } from '@/src/store/addressBookSlice'
+import { useCopyAndDispatchToast } from '@/src/hooks/useCopyAndDispatchToast'
+import { router, useLocalSearchParams } from 'expo-router'
+import logger from '@/src/utils/logger'
 
 interface SignersListItemProps {
   item: AddressInfo
@@ -17,34 +21,104 @@ interface SignersListItemProps {
 }
 
 function SignersListItem({ item, index, signersGroup }: SignersListItemProps) {
-  const router = useRouter()
-  const actions = useSignersActions()
-  const isLastItem = signersGroup.some((section) => section.data.length === index + 1)
+  const colorScheme = useColorScheme()
+  const contact = useAppSelector(selectContactByAddress(item.value))
+  const local = useLocalSearchParams<{ safeAddress: string; chainId: string; import_safe: string }>()
 
-  const onPress = () => {
-    router.push(`/signers/${item.value}`)
+  // Check if the current item belongs to the 'Imported signers' section
+  const isMySigner = signersGroup.some(
+    (section) => section.id === 'imported_signers' && section.data.some((signer) => signer.value === item.value),
+  )
+
+  const fullActions = useSignersActions(isMySigner) // This was necessary to prevent typescript from complaining about the actions array
+  // Filter out any false values to ensure the array type matches MenuAction[]
+  const actions = fullActions.filter(Boolean) as MenuAction[]
+  const isLastItem = signersGroup.some((section) => section.data.length === index + 1)
+  const copy = useCopyAndDispatchToast()
+
+  const redirectToDetails = (editMode?: boolean) => {
+    router.push({
+      pathname: '/signers/[address]',
+      params: { address: item.value, editMode: editMode?.toString() },
+    })
+  }
+
+  const redirectToImport = () => {
+    router.push({
+      pathname: '/import-signers',
+      params: {
+        safeAddress: local.safeAddress,
+        chainId: local.chainId,
+        import_safe: local.import_safe,
+      },
+    })
+  }
+
+  const handleItemPress = () => {
+    if (local.import_safe && !isMySigner) {
+      return redirectToImport()
+    }
+
+    return redirectToDetails()
+  }
+
+  const onPressMenuAction = ({ nativeEvent }: NativeActionEvent) => {
+    if (nativeEvent.event === 'rename') {
+      return redirectToDetails(true)
+    }
+
+    if (nativeEvent.event === 'copy') {
+      return copy(item.value as string)
+    }
+
+    if (nativeEvent.event === 'import' && !isMySigner) {
+      return redirectToImport()
+    }
+
+    logger.error('No action found for nativeEvent', nativeEvent)
   }
 
   return (
-    <TouchableOpacity onPress={onPress}>
+    <View position="relative">
+      <TouchableOpacity onPress={handleItemPress} testID={`signer-${item.value}`}>
+        <View
+          backgroundColor={colorScheme === 'dark' ? '$backgroundPaper' : '$background'}
+          borderTopRightRadius={index === 0 ? '$4' : undefined}
+          borderTopLeftRadius={index === 0 ? '$4' : undefined}
+          borderBottomRightRadius={isLastItem ? '$4' : undefined}
+          borderBottomLeftRadius={isLastItem ? '$4' : undefined}
+        >
+          <SignersCard
+            name={contact ? (contact.name as string) : (item.name as string)}
+            address={item.value as `0x${string}`}
+          />
+        </View>
+      </TouchableOpacity>
+
       <View
-        backgroundColor={'$backgroundPaper'}
-        borderTopRightRadius={index === 0 ? '$4' : undefined}
-        borderTopLeftRadius={index === 0 ? '$4' : undefined}
-        borderBottomRightRadius={isLastItem ? '$4' : undefined}
-        borderBottomLeftRadius={isLastItem ? '$4' : undefined}
+        position="absolute"
+        right={0}
+        top={0}
+        height={'100%'}
+        display="flex"
+        alignItems="center"
+        justifyContent="center"
       >
-        <SignersCard
-          name={item.name ?? shortenAddress(item.value)}
-          address={item.value as `0x${string}`}
-          rightNode={
-            <MenuView onPressAction={console.log} actions={actions}>
-              <SafeFontIcon name="options-horizontal" />
-            </MenuView>
-          }
-        />
+        <MenuView
+          onPressAction={onPressMenuAction}
+          actions={actions}
+          style={{
+            height: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+            paddingRight: 16,
+            paddingLeft: 16,
+          }}
+        >
+          <SafeFontIcon name="options-horizontal" />
+        </MenuView>
       </View>
-    </TouchableOpacity>
+    </View>
   )
 }
 

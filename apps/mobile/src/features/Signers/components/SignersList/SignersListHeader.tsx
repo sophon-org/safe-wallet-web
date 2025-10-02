@@ -5,14 +5,15 @@ import { SectionTitle } from '@/src/components/Title'
 
 interface SignersListHeaderProps {
   withAlert: boolean
+  sectionTitle?: string
 }
 
-export function SignersListHeader({ withAlert }: SignersListHeaderProps) {
+export function SignersListHeader({ withAlert, sectionTitle }: SignersListHeaderProps) {
   return (
     <View gap="$6">
       <SectionTitle
         paddingHorizontal={'$0'}
-        title="Signers"
+        title={sectionTitle || 'Signers'}
         description="Signers have full control over the account, they can propose, sign and execute the transactions, as well as reject them."
       />
 
@@ -21,7 +22,8 @@ export function SignersListHeader({ withAlert }: SignersListHeaderProps) {
           <Alert
             type="warning"
             message="Before you import signers..."
-            info="Make sure to import signers from this list only. Others will not be imported."
+            info={`Make sure to import signers from this list only.\nOthers will not be imported.`}
+            orientation="left"
           />
         </View>
       )}

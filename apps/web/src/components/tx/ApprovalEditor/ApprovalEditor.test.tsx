@@ -2,16 +2,16 @@ import { safeSignatureBuilder, safeTxBuilder } from '@/tests/builders/safeTx'
 import { act, fireEvent, getAllByTitle, render, waitFor } from '@/tests/test-utils'
 import ApprovalEditor from '.'
 import { TokenType } from '@safe-global/safe-gateway-typescript-sdk'
-import { OperationType } from '@safe-global/safe-core-sdk-types'
+import { OperationType } from '@safe-global/types-kit'
 import * as approvalInfos from '@/components/tx/ApprovalEditor/hooks/useApprovalInfos'
 import { createMockSafeTransaction } from '@/tests/transactions'
 import { faker } from '@faker-js/faker'
 import { encodeMultiSendData } from '@safe-global/protocol-kit'
-import { ERC20__factory, Multi_send__factory } from '@/types/contracts'
+import { ERC20__factory, Multi_send__factory } from '@safe-global/utils/types/contracts'
 import { getAndValidateSafeSDK } from '@/services/tx/tx-sender/sdk'
 import { parseUnits } from 'ethers'
-import { checksumAddress } from '@/utils/addresses'
-
+import { checksumAddress } from '@safe-global/utils/utils/addresses'
+import { type Balances } from '@safe-global/store/gateway/AUTO_GENERATED/balances'
 jest.mock('@/services/tx/tx-sender/sdk', () => ({
   getAndValidateSafeSDK: jest.fn().mockReturnValue({
     createTransaction: jest.fn(),
@@ -164,28 +164,30 @@ describe('ApprovalEditor', () => {
       operation: OperationType.DelegateCall,
     })
 
+    const mockBalances: Balances = {
+      fiatTotal: '0',
+      items: [
+        {
+          balance: '10',
+          tokenInfo: {
+            address: tokenAddress,
+            decimals: 18,
+            logoUri: 'someurl',
+            name: 'Test token',
+            symbol: 'TST',
+            type: TokenType.ERC20,
+          },
+          fiatBalance: '10',
+          fiatConversion: '1',
+        },
+      ],
+    }
+
     const result = render(<ApprovalEditor safeTransaction={mockSafeTx} />, {
       initialReduxState: {
         balances: {
+          data: mockBalances,
           loading: false,
-          data: {
-            fiatTotal: '0',
-            items: [
-              {
-                balance: '10',
-                tokenInfo: {
-                  address: tokenAddress,
-                  decimals: 18,
-                  logoUri: 'someurl',
-                  name: 'Test token',
-                  symbol: 'TST',
-                  type: TokenType.ERC20,
-                },
-                fiatBalance: '10',
-                fiatConversion: '1',
-              },
-            ],
-          },
         },
       },
     })
@@ -272,28 +274,30 @@ describe('ApprovalEditor', () => {
       operation: OperationType.DelegateCall,
     })
 
+    const mockBalances: Balances = {
+      fiatTotal: '0',
+      items: [
+        {
+          balance: '10',
+          tokenInfo: {
+            address: tokenAddress,
+            decimals: 18,
+            logoUri: 'someurl',
+            name: 'Test token',
+            symbol: 'TST',
+            type: TokenType.ERC20,
+          },
+          fiatBalance: '10',
+          fiatConversion: '1',
+        },
+      ],
+    }
+
     const result = render(<ApprovalEditor safeTransaction={mockSafeTx} />, {
       initialReduxState: {
         balances: {
+          data: mockBalances,
           loading: false,
-          data: {
-            fiatTotal: '0',
-            items: [
-              {
-                balance: '10',
-                tokenInfo: {
-                  address: tokenAddress,
-                  decimals: 18,
-                  logoUri: 'someurl',
-                  name: 'Test token',
-                  symbol: 'TST',
-                  type: TokenType.ERC20,
-                },
-                fiatBalance: '10',
-                fiatConversion: '1',
-              },
-            ],
-          },
         },
       },
     })

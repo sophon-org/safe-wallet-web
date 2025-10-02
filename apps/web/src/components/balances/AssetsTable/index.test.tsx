@@ -2,12 +2,13 @@ import * as useChainId from '@/hooks/useChainId'
 import useHiddenTokens from '@/hooks/useHiddenTokens'
 import { TOKEN_LISTS } from '@/store/settingsSlice'
 import { act, fireEvent, getByRole, getByTestId, render, waitFor } from '@/tests/test-utils'
-import { safeParseUnits } from '@/utils/formatters'
+import { safeParseUnits } from '@safe-global/utils/utils/formatters'
 import { TokenType } from '@safe-global/safe-gateway-typescript-sdk'
 import { toBeHex } from 'ethers'
 import { useState } from 'react'
 import AssetsTable from '.'
 import { COLLAPSE_TIMEOUT_MS } from './useHideAssets'
+import { type Balances } from '@safe-global/store/gateway/AUTO_GENERATED/balances'
 
 const getParentRow = (element: HTMLElement | null) => {
   while (element !== null) {
@@ -47,45 +48,44 @@ describe('AssetsTable', () => {
     const mockHiddenAssets = {
       '5': [toBeHex('0x2', 20), toBeHex('0x3', 20)],
     }
-    const mockBalances = {
-      data: {
-        fiatTotal: '300',
-        items: [
-          {
-            balance: safeParseUnits('100', 18)!.toString(),
-            fiatBalance: '100',
-            fiatConversion: '1',
-            tokenInfo: {
-              address: toBeHex('0x2', 20),
-              decimals: 18,
-              logoUri: '',
-              name: 'DAI',
-              symbol: 'DAI',
-              type: TokenType.ERC20,
-            },
+    const mockBalances: Balances = {
+      fiatTotal: '300',
+      items: [
+        {
+          balance: safeParseUnits('100', 18)!.toString(),
+          fiatBalance: '100',
+          fiatConversion: '1',
+          tokenInfo: {
+            address: toBeHex('0x2', 20),
+            decimals: 18,
+            logoUri: '',
+            name: 'DAI',
+            symbol: 'DAI',
+            type: TokenType.ERC20,
           },
-          {
-            balance: safeParseUnits('200', 18)!.toString(),
-            fiatBalance: '200',
-            fiatConversion: '1',
-            tokenInfo: {
-              address: toBeHex('0x3', 20),
-              decimals: 18,
-              logoUri: '',
-              name: 'SPAM',
-              symbol: 'SPM',
-              type: TokenType.ERC20,
-            },
+        },
+        {
+          balance: safeParseUnits('200', 18)!.toString(),
+          fiatBalance: '200',
+          fiatConversion: '1',
+          tokenInfo: {
+            address: toBeHex('0x3', 20),
+            decimals: 18,
+            logoUri: '',
+            name: 'SPAM',
+            symbol: 'SPM',
+            type: TokenType.ERC20,
           },
-        ],
-      },
-      loading: false,
-      error: undefined,
+        },
+      ],
     }
 
     const result = render(<TestComponent />, {
       initialReduxState: {
-        balances: mockBalances,
+        balances: {
+          data: mockBalances,
+          loading: false,
+        },
         settings: {
           currency: 'usd',
           hiddenTokens: mockHiddenAssets,
@@ -153,45 +153,44 @@ describe('AssetsTable', () => {
     const mockHiddenAssets = {
       '5': [toBeHex('0x2', 20), toBeHex('0x3', 20), toBeHex('0xdead', 20)],
     }
-    const mockBalances = {
-      data: {
-        fiatTotal: '300',
-        items: [
-          {
-            balance: safeParseUnits('100', 18)!.toString(),
-            fiatBalance: '100',
-            fiatConversion: '1',
-            tokenInfo: {
-              address: toBeHex('0x2', 20),
-              decimals: 18,
-              logoUri: '',
-              name: 'DAI',
-              symbol: 'DAI',
-              type: TokenType.ERC20,
-            },
+    const mockBalances: Balances = {
+      fiatTotal: '300',
+      items: [
+        {
+          balance: safeParseUnits('100', 18)!.toString(),
+          fiatBalance: '100',
+          fiatConversion: '1',
+          tokenInfo: {
+            address: toBeHex('0x2', 20),
+            decimals: 18,
+            logoUri: '',
+            name: 'DAI',
+            symbol: 'DAI',
+            type: TokenType.ERC20,
           },
-          {
-            balance: safeParseUnits('200', 18)!.toString(),
-            fiatBalance: '200',
-            fiatConversion: '1',
-            tokenInfo: {
-              address: toBeHex('0x3', 20),
-              decimals: 18,
-              logoUri: '',
-              name: 'SPAM',
-              symbol: 'SPM',
-              type: TokenType.ERC20,
-            },
+        },
+        {
+          balance: safeParseUnits('200', 18)!.toString(),
+          fiatBalance: '200',
+          fiatConversion: '1',
+          tokenInfo: {
+            address: toBeHex('0x3', 20),
+            decimals: 18,
+            logoUri: '',
+            name: 'SPAM',
+            symbol: 'SPM',
+            type: TokenType.ERC20,
           },
-        ],
-      },
-      loading: false,
-      error: undefined,
+        },
+      ],
     }
 
     const result = render(<TestComponent />, {
       initialReduxState: {
-        balances: mockBalances,
+        balances: {
+          data: mockBalances,
+          loading: false,
+        },
         settings: {
           currency: 'usd',
           hiddenTokens: mockHiddenAssets,
@@ -255,45 +254,44 @@ describe('AssetsTable', () => {
     const mockHiddenAssets = {
       '5': [],
     }
-    const mockBalances = {
-      data: {
-        fiatTotal: '300',
-        items: [
-          {
-            balance: safeParseUnits('100', 18)!.toString(),
-            fiatBalance: '100',
-            fiatConversion: '1',
-            tokenInfo: {
-              address: toBeHex('0x2', 20),
-              decimals: 18,
-              logoUri: '',
-              name: 'DAI',
-              symbol: 'DAI',
-              type: TokenType.ERC20,
-            },
+    const mockBalances: Balances = {
+      fiatTotal: '300',
+      items: [
+        {
+          balance: safeParseUnits('100', 18)!.toString(),
+          fiatBalance: '100',
+          fiatConversion: '1',
+          tokenInfo: {
+            address: toBeHex('0x2', 20),
+            decimals: 18,
+            logoUri: '',
+            name: 'DAI',
+            symbol: 'DAI',
+            type: TokenType.ERC20,
           },
-          {
-            balance: safeParseUnits('200', 18)!.toString(),
-            fiatBalance: '200',
-            fiatConversion: '1',
-            tokenInfo: {
-              address: toBeHex('0x3', 20),
-              decimals: 18,
-              logoUri: '',
-              name: 'SPAM',
-              symbol: 'SPM',
-              type: TokenType.ERC20,
-            },
+        },
+        {
+          balance: safeParseUnits('200', 18)!.toString(),
+          fiatBalance: '200',
+          fiatConversion: '1',
+          tokenInfo: {
+            address: toBeHex('0x3', 20),
+            decimals: 18,
+            logoUri: '',
+            name: 'SPAM',
+            symbol: 'SPM',
+            type: TokenType.ERC20,
           },
-        ],
-      },
-      loading: false,
-      error: undefined,
+        },
+      ],
     }
 
     const result = render(<TestComponent />, {
       initialReduxState: {
-        balances: mockBalances,
+        balances: {
+          data: mockBalances,
+          loading: false,
+        },
         settings: {
           currency: 'usd',
           hiddenTokens: mockHiddenAssets,
@@ -354,45 +352,44 @@ describe('AssetsTable', () => {
     const mockHiddenAssets = {
       '5': [],
     }
-    const mockBalances = {
-      data: {
-        fiatTotal: '300',
-        items: [
-          {
-            balance: safeParseUnits('100', 18)!.toString(),
-            fiatBalance: '100',
-            fiatConversion: '1',
-            tokenInfo: {
-              address: toBeHex('0x2', 20),
-              decimals: 18,
-              logoUri: '',
-              name: 'DAI',
-              symbol: 'DAI',
-              type: TokenType.ERC20,
-            },
+    const mockBalances: Balances = {
+      fiatTotal: '300',
+      items: [
+        {
+          balance: safeParseUnits('100', 18)!.toString(),
+          fiatBalance: '100',
+          fiatConversion: '1',
+          tokenInfo: {
+            address: toBeHex('0x2', 20),
+            decimals: 18,
+            logoUri: '',
+            name: 'DAI',
+            symbol: 'DAI',
+            type: TokenType.ERC20,
           },
-          {
-            balance: safeParseUnits('200', 18)!.toString(),
-            fiatBalance: '200',
-            fiatConversion: '1',
-            tokenInfo: {
-              address: toBeHex('0x3', 20),
-              decimals: 18,
-              logoUri: '',
-              name: 'SPAM',
-              symbol: 'SPM',
-              type: TokenType.ERC20,
-            },
+        },
+        {
+          balance: safeParseUnits('200', 18)!.toString(),
+          fiatBalance: '200',
+          fiatConversion: '1',
+          tokenInfo: {
+            address: toBeHex('0x3', 20),
+            decimals: 18,
+            logoUri: '',
+            name: 'SPAM',
+            symbol: 'SPM',
+            type: TokenType.ERC20,
           },
-        ],
-      },
-      loading: false,
-      error: undefined,
+        },
+      ],
     }
 
     const result = render(<TestComponent />, {
       initialReduxState: {
-        balances: mockBalances,
+        balances: {
+          data: mockBalances,
+          loading: false,
+        },
         settings: {
           currency: 'usd',
           hiddenTokens: mockHiddenAssets,

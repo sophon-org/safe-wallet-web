@@ -1,7 +1,7 @@
 import useWallet from '@/hooks/wallets/useWallet'
 import type { ReactElement, SyntheticEvent } from 'react'
 import { useContext, useMemo, useState } from 'react'
-import { type BigNumberish, type BytesLike, parseUnits } from 'ethers'
+import { type BigNumberish, type BytesLike } from 'ethers'
 import { Button, CardActions, Typography } from '@mui/material'
 import SendToBlock from '@/components/tx/SendToBlock'
 import { type TokenTransferParams } from '@/components/tx-flow/flows/TokenTransfer/index'
@@ -20,13 +20,13 @@ import { dispatchSpendingLimitTxExecution } from '@/services/tx/tx-sender'
 import { getTxOptions } from '@/utils/transactions'
 import { MODALS_EVENTS, trackEvent } from '@/services/analytics'
 import useOnboard from '@/hooks/wallets/useOnboard'
-import { asError } from '@/services/exceptions/utils'
+import { asError } from '@safe-global/utils/services/exceptions/utils'
 import TxCard from '@/components/tx-flow/common/TxCard'
 import { TxModalContext } from '@/components/tx-flow'
-import { type SubmitCallback } from '@/components/tx/SignOrExecuteForm/SignOrExecuteForm'
+import { type SubmitCallback } from '@/components/tx/SignOrExecuteForm/SignOrExecuteFormV2'
 import { TX_EVENTS, TX_TYPES } from '@/services/analytics/events/transactions'
 import { isWalletRejection } from '@/utils/wallets'
-import { safeParseUnits } from '@/utils/formatters'
+import { safeParseUnits } from '@safe-global/utils/utils/formatters'
 import CheckWallet from '@/components/common/CheckWallet'
 import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
 import type { ChainInfo } from '@safe-global/safe-gateway-typescript-sdk'
@@ -71,20 +71,13 @@ const ReviewSpendingLimitTx = ({
       safeAddress,
       token: spendingLimit?.token.address || ZERO_ADDRESS,
       to: params.recipient,
-      amount: parseUnits(params.amount, token?.tokenInfo.decimals).toString(),
+      amount: amountInWei,
       paymentToken: ZERO_ADDRESS,
       payment: 0,
       delegate: spendingLimit?.beneficiary || ZERO_ADDRESS,
       signature: EMPTY_DATA,
     }),
-    [
-      params.amount,
-      params.recipient,
-      safeAddress,
-      spendingLimit?.beneficiary,
-      spendingLimit?.token,
-      token?.tokenInfo.decimals,
-    ],
+    [amountInWei, params.recipient, safeAddress, spendingLimit?.beneficiary, spendingLimit?.token],
   )
 
   const { gasLimit, gasLimitLoading } = useSpendingLimitGas(txParams)

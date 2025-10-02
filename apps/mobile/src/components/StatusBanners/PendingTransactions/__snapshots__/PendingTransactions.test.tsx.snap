@@ -50,7 +50,7 @@ exports[`PendingTransactions should render the pending transactions in fullWidth
         style={
           {
             "alignItems": "center",
-            "backgroundColor": "#fff0e0",
+            "backgroundColor": "#FFECC2",
             "borderBottomLeftRadius": 5,
             "borderBottomRightRadius": 5,
             "borderTopLeftRadius": 5,
@@ -58,10 +58,10 @@ exports[`PendingTransactions should render the pending transactions in fullWidth
             "flexDirection": "row",
             "gap": 12,
             "justifyContent": "center",
-            "paddingBottom": 12,
-            "paddingLeft": 28,
-            "paddingRight": 28,
-            "paddingTop": 12,
+            "paddingBottom": 8,
+            "paddingLeft": 8,
+            "paddingRight": 8,
+            "paddingTop": 8,
             "width": "100%",
           }
         }
@@ -73,30 +73,31 @@ exports[`PendingTransactions should render the pending transactions in fullWidth
             style={
               {
                 "alignItems": "center",
-                "backgroundColor": "#FFF1E0",
+                "backgroundColor": "#FF8C00",
                 "borderBottomLeftRadius": 100000,
                 "borderBottomRightRadius": 100000,
                 "borderTopLeftRadius": 100000,
                 "borderTopRightRadius": 100000,
                 "flexDirection": "column",
-                "height": 28,
+                "height": 24,
                 "justifyContent": "center",
-                "maxHeight": 28,
-                "maxWidth": 28,
-                "minHeight": 28,
-                "minWidth": 28,
+                "maxHeight": 24,
+                "maxWidth": 24,
+                "minHeight": 24,
+                "minWidth": 24,
                 "paddingBottom": 0,
                 "paddingLeft": 0,
                 "paddingRight": 0,
                 "paddingTop": 0,
-                "width": 28,
+                "width": 24,
               }
             }
           >
             <Text
               style={
                 {
-                  "color": "#fff0e0",
+                  "color": "#6C2D19",
+                  "fontFamily": "DMSans-SemiBold",
                   "fontSize": 14,
                 }
               }
@@ -116,14 +117,14 @@ exports[`PendingTransactions should render the pending transactions in fullWidth
           <Text
             style={
               {
-                "color": "#FF8C00",
+                "color": "#6C2D19",
                 "fontFamily": "DMSans-SemiBold",
-                "fontSize": 16,
+                "fontSize": 14,
               }
             }
             suppressHighlighting={true}
           >
-            Pending Transactions
+            Pending transactions
           </Text>
         </View>
         <View
@@ -135,7 +136,7 @@ exports[`PendingTransactions should render the pending transactions in fullWidth
             style={
               [
                 {
-                  "color": "#FF8C00",
+                  "color": "#6C2D19",
                   "fontSize": 20,
                 },
                 undefined,
@@ -148,7 +149,7 @@ exports[`PendingTransactions should render the pending transactions in fullWidth
               ]
             }
           >
-            
+            
           </Text>
         </View>
       </View>

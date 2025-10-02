@@ -21,6 +21,7 @@ import Track from '@/components/common/Track'
 import { OVERVIEW_EVENTS } from '@/services/analytics'
 import darkPalette from '@/components/theme/darkPalette'
 import ProtofireLogo from '@/public/images/protofire-logo.svg'
+import IndexingStatus from '@/components/sidebar/IndexingStatus'
 
 const SidebarFooter = (): ReactElement => {
   //const dispatch = useAppDispatch()
@@ -41,11 +42,15 @@ const SidebarFooter = (): ReactElement => {
   // }
 
   return (
-    <SidebarList>
+    <>
       {!IS_PRODUCTION && (
-        <ListItem disablePadding>
-          <DebugToggle />
-        </ListItem>
+        <>
+          <ListItem disablePadding>
+            <DebugToggle />
+          </ListItem>
+
+          <Divider flexItem />
+        </>
       )}
 
       {/* <Track {...OVERVIEW_EVENTS.WHATS_NEW}>

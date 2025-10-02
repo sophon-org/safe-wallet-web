@@ -1,4 +1,5 @@
 import * as constants from '../../support/constants'
+import { clickOnContinueSignTransactionBtn, selectComboButtonOption } from './create_tx.pages'
 
 const tokenSelectorText = 'G(ö|oe)rli Ether'
 const noLaterString = 'No, later'
@@ -21,22 +22,23 @@ export const addInitialTransactionStr = 'Add an initial transaction to the batch
 export const transactionAddedToBatchStr = 'Transaction is added to batch'
 export const addNewStransactionStr = 'Add new transaction'
 
-const recipientInput = 'input[name="recipient"]'
+const recipientInput = 'input[name^="recipients."][name$=".recipient"]'
+const tokenBalance = '[data-testid="token-balance"]'
 const tokenAddressInput = 'input[name="tokenAddress"]'
 const listBox = 'ul[role="listbox"]'
-const amountInput = '[name="amount"]'
+const amountInput = 'input[name^="recipients."][name$=".amount"]'
 const nonceInput = 'input[name="nonce"]'
 const executeOptionsContainer = 'div[role="radiogroup"]'
 const expandedItem = 'div[class*="MuiCollapse-entered"]'
 const collapsedItem = 'div[class*="MuiCollapse-hidden"]'
 
-export function addToBatch(EOA, currentNonce, amount, verify = false) {
+export function addToBatch(EOA, currentNonce, amount) {
   fillTransactionData(EOA, amount)
   setNonceAndProceed(currentNonce)
-  // Execute the transaction if verification is required
-  if (verify) {
-    executeTransaction()
-  }
+  clickOnContinueSignTransactionBtn()
+
+  selectComboButtonOption('addToBatch')
+
   addToBatchButton()
   cy.contains(transactionAddedToBatchStr).click().should('not.be.visible')
 }
@@ -44,7 +46,7 @@ export function addToBatch(EOA, currentNonce, amount, verify = false) {
 function fillTransactionData(EOA, amount) {
   cy.get(recipientInput).type(EOA, { delay: 1 })
   // Click on the Token selector
-  cy.get(tokenAddressInput).prev().click()
+  cy.get(tokenBalance).click()
   cy.get(listBox).contains(constants.tokenNames.sepoliaEther).click()
   cy.get(amountInput).type(amount)
   cy.contains(nextBtn).click()
@@ -66,6 +68,10 @@ function executeTransaction() {
 
 function addToBatchButton() {
   cy.get('button').contains(addToBatchBtn).click()
+}
+
+export function checkAddToBatchBtnDisabled() {
+  cy.get('button').contains(addToBatchBtn).should('be.disabled')
 }
 
 export function openBatchtransactionsModal() {

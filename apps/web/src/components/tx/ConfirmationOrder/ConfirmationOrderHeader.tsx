@@ -7,10 +7,11 @@ export type InfoBlock = {
   value: string
   label: string
   tokenInfo?: {
-    decimals: number
+    decimals?: number | null
     symbol: string
     logoUri?: string | null
   }
+  chainId?: string
 }
 
 const ConfirmationOrderHeader = ({ blocks, showArrow }: { blocks: [InfoBlock, InfoBlock]; showArrow?: boolean }) => {
@@ -33,11 +34,16 @@ const ConfirmationOrderHeader = ({ blocks, showArrow }: { blocks: [InfoBlock, In
         >
           {block.tokenInfo && (
             <Box width={40} mr={2}>
-              <TokenIcon size={40} logoUri={block.tokenInfo.logoUri || ''} tokenSymbol={block.tokenInfo.symbol} />
+              <TokenIcon
+                size={40}
+                logoUri={block.tokenInfo.logoUri || ''}
+                tokenSymbol={block.tokenInfo.symbol}
+                chainId={block.chainId}
+              />
             </Box>
           )}
 
-          <Box flex={1}>
+          <Box data-testid="block-label" flex={1}>
             <Typography variant="body2" color="primary.light">
               {block.label}
             </Typography>

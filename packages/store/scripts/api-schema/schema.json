@@ -538,6 +538,20 @@
         "tags": ["auth"]
       }
     },
+    "/v1/auth/logout": {
+      "post": {
+        "operationId": "authLogoutV1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Empty response body. Cookie value is removed and set to expire."
+          }
+        },
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/v1/chains/{chainId}/safes/{safeAddress}/balances/{fiatCode}": {
       "get": {
         "operationId": "balancesGetBalancesV1",
@@ -1738,6 +1752,35 @@
         "tags": ["notifications"]
       }
     },
+    "/v2/notifications/subscriptions": {
+      "delete": {
+        "description": "Delete all subscriptions of a Safe on a device. This will delete all subscriptions of a Safe on a device for all chains passed in the request body.",
+        "operationId": "notificationsDeleteAllSubscriptionsV2",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteAllSubscriptionsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "404": {
+            "description": "No subscription was found"
+          },
+          "422": {
+            "description": "The request body is invalid"
+          }
+        },
+        "summary": "Delete all subscriptions of a device",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
     "/v2/chains/{chainId}/notifications/devices/{deviceUuid}": {
       "delete": {
         "operationId": "notificationsDeleteDeviceV2",
@@ -1925,6 +1968,7 @@
     },
     "/v1/register/notifications": {
       "post": {
+        "deprecated": true,
         "operationId": "notificationsRegisterDeviceV1",
         "parameters": [],
         "requestBody": {
@@ -1942,11 +1986,15 @@
             "description": ""
           }
         },
-        "tags": ["notifications"]
+        "summary": "",
+        "tags": [
+          "notifications"
+        ]
       }
     },
     "/v1/chains/{chainId}/notifications/devices/{uuid}": {
       "delete": {
+        "deprecated": true,
         "operationId": "notificationsUnregisterDeviceV1",
         "parameters": [
           {
@@ -1971,11 +2019,15 @@
             "description": ""
           }
         },
-        "tags": ["notifications"]
+        "summary": "",
+        "tags": [
+          "notifications"
+        ]
       }
     },
     "/v1/chains/{chainId}/notifications/devices/{uuid}/safes/{safeAddress}": {
       "delete": {
+        "deprecated": true,
         "operationId": "notificationsUnregisterSafeV1",
         "parameters": [
           {
@@ -2008,7 +2060,948 @@
             "description": ""
           }
         },
-        "tags": ["notifications"]
+        "summary": "",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/v1/users": {
+      "get": {
+        "operationId": "usersGetWithWalletsV1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserWithWallets"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Signer address not provided"
+          },
+          "404": {
+            "description": "User (wallet) not found"
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      },
+      "delete": {
+        "operationId": "usersDeleteV1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "User deleted"
+          },
+          "401": {
+            "description": "Signer address not provided"
+          },
+          "404": {
+            "description": "User (wallet) not found"
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/v1/users/wallet": {
+      "post": {
+        "operationId": "usersCreateWithWalletV1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreatedUserWithWallet"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Signer address not provided"
+          },
+          "409": {
+            "description": "Wallet already exists"
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/v1/users/wallet/add": {
+      "post": {
+        "operationId": "usersAddWalletToUserV1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SiweDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WalletAddedToUser"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Signer address not provided OR invalid message/signature"
+          },
+          "404": {
+            "description": "User not found"
+          },
+          "409": {
+            "description": "Wallet already exists"
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/v1/users/wallet/{walletAddress}": {
+      "delete": {
+        "operationId": "usersDeleteWalletFromUserV1",
+        "parameters": [
+          {
+            "name": "walletAddress",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Wallet removed from user and deleted"
+          },
+          "401": {
+            "description": "Signer address not provided"
+          },
+          "404": {
+            "description": "User OR provided wallet not found"
+          },
+          "409": {
+            "description": "Cannot remove the current wallet"
+          }
+        },
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/v1/spaces/{spaceId}/address-book": {
+      "get": {
+        "operationId": "addressBooksGetAddressBookItemsV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Address Book Items found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceAddressBookDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Signer address not provided"
+          },
+          "403": {
+            "description": "Signer not authorized."
+          },
+          "404": {
+            "description": "User, member or space not found"
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      },
+      "put": {
+        "operationId": "addressBooksUpsertAddressBookItemsV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpsertAddressBookItemsDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Address Book updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SpaceAddressBookDto"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Address book items limit exceeded."
+          },
+          "401": {
+            "description": "Signer address not provided"
+          },
+          "403": {
+            "description": "Signer not authorized."
+          },
+          "404": {
+            "description": "User, member or space not found"
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      }
+    },
+    "/v1/spaces/{spaceId}/address-book/{address}": {
+      "delete": {
+        "operationId": "addressBooksDeleteByAddressV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "address",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Address book item deleted"
+          },
+          "403": {
+            "description": "Signer address not present or not authorized"
+          },
+          "404": {
+            "description": "User, member or Space not found"
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      }
+    },
+    "/v1/spaces": {
+      "post": {
+        "operationId": "spacesCreateV1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSpaceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Space created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSpaceResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Signer address not provided"
+          },
+          "403": {
+            "description": "Forbidden resource"
+          },
+          "404": {
+            "description": "User not found."
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      },
+      "get": {
+        "operationId": "spacesGetV1",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Spaces found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GetSpaceResponse"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Signer address not provided"
+          },
+          "403": {
+            "description": "Forbidden resource"
+          },
+          "404": {
+            "description": "User not found."
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      }
+    },
+    "/v1/spaces/create-with-user": {
+      "post": {
+        "operationId": "spacesCreateWithUserV1",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSpaceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Space created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CreateSpaceResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Signer address not provided"
+          },
+          "403": {
+            "description": "Forbidden resource"
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      }
+    },
+    "/v1/spaces/{id}": {
+      "get": {
+        "operationId": "spacesGetOneV1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Space found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSpaceResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Signer address not provided"
+          },
+          "403": {
+            "description": "Forbidden resource"
+          },
+          "404": {
+            "description": "Space not found. OR User not found."
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      },
+      "patch": {
+        "operationId": "spacesUpdateV1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSpaceDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Space updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UpdateSpaceResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Signer address not provided OR User is unauthorized"
+          },
+          "403": {
+            "description": "Forbidden resource"
+          },
+          "404": {
+            "description": "User not found."
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      },
+      "delete": {
+        "operationId": "spacesDeleteV1",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Spaces deleted"
+          },
+          "401": {
+            "description": "Signer address not provided OR User is unauthorized"
+          },
+          "403": {
+            "description": "Forbidden resource"
+          },
+          "404": {
+            "description": "User not found."
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      }
+    },
+    "/v1/spaces/{spaceId}/safes": {
+      "post": {
+        "operationId": "spaceSafesCreateV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSpaceSafesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Safes created successfully"
+          },
+          "401": {
+            "description": "User unauthorize OR signer address not provided"
+          },
+          "404": {
+            "description": "User not found."
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      },
+      "get": {
+        "operationId": "spaceSafesGetV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Safes fetched successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GetSpaceSafeResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User unauthorized OR signer address not provided"
+          },
+          "404": {
+            "description": "User not found."
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      },
+      "delete": {
+        "operationId": "spaceSafesDeleteV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DeleteSpaceSafesDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": "Safes deleted successfully"
+          },
+          "401": {
+            "description": "User unauthorized OR signer address not provided"
+          },
+          "404": {
+            "description": "Space has no Safes OR user not found."
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      }
+    },
+    "/v1/spaces/{spaceId}/members/invite": {
+      "post": {
+        "operationId": "membersInviteUserV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/InviteUsersDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Users invited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Invitation"
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "User not admin OR signer address not provided OR member is not active"
+          },
+          "403": {
+            "description": "User not authorized"
+          },
+          "409": {
+            "description": "Too many invites"
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      }
+    },
+    "/v1/spaces/{spaceId}/members/accept": {
+      "post": {
+        "operationId": "membersAcceptInviteV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptInviteDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Invite accepted"
+          },
+          "403": {
+            "description": "Signer not authorized"
+          },
+          "404": {
+            "description": "Signer, space or membership not found"
+          },
+          "409": {
+            "description": "User invite not pending"
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      }
+    },
+    "/v1/spaces/{spaceId}/members/decline": {
+      "post": {
+        "operationId": "membersDeclineInviteV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Invite declined"
+          },
+          "403": {
+            "description": "Signer not authorized"
+          },
+          "404": {
+            "description": "Signer, space or membership not found"
+          },
+          "409": {
+            "description": "User invite not pending"
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      }
+    },
+    "/v1/spaces/{spaceId}/members": {
+      "get": {
+        "operationId": "membersGetUsersV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Space and members list",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MembersDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Signer not authorized"
+          },
+          "404": {
+            "description": "Signer or space not found"
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      },
+      "delete": {
+        "description": "Remove own membership from a space.",
+        "operationId": "membersSelfRemoveV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Membership deleted"
+          },
+          "401": {
+            "description": "Signer address not provided"
+          },
+          "403": {
+            "description": "Signer not authorized"
+          },
+          "404": {
+            "description": "Signer or space not found"
+          },
+          "409": {
+            "description": "Cannot remove last admin"
+          }
+        },
+        "summary": "Leave a space",
+        "tags": [
+          "spaces"
+        ]
+      }
+    },
+    "/v1/spaces/{spaceId}/members/{userId}/role": {
+      "patch": {
+        "operationId": "membersUpdateRoleV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateRoleDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Role updated"
+          },
+          "401": {
+            "description": "Signer not active or admin"
+          },
+          "403": {
+            "description": "Signer not authorized"
+          },
+          "404": {
+            "description": "Signer, space or signer/user-to-update membership not found"
+          },
+          "409": {
+            "description": "Cannot remove last admin"
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
+      }
+    },
+    "/v1/spaces/{spaceId}/members/alias": {
+      "patch": {
+        "description": "Update the alias of the authenticated member in a space. Users can only update their own alias.",
+        "operationId": "membersUpdateAliasV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateMemberAliasDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Alias updated"
+          },
+          "403": {
+            "description": "Signer not authorized"
+          },
+          "404": {
+            "description": "Signer, space or member not found"
+          }
+        },
+        "summary": "Update member alias",
+        "tags": [
+          "spaces"
+        ]
+      }
+    },
+    "/v1/spaces/{spaceId}/members/{userId}": {
+      "delete": {
+        "operationId": "membersRemoveUserV1",
+        "parameters": [
+          {
+            "name": "spaceId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "userId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Membership deleted"
+          },
+          "401": {
+            "description": "Signer not active or admin"
+          },
+          "403": {
+            "description": "Signer not authorized"
+          },
+          "404": {
+            "description": "Signer or space not found"
+          },
+          "409": {
+            "description": "Cannot remove last admin"
+          }
+        },
+        "tags": [
+          "spaces"
+        ]
       }
     },
     "/v1/chains/{chainId}/owners/{ownerAddress}/safes": {
@@ -2049,6 +3042,7 @@
     },
     "/v1/owners/{ownerAddress}/safes": {
       "get": {
+        "deprecated": true,
         "operationId": "ownersGetAllSafesByOwnerV1",
         "parameters": [
           {
@@ -2072,7 +3066,10 @@
             }
           }
         },
-        "tags": ["owners"]
+        "summary": "Deprecated",
+        "tags": [
+          "owners"
+        ]
       }
     },
     "/v2/owners/{ownerAddress}/safes": {
@@ -2133,8 +3130,15 @@
           }
         },
         "responses": {
-          "201": {
-            "description": ""
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Relay"
+                }
+              }
+            }
           }
         },
         "tags": ["relay"]
@@ -2163,7 +3167,14 @@
         ],
         "responses": {
           "200": {
-            "description": ""
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RelaysRemaining"
+                }
+              }
+            }
           }
         },
         "tags": ["relay"]
@@ -2351,6 +3362,55 @@
         "tags": ["safes"]
       }
     },
+    "/v1/targeted-messaging/outreaches/{outreachId}/chains/{chainId}/safes/{safeAddress}": {
+      "get": {
+        "operationId": "targetedMessagingGetTargetedSafeV1",
+        "parameters": [
+          {
+            "name": "outreachId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "chainId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "safeAddress",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetedSafe"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Safe not targeted."
+          }
+        },
+        "tags": [
+          "targeted-messaging"
+        ]
+      }
+    },
     "/v1/targeted-messaging/outreaches/{outreachId}/chains/{chainId}/safes/{safeAddress}/signers/{signerAddress}/submissions": {
       "get": {
         "operationId": "targetedMessagingGetSubmissionV1",
@@ -2497,6 +3557,294 @@
           }
         },
         "tags": ["transactions"]
+      }
+    },
+    "/v1/chains/{chainId}/multisig-transactions/{safeTxHash}/raw": {
+      "get": {
+        "deprecated": true,
+        "operationId": "transactionsGetDomainMultisigTransactionBySafeTxHashV1",
+        "parameters": [
+          {
+            "name": "chainId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "safeTxHash",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TXSMultisigTransaction"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Deprecated",
+        "tags": [
+          "transactions"
+        ]
+      }
+    },
+    "/v1/chains/{chainId}/safes/{safeAddress}/multisig-transactions/raw": {
+      "get": {
+        "deprecated": true,
+        "operationId": "transactionsGetDomainMultisigTransactionsV1",
+        "parameters": [
+          {
+            "name": "chainId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "safeAddress",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "failed",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "modified__lt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "modified__gt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "modified__lte",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "modified__gte",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "nonce__lt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "nonce__gt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "nonce__lte",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "nonce__gte",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "nonce",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "safe_tx_hash",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "to",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "value__lt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "value__gt",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "value",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "executed",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "has_confirmations",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "trusted",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "execution_date__gte",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "execution_date__lte",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "submission_date__gte",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "submission_date__lte",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "transaction_hash",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "ordering",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          },
+          {
+            "name": "offset",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TXSMultisigTransactionPage"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Deprecated",
+        "tags": [
+          "transactions"
+        ]
       }
     },
     "/v1/chains/{chainId}/safes/{safeAddress}/multisig-transactions": {
@@ -3092,12 +4440,52 @@
         },
         "tags": ["transactions"]
       }
+    },
+    "/v1/chains/{chainId}/safes/{safeAddress}/creation/raw": {
+      "get": {
+        "deprecated": true,
+        "operationId": "transactionsGetDomainCreationTransactionV1",
+        "parameters": [
+          {
+            "name": "chainId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "safeAddress",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TXSCreationTransaction"
+                }
+              }
+            }
+          }
+        },
+        "summary": "Deprecated",
+        "tags": [
+          "transactions"
+        ]
+      }
     }
   },
   "info": {
     "title": "Safe Client Gateway",
     "description": "",
-    "version": "main",
+    "version": "",
     "contact": {}
   },
   "tags": [],
@@ -3125,7 +4513,9 @@
         "type": "object",
         "properties": {
           "address": {
-            "type": "string"
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 30
           },
           "name": {
             "type": "string"
@@ -3210,17 +4600,24 @@
       "AddressBookItem": {
         "type": "object",
         "properties": {
-          "id": {
-            "type": "string"
-          },
           "name": {
             "type": "string"
           },
           "address": {
             "type": "string"
+          },
+          "chainIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
-        "required": ["id", "name", "address"]
+        "required": [
+          "name",
+          "address",
+          "chainIds"
+        ]
       },
       "AddressBook": {
         "type": "object",
@@ -3247,7 +4644,9 @@
         "type": "object",
         "properties": {
           "name": {
-            "type": "string"
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 30
           },
           "address": {
             "type": "string"
@@ -3356,7 +4755,7 @@
         },
         "required": ["message", "signature"]
       },
-      "Token": {
+      "NativeToken": {
         "type": "object",
         "properties": {
           "address": {
@@ -3376,10 +4775,87 @@
           },
           "type": {
             "type": "string",
-            "enum": ["ERC721", "ERC20", "NATIVE_TOKEN", "UNKNOWN"]
+            "enum": [
+              "NATIVE_TOKEN"
+            ]
           }
         },
-        "required": ["address", "logoUri", "name", "symbol", "type"]
+        "required": [
+          "address",
+          "decimals",
+          "logoUri",
+          "name",
+          "symbol",
+          "type"
+        ]
+      },
+      "Erc20Token": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "decimals": {
+            "type": "number"
+          },
+          "logoUri": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ERC20"
+            ]
+          }
+        },
+        "required": [
+          "address",
+          "decimals",
+          "logoUri",
+          "name",
+          "symbol",
+          "type"
+        ]
+      },
+      "Erc721Token": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "decimals": {
+            "type": "number"
+          },
+          "logoUri": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "symbol": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "ERC721"
+            ]
+          }
+        },
+        "required": [
+          "address",
+          "decimals",
+          "logoUri",
+          "name",
+          "symbol",
+          "type"
+        ]
       },
       "Balance": {
         "type": "object",
@@ -3394,7 +4870,21 @@
             "type": "string"
           },
           "tokenInfo": {
-            "$ref": "#/components/schemas/Token"
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/NativeToken"
+              },
+              {
+                "$ref": "#/components/schemas/Erc20Token"
+              },
+              {
+                "$ref": "#/components/schemas/Erc721Token"
+              }
+            ]
+          },
+          "fiatBalance24hChange": {
+            "type": "string",
+            "nullable": true
           }
         },
         "required": ["balance", "fiatBalance", "fiatConversion", "tokenInfo"]
@@ -3597,6 +5087,9 @@
           "isTestnet": {
             "type": "boolean"
           },
+          "zk": {
+            "type": "boolean"
+          },
           "nativeCurrency": {
             "$ref": "#/components/schemas/NativeCurrency"
           },
@@ -3673,6 +5166,7 @@
           "description",
           "l2",
           "isTestnet",
+          "zk",
           "nativeCurrency",
           "transactionService",
           "blockExplorerUriTemplate",
@@ -4210,13 +5704,55 @@
           "to": {
             "type": "string",
             "description": "The target Ethereum address"
-          },
-          "value": {
-            "type": "string",
-            "description": "The wei amount being sent to a payable function"
           }
         },
         "required": ["data"]
+      },
+      "BaseDataDecoded": {
+        "type": "object",
+        "properties": {
+          "method": {
+            "type": "string"
+          },
+          "parameters": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DataDecodedParameter"
+            }
+          }
+        },
+        "required": [
+          "method"
+        ]
+      },
+      "MultiSend": {
+        "type": "object",
+        "properties": {
+          "operation": {
+            "type": "number",
+            "enum": [
+              0,
+              1
+            ]
+          },
+          "value": {
+            "type": "string"
+          },
+          "dataDecoded": {
+            "$ref": "#/components/schemas/BaseDataDecoded"
+          },
+          "to": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "operation",
+          "value",
+          "to"
+        ]
       },
       "DataDecodedParameter": {
         "type": "object",
@@ -4233,16 +5769,18 @@
           "valueDecoded": {
             "oneOf": [
               {
-                "type": "object"
+                "$ref": "#/components/schemas/BaseDataDecoded"
               },
               {
                 "type": "array",
                 "items": {
-                  "type": "object"
+                  "$ref": "#/components/schemas/MultiSend"
                 }
+              },
+              {
+                "type": "null"
               }
-            ],
-            "nullable": true
+            ]
           }
         },
         "required": ["name", "type", "value"]
@@ -4259,6 +5797,17 @@
             "items": {
               "$ref": "#/components/schemas/DataDecodedParameter"
             }
+          },
+          "accuracy": {
+            "type": "string",
+            "enum": [
+              "FULL_MATCH",
+              "PARTIAL_MATCH",
+              "ONLY_FUNCTION_MATCH",
+              "NO_MATCH",
+              "UNKNOWN"
+            ],
+            "default": "UNKNOWN"
           }
         },
         "required": ["method"]
@@ -4478,6 +6027,112 @@
         },
         "required": ["cloudMessagingToken", "safes", "deviceType"]
       },
+      "DeleteAllSubscriptionItemDto": {
+        "type": "object",
+        "properties": {
+          "chainId": {
+            "type": "string"
+          },
+          "deviceUuid": {
+            "type": "string"
+          },
+          "safeAddress": {
+            "type": "string"
+          },
+          "signerAddress": {
+            "type": "string",
+            "nullable": true,
+            "description": "Optional signer address filter:\n• Omitted (undefined): Deletes subscriptions regardless of signer address\n• null: Deletes only subscriptions with no signer address\n• Valid address: Deletes only subscriptions with that specific signer address",
+            "example": "0x1234567890123456789012345678901234567890"
+          }
+        },
+        "required": [
+          "chainId",
+          "deviceUuid",
+          "safeAddress"
+        ]
+      },
+      "DeleteAllSubscriptionsDto": {
+        "type": "object",
+        "properties": {
+          "subscriptions": {
+            "minItems": 1,
+            "description": "At least one subscription is required",
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeleteAllSubscriptionItemDto"
+            }
+          }
+        },
+        "required": [
+          "subscriptions"
+        ]
+      },
+      "TypedDataParameter": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "type"
+        ]
+      },
+      "TypedDataDomain": {
+        "type": "object",
+        "properties": {
+          "chainId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "salt": {
+            "type": "string"
+          },
+          "verifyingContract": {
+            "type": "string"
+          },
+          "version": {
+            "type": "string"
+          }
+        }
+      },
+      "TypedData": {
+        "type": "object",
+        "properties": {
+          "domain": {
+            "$ref": "#/components/schemas/TypedDataDomain"
+          },
+          "primaryType": {
+            "type": "string"
+          },
+          "types": {
+            "type": "object",
+            "additionalProperties": {
+              "items": {
+                "$ref": "#/components/schemas/TypedDataParameter"
+              },
+              "type": "array"
+            }
+          },
+          "message": {
+            "type": "object",
+            "additionalProperties": true
+          }
+        },
+        "required": [
+          "domain",
+          "primaryType",
+          "types",
+          "message"
+        ]
+      },
       "AddressInfo": {
         "type": "object",
         "properties": {
@@ -4495,6 +6150,21 @@
         },
         "required": ["value"]
       },
+      "MessageConfirmation": {
+        "type": "object",
+        "properties": {
+          "owner": {
+            "$ref": "#/components/schemas/AddressInfo"
+          },
+          "signature": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "owner",
+          "signature"
+        ]
+      },
       "Message": {
         "type": "object",
         "properties": {
@@ -4502,7 +6172,11 @@
             "type": "string"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "NEEDS_CONFIRMATION",
+              "CONFIRMED"
+            ]
           },
           "logoUri": {
             "type": "string",
@@ -4513,7 +6187,14 @@
             "nullable": true
           },
           "message": {
-            "type": "object"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/TypedData"
+              }
+            ]
           },
           "creationTimestamp": {
             "type": "number"
@@ -4533,7 +6214,7 @@
           "confirmations": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/MessageConfirmation"
             }
           },
           "preparedSignature": {
@@ -4564,7 +6245,11 @@
             "type": "string"
           },
           "status": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "NEEDS_CONFIRMATION",
+              "CONFIRMED"
+            ]
           },
           "logoUri": {
             "type": "string",
@@ -4575,7 +6260,14 @@
             "nullable": true
           },
           "message": {
-            "type": "object"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/TypedData"
+              }
+            ]
           },
           "creationTimestamp": {
             "type": "number"
@@ -4595,7 +6287,7 @@
           "confirmations": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/MessageConfirmation"
             }
           },
           "preparedSignature": {
@@ -4607,7 +6299,10 @@
             "nullable": true
           },
           "type": {
-            "type": "string"
+            "type": "string",
+            "enum": [
+              "MESSAGE"
+            ]
           }
         },
         "required": [
@@ -4671,7 +6366,14 @@
         "type": "object",
         "properties": {
           "message": {
-            "type": "object"
+            "oneOf": [
+              {
+                "type": "string"
+              },
+              {
+                "$ref": "#/components/schemas/TypedData"
+              }
+            ]
           },
           "safeAppId": {
             "type": "number",
@@ -4753,6 +6455,566 @@
         },
         "required": ["cloudMessagingToken", "buildNumber", "bundle", "deviceType", "version", "safeRegistrations"]
       },
+      "UserWallet": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "address": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "address"
+        ]
+      },
+      "UserWithWallets": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "status": {
+            "type": "number",
+            "enum": [
+              0,
+              1
+            ]
+          },
+          "wallets": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/UserWallet"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "wallets"
+        ]
+      },
+      "CreatedUserWithWallet": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "WalletAddedToUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "SpaceAddressBookItemDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          },
+          "chainIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdBy": {
+            "type": "string"
+          },
+          "lastUpdatedBy": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "address",
+          "chainIds",
+          "createdBy",
+          "lastUpdatedBy"
+        ]
+      },
+      "SpaceAddressBookDto": {
+        "type": "object",
+        "properties": {
+          "spaceId": {
+            "type": "string"
+          },
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SpaceAddressBookItemDto"
+            }
+          }
+        },
+        "required": [
+          "spaceId",
+          "data"
+        ]
+      },
+      "UpsertAddressBookItemsDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AddressBookItem"
+            }
+          }
+        },
+        "required": [
+          "items"
+        ]
+      },
+      "CreateSpaceDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "CreateSpaceResponse": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "name",
+          "id"
+        ]
+      },
+      "UserDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ]
+      },
+      "MemberDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "MEMBER"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "invitedBy": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "INVITED",
+              "ACTIVE",
+              "DECLINED"
+            ]
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/UserDto"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "name",
+          "invitedBy",
+          "status",
+          "createdAt",
+          "updatedAt",
+          "user"
+        ]
+      },
+      "GetSpaceResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE"
+            ]
+          },
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/MemberDto"
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "status",
+          "members"
+        ]
+      },
+      "UpdateSpaceDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "ACTIVE"
+            ]
+          }
+        }
+      },
+      "UpdateSpaceResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id"
+        ]
+      },
+      "CreateSpaceSafeDto": {
+        "type": "object",
+        "properties": {
+          "chainId": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "chainId",
+          "address"
+        ]
+      },
+      "CreateSpaceSafesDto": {
+        "type": "object",
+        "properties": {
+          "safes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateSpaceSafeDto"
+            }
+          }
+        },
+        "required": [
+          "safes"
+        ]
+      },
+      "GetSpaceSafeResponse": {
+        "type": "object",
+        "properties": {
+          "safes": {
+            "type": "object",
+            "additionalProperties": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "example": {
+              "{chainId}": [
+                "0x..."
+              ]
+            }
+          }
+        },
+        "required": [
+          "safes"
+        ]
+      },
+      "DeleteSpaceSafeDto": {
+        "type": "object",
+        "properties": {
+          "chainId": {
+            "type": "string"
+          },
+          "address": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "chainId",
+          "address"
+        ]
+      },
+      "DeleteSpaceSafesDto": {
+        "type": "object",
+        "properties": {
+          "safes": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/DeleteSpaceSafeDto"
+            }
+          }
+        },
+        "required": [
+          "safes"
+        ]
+      },
+      "InviteUserDto": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 30
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "MEMBER"
+            ]
+          }
+        },
+        "required": [
+          "address",
+          "name",
+          "role"
+        ]
+      },
+      "InviteUsersDto": {
+        "type": "object",
+        "properties": {
+          "users": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/InviteUserDto"
+            }
+          }
+        },
+        "required": [
+          "users"
+        ]
+      },
+      "Invitation": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "number"
+          },
+          "name": {
+            "type": "string"
+          },
+          "spaceId": {
+            "type": "number"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "MEMBER"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "INVITED",
+              "ACTIVE",
+              "DECLINED"
+            ]
+          },
+          "invitedBy": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "userId",
+          "name",
+          "spaceId",
+          "role",
+          "status"
+        ]
+      },
+      "AcceptInviteDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 30
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "MemberUser": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "PENDING",
+              "ACTIVE"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "status"
+        ]
+      },
+      "Member": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "number"
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "MEMBER"
+            ]
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "INVITED",
+              "ACTIVE",
+              "DECLINED"
+            ]
+          },
+          "name": {
+            "type": "string"
+          },
+          "alias": {
+            "type": "string",
+            "nullable": true
+          },
+          "invitedBy": {
+            "type": "string",
+            "nullable": true
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "user": {
+            "$ref": "#/components/schemas/MemberUser"
+          }
+        },
+        "required": [
+          "id",
+          "role",
+          "status",
+          "name",
+          "createdAt",
+          "updatedAt",
+          "user"
+        ]
+      },
+      "MembersDto": {
+        "type": "object",
+        "properties": {
+          "members": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Member"
+            }
+          }
+        },
+        "required": [
+          "members"
+        ]
+      },
+      "UpdateRoleDto": {
+        "type": "object",
+        "properties": {
+          "role": {
+            "type": "string",
+            "enum": [
+              "ADMIN",
+              "MEMBER"
+            ]
+          }
+        },
+        "required": [
+          "role"
+        ]
+      },
+      "UpdateMemberAliasDto": {
+        "type": "object",
+        "properties": {
+          "alias": {
+            "type": "string",
+            "description": "The new alias for the member"
+          }
+        },
+        "required": [
+          "alias"
+        ]
+      },
       "SafeList": {
         "type": "object",
         "properties": {
@@ -4784,6 +7046,32 @@
           }
         },
         "required": ["version", "to", "data"]
+      },
+      "Relay": {
+        "type": "object",
+        "properties": {
+          "taskId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "taskId"
+        ]
+      },
+      "RelaysRemaining": {
+        "type": "object",
+        "properties": {
+          "remaining": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "remaining",
+          "limit"
+        ]
       },
       "SafeAppProvider": {
         "type": "object",
@@ -5026,6 +7314,21 @@
         },
         "required": ["address", "chainId", "threshold", "owners", "fiatTotal", "queued"]
       },
+      "TargetedSafe": {
+        "type": "object",
+        "properties": {
+          "outreachId": {
+            "type": "number"
+          },
+          "address": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "outreachId",
+          "address"
+        ]
+      },
       "Submission": {
         "type": "object",
         "properties": {
@@ -5061,16 +7364,21 @@
           "type": {
             "type": "string",
             "enum": [
+              "Bridge",
               "Creation",
               "Custom",
-              "SettingsChange",
-              "Transfer",
-              "SwapOrder",
-              "SwapTransfer",
-              "TwapOrder",
               "NativeStakingDeposit",
               "NativeStakingValidatorsExit",
-              "NativeStakingWithdraw"
+              "NativeStakingWithdraw",
+              "SettingsChange",
+              "Swap",
+              "SwapAndBridge",
+              "SwapOrder",
+              "SwapTransfer",
+              "Transfer",
+              "TwapOrder",
+              "VaultDeposit",
+              "VaultRedeem"
             ]
           },
           "humanDescription": {
@@ -5150,6 +7458,172 @@
         },
         "required": ["type", "to", "dataSize", "isCancellation"]
       },
+      "AddOwner": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ADD_OWNER"
+            ]
+          },
+          "owner": {
+            "$ref": "#/components/schemas/AddressInfo"
+          },
+          "threshold": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "type",
+          "owner",
+          "threshold"
+        ]
+      },
+      "ChangeMasterCopy": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "CHANGE_MASTER_COPY"
+            ]
+          },
+          "implementation": {
+            "$ref": "#/components/schemas/AddressInfo"
+          }
+        },
+        "required": [
+          "type",
+          "implementation"
+        ]
+      },
+      "ChangeThreshold": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "CHANGE_THRESHOLD"
+            ]
+          },
+          "threshold": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "type",
+          "threshold"
+        ]
+      },
+      "DeleteGuard": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "DELETE_GUARD"
+            ]
+          }
+        },
+        "required": [
+          "type"
+        ]
+      },
+      "DisableModule": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "DISABLE_MODULE"
+            ]
+          },
+          "module": {
+            "$ref": "#/components/schemas/AddressInfo"
+          }
+        },
+        "required": [
+          "type",
+          "module"
+        ]
+      },
+      "EnableModule": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "ENABLE_MODULE"
+            ]
+          },
+          "module": {
+            "$ref": "#/components/schemas/AddressInfo"
+          }
+        },
+        "required": [
+          "type",
+          "module"
+        ]
+      },
+      "RemoveOwner": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "REMOVE_OWNER"
+            ]
+          },
+          "owner": {
+            "$ref": "#/components/schemas/AddressInfo"
+          },
+          "threshold": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "type",
+          "owner",
+          "threshold"
+        ]
+      },
+      "SetFallbackHandler": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "SET_FALLBACK_HANDLER"
+            ]
+          },
+          "handler": {
+            "$ref": "#/components/schemas/AddressInfo"
+          }
+        },
+        "required": [
+          "type",
+          "handler"
+        ]
+      },
+      "SetGuard": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "SET_GUARD"
+            ]
+          },
+          "guard": {
+            "$ref": "#/components/schemas/AddressInfo"
+          }
+        },
+        "required": [
+          "type",
+          "guard"
+        ]
+      },
       "SettingsChange": {
         "type": "object",
         "properties": {
@@ -5171,6 +7645,28 @@
         },
         "required": ["type"]
       },
+      "SwapOwner": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "SWAP_OWNER"
+            ]
+          },
+          "oldOwner": {
+            "$ref": "#/components/schemas/AddressInfo"
+          },
+          "newOwner": {
+            "$ref": "#/components/schemas/AddressInfo"
+          }
+        },
+        "required": [
+          "type",
+          "oldOwner",
+          "newOwner"
+        ]
+      },
       "SettingsChangeTransaction": {
         "type": "object",
         "properties": {
@@ -5186,15 +7682,45 @@
             "$ref": "#/components/schemas/DataDecoded"
           },
           "settingsInfo": {
-            "nullable": true,
-            "allOf": [
+            "oneOf": [
               {
-                "$ref": "#/components/schemas/SettingsChange"
+                "$ref": "#/components/schemas/AddOwner"
+              },
+              {
+                "$ref": "#/components/schemas/ChangeMasterCopy"
+              },
+              {
+                "$ref": "#/components/schemas/ChangeThreshold"
+              },
+              {
+                "$ref": "#/components/schemas/DeleteGuard"
+              },
+              {
+                "$ref": "#/components/schemas/DisableModule"
+              },
+              {
+                "$ref": "#/components/schemas/EnableModule"
+              },
+              {
+                "$ref": "#/components/schemas/RemoveOwner"
+              },
+              {
+                "$ref": "#/components/schemas/SetFallbackHandler"
+              },
+              {
+                "$ref": "#/components/schemas/SetGuard"
+              },
+              {
+                "$ref": "#/components/schemas/SwapOwner"
               }
             ]
           }
         },
-        "required": ["type", "dataDecoded"]
+        "required": [
+          "type",
+          "dataDecoded",
+          "settingsInfo"
+        ]
       },
       "Erc20Transfer": {
         "type": "object",
@@ -5333,6 +7859,25 @@
         },
         "required": ["type", "sender", "recipient", "direction", "transferInfo"]
       },
+      "BridgeFee": {
+        "type": "object",
+        "properties": {
+          "tokenAddress": {
+            "type": "string"
+          },
+          "integratorFee": {
+            "type": "string"
+          },
+          "lifiFee": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tokenAddress",
+          "integratorFee",
+          "lifiFee"
+        ]
+      },
       "TokenInfo": {
         "type": "object",
         "properties": {
@@ -5363,6 +7908,104 @@
           }
         },
         "required": ["address", "decimals", "name", "symbol", "trusted"]
+      },
+      "BridgeAndSwapTransactionInfo": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "SwapAndBridge"
+            ]
+          },
+          "humanDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "fromToken": {
+            "$ref": "#/components/schemas/TokenInfo"
+          },
+          "recipient": {
+            "$ref": "#/components/schemas/AddressInfo"
+          },
+          "explorerUrl": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "NOT_FOUND",
+              "INVALID",
+              "PENDING",
+              "DONE",
+              "FAILED",
+              "UNKNOWN",
+              "AWAITING_EXECUTION"
+            ]
+          },
+          "substatus": {
+            "type": "string",
+            "enum": [
+              "WAIT_SOURCE_CONFIRMATIONS",
+              "WAIT_DESTINATION_TRANSACTION",
+              "BRIDGE_NOT_AVAILABLE",
+              "CHAIN_NOT_AVAILABLE",
+              "REFUND_IN_PROGRESS",
+              "UNKNOWN_ERROR",
+              "COMPLETED",
+              "PARTIAL",
+              "REFUNDED",
+              "INSUFFICIENT_ALLOWANCE",
+              "INSUFFICIENT_BALANCE",
+              "OUT_OF_GAS",
+              "EXPIRED",
+              "SLIPPAGE_EXCEEDED",
+              "UNKNOWN_FAILED_ERROR",
+              "UNKNOWN",
+              "AWAITING_EXECUTION"
+            ]
+          },
+          "fees": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BridgeFee"
+              }
+            ]
+          },
+          "fromAmount": {
+            "type": "string"
+          },
+          "toChain": {
+            "type": "string"
+          },
+          "toToken": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/TokenInfo"
+              }
+            ]
+          },
+          "toAmount": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "type",
+          "fromToken",
+          "recipient",
+          "explorerUrl",
+          "status",
+          "substatus",
+          "fees",
+          "fromAmount",
+          "toChain",
+          "toToken",
+          "toAmount"
+        ]
       },
       "SwapOrderTransactionInfo": {
         "type": "object",
@@ -5431,11 +8074,6 @@
             "type": "string",
             "description": "The URL to the explorer page of the order"
           },
-          "executedSurplusFee": {
-            "type": "string",
-            "description": "The amount of fees paid for this order.",
-            "deprecated": true
-          },
           "executedFee": {
             "type": "string",
             "description": "The amount of fees paid for this order."
@@ -5472,10 +8110,61 @@
           "sellToken",
           "buyToken",
           "explorerUrl",
-          "executedSurplusFee",
           "executedFee",
           "executedFeeToken",
           "owner"
+        ]
+      },
+      "SwapTransactionInfo": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "Swap"
+            ]
+          },
+          "humanDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "recipient": {
+            "$ref": "#/components/schemas/AddressInfo"
+          },
+          "fees": {
+            "nullable": true,
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/BridgeFee"
+              }
+            ]
+          },
+          "fromToken": {
+            "$ref": "#/components/schemas/TokenInfo"
+          },
+          "fromAmount": {
+            "type": "string"
+          },
+          "toToken": {
+            "$ref": "#/components/schemas/TokenInfo"
+          },
+          "toAmount": {
+            "type": "string"
+          },
+          "lifiExplorerUrl": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "type",
+          "recipient",
+          "fees",
+          "fromToken",
+          "fromAmount",
+          "toToken",
+          "toAmount",
+          "lifiExplorerUrl"
         ]
       },
       "SwapTransferTransactionInfo": {
@@ -5572,11 +8261,6 @@
             "type": "string",
             "description": "The URL to the explorer page of the order"
           },
-          "executedSurplusFee": {
-            "type": "string",
-            "description": "The amount of fees paid for this order.",
-            "deprecated": true
-          },
           "executedFee": {
             "type": "string",
             "description": "The amount of fees paid for this order."
@@ -5621,10 +8305,73 @@
           "sellToken",
           "buyToken",
           "explorerUrl",
-          "executedSurplusFee",
           "executedFee",
           "executedFeeToken",
           "owner"
+        ]
+      },
+      "DurationAuto": {
+        "type": "object",
+        "properties": {
+          "durationType": {
+            "type": "string",
+            "enum": [
+              "AUTO"
+            ]
+          }
+        },
+        "required": [
+          "durationType"
+        ]
+      },
+      "DurationLimit": {
+        "type": "object",
+        "properties": {
+          "durationType": {
+            "type": "string",
+            "enum": [
+              "LIMIT_DURATION"
+            ]
+          },
+          "duration": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "durationType",
+          "duration"
+        ]
+      },
+      "StartTimeAtMining": {
+        "type": "object",
+        "properties": {
+          "startType": {
+            "type": "string",
+            "enum": [
+              "AT_MINING_TIME"
+            ]
+          }
+        },
+        "required": [
+          "startType"
+        ]
+      },
+      "StartTimeAtEpoch": {
+        "type": "object",
+        "properties": {
+          "startType": {
+            "type": "string",
+            "enum": [
+              "AT_EPOCH"
+            ]
+          },
+          "epoch": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "startType",
+          "epoch"
         ]
       },
       "TwapOrderTransactionInfo": {
@@ -5677,12 +8424,6 @@
             "type": "string",
             "nullable": true,
             "description": "The executed buy token raw amount (no decimals), or null if there are too many parts"
-          },
-          "executedSurplusFee": {
-            "type": "string",
-            "nullable": true,
-            "description": "The executed surplus fee raw amount (no decimals), or null if there are too many parts",
-            "deprecated": true
           },
           "executedFee": {
             "type": "string",
@@ -5738,12 +8479,26 @@
             "description": "The duration of the TWAP interval"
           },
           "durationOfPart": {
-            "type": "object",
-            "description": "Whether the TWAP is valid for the entire interval or not"
+            "description": "Whether the TWAP is valid for the entire interval or not",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/DurationAuto"
+              },
+              {
+                "$ref": "#/components/schemas/DurationLimit"
+              }
+            ]
           },
           "startTime": {
-            "type": "object",
-            "description": "The start time of the TWAP"
+            "description": "The start time of the TWAP",
+            "oneOf": [
+              {
+                "$ref": "#/components/schemas/StartTimeAtMining"
+              },
+              {
+                "$ref": "#/components/schemas/StartTimeAtEpoch"
+              }
+            ]
           }
         },
         "required": [
@@ -5939,6 +8694,170 @@
         },
         "required": ["type", "value", "tokenInfo", "validators"]
       },
+      "VaultInfo": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "dashboardUri": {
+            "type": "string",
+            "nullable": true
+          },
+          "logoUri": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "address",
+          "name",
+          "description",
+          "logoUri"
+        ]
+      },
+      "VaultExtraReward": {
+        "type": "object",
+        "properties": {
+          "tokenInfo": {
+            "$ref": "#/components/schemas/TokenInfo"
+          },
+          "nrr": {
+            "type": "number"
+          },
+          "claimable": {
+            "type": "string"
+          },
+          "claimableNext": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "tokenInfo",
+          "nrr",
+          "claimable",
+          "claimableNext"
+        ]
+      },
+      "VaultDepositTransactionInfo": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "VaultDeposit"
+            ]
+          },
+          "humanDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "value": {
+            "type": "string"
+          },
+          "baseNrr": {
+            "type": "number"
+          },
+          "fee": {
+            "type": "number"
+          },
+          "tokenInfo": {
+            "$ref": "#/components/schemas/TokenInfo"
+          },
+          "vaultInfo": {
+            "$ref": "#/components/schemas/VaultInfo"
+          },
+          "currentReward": {
+            "type": "string"
+          },
+          "additionalRewardsNrr": {
+            "type": "number"
+          },
+          "additionalRewards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VaultExtraReward"
+            }
+          },
+          "expectedMonthlyReward": {
+            "type": "string"
+          },
+          "expectedAnnualReward": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "type",
+          "value",
+          "baseNrr",
+          "fee",
+          "tokenInfo",
+          "vaultInfo",
+          "currentReward",
+          "additionalRewardsNrr",
+          "additionalRewards",
+          "expectedMonthlyReward",
+          "expectedAnnualReward"
+        ]
+      },
+      "VaultRedeemTransactionInfo": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "enum": [
+              "VaultRedeem"
+            ]
+          },
+          "humanDescription": {
+            "type": "string",
+            "nullable": true
+          },
+          "value": {
+            "type": "string"
+          },
+          "baseNrr": {
+            "type": "number"
+          },
+          "fee": {
+            "type": "number"
+          },
+          "tokenInfo": {
+            "$ref": "#/components/schemas/TokenInfo"
+          },
+          "vaultInfo": {
+            "$ref": "#/components/schemas/VaultInfo"
+          },
+          "currentReward": {
+            "type": "string"
+          },
+          "additionalRewardsNrr": {
+            "type": "number"
+          },
+          "additionalRewards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VaultExtraReward"
+            }
+          }
+        },
+        "required": [
+          "type",
+          "value",
+          "baseNrr",
+          "fee",
+          "tokenInfo",
+          "vaultInfo",
+          "currentReward",
+          "additionalRewardsNrr",
+          "additionalRewards"
+        ]
+      },
       "TransactionData": {
         "type": "object",
         "properties": {
@@ -5970,10 +8889,49 @@
           },
           "addressInfoIndex": {
             "type": "object",
+            "additionalProperties": {
+              "$ref": "#/components/schemas/AddressInfo"
+            },
+            "nullable": true
+          },
+          "tokenInfoIndex": {
+            "type": "object",
+            "additionalProperties": {
+              "oneOf": [
+                {
+                  "$ref": "#/components/schemas/NativeToken"
+                },
+                {
+                  "$ref": "#/components/schemas/Erc20Token"
+                },
+                {
+                  "$ref": "#/components/schemas/Erc721Token"
+                }
+              ]
+            },
             "nullable": true
           }
         },
         "required": ["to", "operation"]
+      },
+      "MultisigConfirmationDetails": {
+        "type": "object",
+        "properties": {
+          "signer": {
+            "$ref": "#/components/schemas/AddressInfo"
+          },
+          "signature": {
+            "type": "string",
+            "nullable": true
+          },
+          "submittedAt": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "signer",
+          "submittedAt"
+        ]
       },
       "MultisigExecutionDetails": {
         "type": "object",
@@ -6017,7 +8975,7 @@
           "signers": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/AddressInfo"
             }
           },
           "confirmationsRequired": {
@@ -6026,7 +8984,7 @@
           "confirmations": {
             "type": "array",
             "items": {
-              "type": "string"
+              "$ref": "#/components/schemas/MultisigConfirmationDetails"
             }
           },
           "rejectors": {
@@ -6036,12 +8994,18 @@
             }
           },
           "gasTokenInfo": {
-            "nullable": true,
-            "allOf": [
+            "oneOf": [
               {
-                "$ref": "#/components/schemas/Token"
+                "$ref": "#/components/schemas/NativeToken"
+              },
+              {
+                "$ref": "#/components/schemas/Erc20Token"
+              },
+              {
+                "$ref": "#/components/schemas/Erc721Token"
               }
-            ]
+            ],
+            "nullable": true
           },
           "trusted": {
             "type": "boolean"
@@ -6130,6 +9094,12 @@
                 "$ref": "#/components/schemas/SwapOrderTransactionInfo"
               },
               {
+                "$ref": "#/components/schemas/BridgeAndSwapTransactionInfo"
+              },
+              {
+                "$ref": "#/components/schemas/SwapTransactionInfo"
+              },
+              {
                 "$ref": "#/components/schemas/SwapTransferTransactionInfo"
               },
               {
@@ -6143,6 +9113,12 @@
               },
               {
                 "$ref": "#/components/schemas/NativeStakingWithdrawTransactionInfo"
+              },
+              {
+                "$ref": "#/components/schemas/VaultDepositTransactionInfo"
+              },
+              {
+                "$ref": "#/components/schemas/VaultRedeemTransactionInfo"
               }
             ],
             "allOf": [
@@ -6202,6 +9178,160 @@
           }
         },
         "required": ["txInfo", "safeAddress", "txId", "txStatus"]
+      },
+      "TXSMultisigTransaction": {
+        "type": "object",
+        "properties": {
+          "safe": {
+            "type": "string"
+          },
+          "to": {
+            "type": "string"
+          },
+          "value": {
+            "type": "string"
+          },
+          "data": {
+            "type": "object"
+          },
+          "operation": {
+            "type": "number"
+          },
+          "gasToken": {
+            "type": "object"
+          },
+          "safeTxGas": {
+            "type": "object"
+          },
+          "baseGas": {
+            "type": "object"
+          },
+          "gasPrice": {
+            "type": "object"
+          },
+          "proposer": {
+            "type": "object"
+          },
+          "proposedByDelegate": {
+            "type": "object"
+          },
+          "refundReceiver": {
+            "type": "object"
+          },
+          "nonce": {
+            "type": "number"
+          },
+          "executionDate": {
+            "type": "object"
+          },
+          "submissionDate": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "modified": {
+            "type": "object"
+          },
+          "blockNumber": {
+            "type": "object"
+          },
+          "transactionHash": {
+            "type": "object"
+          },
+          "safeTxHash": {
+            "type": "string"
+          },
+          "executor": {
+            "type": "object"
+          },
+          "isExecuted": {
+            "type": "boolean"
+          },
+          "isSuccessful": {
+            "type": "object"
+          },
+          "ethGasPrice": {
+            "type": "object"
+          },
+          "gasUsed": {
+            "type": "object"
+          },
+          "fee": {
+            "type": "object"
+          },
+          "origin": {
+            "type": "object"
+          },
+          "confirmationsRequired": {
+            "type": "number"
+          },
+          "confirmations": {
+            "type": "object"
+          },
+          "signatures": {
+            "type": "object"
+          },
+          "trusted": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "safe",
+          "to",
+          "value",
+          "data",
+          "operation",
+          "gasToken",
+          "safeTxGas",
+          "baseGas",
+          "gasPrice",
+          "proposer",
+          "proposedByDelegate",
+          "refundReceiver",
+          "nonce",
+          "executionDate",
+          "submissionDate",
+          "modified",
+          "blockNumber",
+          "transactionHash",
+          "safeTxHash",
+          "executor",
+          "isExecuted",
+          "isSuccessful",
+          "ethGasPrice",
+          "gasUsed",
+          "fee",
+          "origin",
+          "confirmationsRequired",
+          "confirmations",
+          "signatures",
+          "trusted"
+        ]
+      },
+      "TXSMultisigTransactionPage": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number",
+            "nullable": true
+          },
+          "next": {
+            "type": "string",
+            "nullable": true
+          },
+          "previous": {
+            "type": "string",
+            "nullable": true
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TXSMultisigTransaction"
+            }
+          }
+        },
+        "required": [
+          "results"
+        ]
       },
       "ModuleExecutionInfo": {
         "type": "object",
@@ -6263,6 +9393,12 @@
                 "$ref": "#/components/schemas/SwapOrderTransactionInfo"
               },
               {
+                "$ref": "#/components/schemas/BridgeAndSwapTransactionInfo"
+              },
+              {
+                "$ref": "#/components/schemas/SwapTransactionInfo"
+              },
+              {
                 "$ref": "#/components/schemas/SwapTransferTransactionInfo"
               },
               {
@@ -6276,6 +9412,12 @@
               },
               {
                 "$ref": "#/components/schemas/NativeStakingWithdrawTransactionInfo"
+              },
+              {
+                "$ref": "#/components/schemas/VaultDepositTransactionInfo"
+              },
+              {
+                "$ref": "#/components/schemas/VaultRedeemTransactionInfo"
               }
             ],
             "allOf": [
@@ -6414,11 +9556,13 @@
       "AddConfirmationDto": {
         "type": "object",
         "properties": {
-          "signedSafeTxHash": {
+          "signature": {
             "type": "string"
           }
         },
-        "required": ["signedSafeTxHash"]
+        "required": [
+          "signature"
+        ]
       },
       "IncomingTransfer": {
         "type": "object",
@@ -6501,6 +9645,12 @@
                 "$ref": "#/components/schemas/SwapOrderTransactionInfo"
               },
               {
+                "$ref": "#/components/schemas/BridgeAndSwapTransactionInfo"
+              },
+              {
+                "$ref": "#/components/schemas/SwapTransactionInfo"
+              },
+              {
                 "$ref": "#/components/schemas/SwapTransferTransactionInfo"
               },
               {
@@ -6514,6 +9664,12 @@
               },
               {
                 "$ref": "#/components/schemas/NativeStakingWithdrawTransactionInfo"
+              },
+              {
+                "$ref": "#/components/schemas/VaultDepositTransactionInfo"
+              },
+              {
+                "$ref": "#/components/schemas/VaultRedeemTransactionInfo"
               }
             ],
             "allOf": [
@@ -6753,7 +9909,48 @@
             ]
           }
         },
-        "required": ["created", "creator", "transactionHash", "factoryAddress"]
+        "required": [
+          "created",
+          "creator",
+          "transactionHash",
+          "factoryAddress"
+        ]
+      },
+      "TXSCreationTransaction": {
+        "type": "object",
+        "properties": {
+          "created": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "creator": {
+            "type": "string"
+          },
+          "transactionHash": {
+            "type": "string"
+          },
+          "factoryAddress": {
+            "type": "string"
+          },
+          "masterCopy": {
+            "type": "object"
+          },
+          "setupData": {
+            "type": "object"
+          },
+          "saltNonce": {
+            "type": "object"
+          }
+        },
+        "required": [
+          "created",
+          "creator",
+          "transactionHash",
+          "factoryAddress",
+          "masterCopy",
+          "setupData",
+          "saltNonce"
+        ]
       }
     }
   }

@@ -1,8 +1,8 @@
-import type { MetaTransactionData } from '@safe-global/safe-core-sdk-types'
+import type { MetaTransactionData } from '@safe-global/types-kit'
 import { ConfirmationViewTypes, type BaselineConfirmationView } from '@safe-global/safe-gateway-typescript-sdk'
-import { safeParseUnits } from '@/utils/formatters'
+import { safeParseUnits } from '@safe-global/utils/utils/formatters'
 import { Interface } from 'ethers'
-import { sameAddress } from '@/utils/addresses'
+import { sameAddress } from '@safe-global/utils/utils/addresses'
 
 // CryptoKitties Contract Addresses by network
 // This is an exception made for a popular NFT that's not ERC721 standard-compatible,
@@ -25,7 +25,7 @@ const encodeERC721TransferData = (from: string, to: string, tokenId: string): st
 export const createTokenTransferParams = (
   recipient: string,
   amount: string,
-  decimals: number,
+  decimals: number | null | undefined,
   tokenAddress: string,
 ): MetaTransactionData => {
   const isNativeToken = parseInt(tokenAddress, 16) === 0

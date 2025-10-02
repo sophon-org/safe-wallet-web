@@ -1,64 +1,74 @@
 import React from 'react'
-import { Spinner, View } from 'tamagui'
+import { View, XStack, Text } from 'tamagui'
 
-import { Alert } from '@/src/components/Alert'
-import { Dropdown } from '@/src/components/Dropdown'
+import { DropdownLabel } from '@/src/components/Dropdown'
 import { Fiat } from '@/src/components/Fiat'
-import { SafeOverview } from '@safe-global/store/gateway/AUTO_GENERATED/safes'
 import { Chain } from '@safe-global/store/gateway/AUTO_GENERATED/chains'
 
-import { ChainItems } from './ChainItems'
 import { ChainsDisplay } from '@/src/components/ChainsDisplay'
-import { selectChainById } from '@/src/store/chains'
-import { useSelector } from 'react-redux'
-import { RootState } from '@/src/store'
+import { useRouter } from 'expo-router'
+import { TouchableOpacity, useColorScheme } from 'react-native'
+import { shortenAddress } from '@safe-global/utils/utils/formatters'
+import { SafeFontIcon } from '@/src/components/SafeFontIcon'
+import { Skeleton } from 'moti/skeleton'
+import { useAppSelector } from '@/src/store/hooks'
+import { selectCurrency } from '@/src/store/settingsSlice'
 
 interface BalanceProps {
   activeChainId: string
-  data: SafeOverview[]
+  safeAddress: string
   isLoading: boolean
   chains: Chain[]
-  onChainChange: (chainId: string) => void
+  balanceAmount: string
+  chainName: string
+  onPressAddressCopy: () => void
 }
 
-export function Balance({ activeChainId, data, chains, isLoading, onChainChange }: BalanceProps) {
-  const balance = data?.find((chain) => chain.chainId === activeChainId)
-  const activeChain = useSelector((state: RootState) => selectChainById(state, activeChainId))
+export function Balance({
+  activeChainId,
+  chains,
+  isLoading,
+  balanceAmount,
+  chainName,
+  safeAddress,
+  onPressAddressCopy,
+}: BalanceProps) {
+  const router = useRouter()
+  const colorScheme = useColorScheme()
+  const currency = useAppSelector(selectCurrency)
+
+  const showSkeleton = isLoading || !balanceAmount
 
   return (
-    <View>
-      <View marginBottom="$8">
-        {activeChainId && (
-          <Dropdown<SafeOverview>
-            label={activeChain?.chainName}
-            dropdownTitle="Select network:"
+    <View marginBottom="$4">
+      {activeChainId && (
+        <XStack paddingBottom={'$4'} gap={'$1'} alignItems={'center'}>
+          <DropdownLabel
+            label={chainName}
             leftNode={<ChainsDisplay activeChainId={activeChainId} chains={chains} max={1} />}
-            items={data}
-            keyExtractor={({ item }) => item.chainId}
-            renderItem={({ item, onClose }) => (
-              <ChainItems
-                onSelect={(chainId: string) => {
-                  onChainChange(chainId)
-                  onClose()
-                }}
-                activeChain={activeChain}
-                fiatTotal={item.fiatTotal}
-                chains={chains}
-                chainId={item.chainId}
-                key={item.chainId}
-              />
-            )}
+            onPress={() => {
+              router.push('/networks-sheet')
+            }}
+            labelProps={{ fontWeight: 600, fontSize: '$4' }}
+            displayDropDownIcon={chains.length > 1}
           />
-        )}
-
-        {isLoading ? (
-          <Spinner />
-        ) : balance ? (
-          <Fiat baseAmount={balance.fiatTotal} />
-        ) : (
-          <Alert type="error" message="error while getting the balance of your wallet" />
-        )}
-      </View>
+          <TouchableOpacity onPress={onPressAddressCopy}>
+            <XStack alignItems={'center'} paddingLeft={'$1'}>
+              <Text color={'$colorSecondary'} fontSize={'$4'}>
+                {shortenAddress(safeAddress)}
+              </Text>
+              <View paddingLeft={'$1'}>
+                <SafeFontIcon name={'copy'} size={13} color={'$colorSecondary'} />
+              </View>
+            </XStack>
+          </TouchableOpacity>
+        </XStack>
+      )}
+      <Skeleton.Group show={showSkeleton}>
+        <Skeleton colorMode={colorScheme === 'dark' ? 'dark' : 'light'} width={220}>
+          <Fiat value={balanceAmount} currency={currency} precise />
+        </Skeleton>
+      </Skeleton.Group>
     </View>
   )
 }

@@ -14,7 +14,7 @@ const signer = walletCredentials.OWNER_4_PRIVATE_KEY
 // DO NOT use OWNER_2_PRIVATE_KEY for safe creation. Used for CF safes.
 const signer2 = walletCredentials.OWNER_2_PRIVATE_KEY
 
-describe('Multichain header network switch tests', { defaultCommandTimeout: 60000 }, () => {
+describe('Multichain header network switch tests', { defaultCommandTimeout: 30000 }, () => {
   before(async () => {
     staticSafes = await getSafes(CATEGORIES.static)
   })
@@ -26,7 +26,7 @@ describe('Multichain header network switch tests', { defaultCommandTimeout: 6000
     main.addToLocalStorage(constants.localStorageKeys.SAFE_v2__addressBook, ls.addressBookData.multichain)
   })
 
-  it('Verify the list of networks where the safe is already deployed with the same address', () => {
+  it('Verify the list of networks where the safe is already deployed with the same address when all networks added', () => {
     let safe = main.changeSafeChainName(staticSafes.MATIC_STATIC_SAFE_28, 'sep')
     cy.visit(constants.BALANCE_URL + safe)
     wallet.connectSigner(signer)
@@ -36,8 +36,6 @@ describe('Multichain header network switch tests', { defaultCommandTimeout: 6000
     sideBar.checkUndeployedSafeExists(0)
     navigation.clickOnModalCloseBtn(0)
     create_wallet.openNetworkSelector()
-    sideBar.clickOnShowAllNetworksBtn()
-    sideBar.checkNetworkPresence([constants.networks.gnosis], sideBar.addNetworkOption)
     sideBar.checkNetworkPresence(
       [constants.networks.ethereum, constants.networks.polygon, constants.networks.sepolia],
       sideBar.addedNetworkOption,
@@ -49,7 +47,7 @@ describe('Multichain header network switch tests', { defaultCommandTimeout: 6000
     cy.visit(constants.BALANCE_URL + safe)
     create_wallet.openNetworkSelector()
     sideBar.clickOnShowAllNetworksBtn()
-    sideBar.checkNetworkPresence([constants.networks.gnosis], sideBar.addNetworkOption).click()
+    sideBar.checkNetworkPresence([constants.networks.ethereum], sideBar.addNetworkOption).click()
     sideBar.checkNetworkIsNotEditable()
   })
 
@@ -58,8 +56,8 @@ describe('Multichain header network switch tests', { defaultCommandTimeout: 6000
     cy.visit(constants.BALANCE_URL + safe)
     create_wallet.openNetworkSelector()
     sideBar.clickOnShowAllNetworksBtn()
-    sideBar.checkNetworkPresence([constants.networks.gnosis, constants.networks.ethereum], sideBar.addNetworkOption)
-    main.verifyElementsCount(sideBar.addNetworkOption, 4)
+    sideBar.checkNetworkPresence([constants.networks.ethereum], sideBar.addNetworkOption)
+    main.verifyMinimumElementsCount(sideBar.addNetworkOption, 1)
   })
 
   it('Verify that test networks and main networks are splitted', () => {
@@ -71,7 +69,7 @@ describe('Multichain header network switch tests', { defaultCommandTimeout: 6000
   it('Verify Add network tooltip on hover for available networks in "Show all networks"', () => {
     create_wallet.openNetworkSelector()
     sideBar.clickOnShowAllNetworksBtn()
-    sideBar.checkNetworkPresence([constants.networks.gnosis], sideBar.addNetworkOption).trigger('mouseover')
+    sideBar.checkNetworkPresence([constants.networks.ethereum], sideBar.addNetworkOption).trigger('mouseover')
     main.verifyElementsExist([sideBar.addNetworkTooltip])
   })
 

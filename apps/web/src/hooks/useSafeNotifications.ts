@@ -4,12 +4,13 @@ import { ImplementationVersionState } from '@safe-global/safe-gateway-typescript
 import useSafeInfo from './useSafeInfo'
 import { useAppDispatch } from '@/store'
 import { AppRoutes } from '@/config/routes'
-import { isMigrationToL2Possible, isValidMasterCopy } from '@/services/contracts/safeContracts'
+import { isMigrationToL2Possible, isValidMasterCopy } from '@safe-global/utils/services/contracts/safeContracts'
 import { useRouter } from 'next/router'
 import useIsSafeOwner from './useIsSafeOwner'
-import { isValidSafeVersion } from './coreSDK/safeCoreSDK'
 import useSafeAddress from '@/hooks/useSafeAddress'
 import useLocalStorage from '@/services/local-storage/useLocalStorage'
+import { isValidSafeVersion } from '@safe-global/utils/services/contracts/utils'
+import { isNonCriticalUpdate } from '@safe-global/utils/utils/chains'
 
 const CLI_LINK = {
   href: 'https://github.com/5afe/safe-cli',
@@ -66,7 +67,6 @@ const useSafeNotifications = (): void => {
   /**
    * Show a notification when the Safe version is out of date
    */
-
   useEffect(() => {
     if (safeAddress !== urlSafeAddress) return
     if (!isOwner) return
@@ -85,7 +85,9 @@ const useSafeNotifications = (): void => {
       }
     }
 
-    if (implementationVersionState !== ImplementationVersionState.OUTDATED) return
+    // Is Safe version outdated?
+    // Non-critical Safe upgrades (versions >= '1.3.0') intentionally skip notifications
+    if (implementationVersionState !== ImplementationVersionState.OUTDATED || isNonCriticalUpdate(version)) return
 
     const isUnsupported = !isValidSafeVersion(version)
 
@@ -139,7 +141,7 @@ const useSafeNotifications = (): void => {
 
     const message = isMigrationPossible
       ? `This Safe Account was created with an unsupported base contract.
-           It is possible to migrate it to a compatible base contract. This migration will be automatically included with your first transaction.`
+           It is possible to migrate it to a compatible base contract. You can migrate it to a compatible contract on the Home screen.`
       : `This Safe Account was created with an unsupported base contract.
            The web interface might not work correctly.
            We recommend using the command line interface instead.`

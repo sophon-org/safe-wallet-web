@@ -3,7 +3,7 @@ import { SENTINEL_ADDRESS } from '@safe-global/protocol-kit/dist/src/utils/const
 import type { ChainInfo, TransactionDetails } from '@safe-global/safe-gateway-typescript-sdk'
 import { getTransactionDetails } from '@safe-global/safe-gateway-typescript-sdk'
 import type { AddOwnerTxParams, RemoveOwnerTxParams, SwapOwnerTxParams } from '@safe-global/protocol-kit'
-import type { MetaTransactionData, SafeTransaction, SafeTransactionDataPartial } from '@safe-global/safe-core-sdk-types'
+import type { MetaTransactionData, SafeTransaction, SafeTransactionDataPartial } from '@safe-global/types-kit'
 import extractTxInfo from '../extractTxInfo'
 import { getAndValidateSafeSDK } from './sdk'
 
@@ -25,17 +25,6 @@ export const createMultiSendCallOnlyTx = async (txParams: MetaTransactionData[])
   return safeSDK.createTransaction({ transactions: txParams, onlyCalls: true })
 }
 
-/**
- * Create a multiSend transaction from an array of MetaTransactionData and options
- * If only one tx is passed it will be created without multiSend and without onlyCalls.
- *
- * This function can create delegateCalls, which is usually not necessary
- */
-export const __unsafe_createMultiSendTx = async (txParams: MetaTransactionData[]): Promise<SafeTransaction> => {
-  const safeSDK = getAndValidateSafeSDK()
-  return safeSDK.createTransaction({ transactions: txParams, onlyCalls: false })
-}
-
 export const createRemoveOwnerTx = async (txParams: RemoveOwnerTxParams): Promise<SafeTransaction> => {
   const safeSDK = getAndValidateSafeSDK()
   return safeSDK.createRemoveOwnerTx(txParams)
@@ -49,7 +38,7 @@ export const createAddOwnerTx = async (
   const safeSDK = getAndValidateSafeSDK()
   if (isDeployed) return safeSDK.createAddOwnerTx(txParams)
 
-  const safeVersion = await safeSDK.getContractVersion()
+  const safeVersion = safeSDK.getContractVersion()
 
   const contract = await getReadOnlyGnosisSafeContract(chain, safeVersion)
   // @ts-ignore
@@ -74,7 +63,7 @@ export const createSwapOwnerTx = async (
   const safeSDK = getAndValidateSafeSDK()
   if (isDeployed) return safeSDK.createSwapOwnerTx(txParams)
 
-  const safeVersion = await safeSDK.getContractVersion()
+  const safeVersion = safeSDK.getContractVersion()
 
   const contract = await getReadOnlyGnosisSafeContract(chain, safeVersion)
   // @ts-ignore SwapOwnerTxParams is a union type and the method expects a specific one
@@ -119,7 +108,6 @@ export const createRejectTx = async (nonce: number): Promise<SafeTransaction> =>
  */
 export const createExistingTx = async (
   chainId: string,
-  safeAddress: string,
   txId: string,
   txDetails?: TransactionDetails,
 ): Promise<SafeTransaction> => {
@@ -127,7 +115,7 @@ export const createExistingTx = async (
   txDetails = txDetails || (await getTransactionDetails(chainId, txId))
 
   // Convert them to the Core SDK tx params
-  const { txParams, signatures } = extractTxInfo(txDetails, safeAddress)
+  const { txParams, signatures } = extractTxInfo(txDetails)
 
   // Create a tx and add pre-approved signatures
   const safeTx = await createTx(txParams, txParams.nonce)

@@ -1,14 +1,15 @@
-import { type ReactElement, useContext, useEffect } from 'react'
+import { useContext, useEffect } from 'react'
 import { type TransactionDetails } from '@safe-global/safe-gateway-typescript-sdk'
-import SignOrExecuteForm from '@/components/tx/SignOrExecuteForm'
 import { createMultiSendCallOnlyTx } from '@/services/tx/tx-sender'
 import { SafeTxContext } from '../../SafeTxProvider'
-import type { MetaTransactionData } from '@safe-global/safe-core-sdk-types'
-import { OperationType } from '@safe-global/safe-core-sdk-types'
-import TxLayout from '../../common/TxLayout'
+import type { MetaTransactionData } from '@safe-global/types-kit'
+import { OperationType } from '@safe-global/types-kit'
 import BatchIcon from '@/public/images/common/batch.svg'
 import { useDraftBatch } from '@/hooks/useDraftBatch'
-import { maybePlural } from '@/utils/formatters'
+import { maybePlural } from '@safe-global/utils/utils/formatters'
+import ReviewTransaction, { type ReviewTransactionProps } from '@/components/tx/ReviewTransactionV2'
+import { TxFlowType } from '@/services/analytics'
+import { TxFlow } from '../../TxFlow'
 
 type ConfirmBatchProps = {
   onSubmit: () => void
@@ -23,7 +24,7 @@ const getData = (txDetails: TransactionDetails): MetaTransactionData => {
   }
 }
 
-const ConfirmBatch = ({ onSubmit }: ConfirmBatchProps): ReactElement => {
+const ConfirmBatch = (props: ReviewTransactionProps) => {
   const { setSafeTx, setSafeTxError } = useContext(SafeTxContext)
   const batchTxs = useDraftBatch()
 
@@ -32,21 +33,21 @@ const ConfirmBatch = ({ onSubmit }: ConfirmBatchProps): ReactElement => {
     createMultiSendCallOnlyTx(calls).then(setSafeTx).catch(setSafeTxError)
   }, [batchTxs, setSafeTx, setSafeTxError])
 
-  return <SignOrExecuteForm onSubmit={onSubmit} isBatch />
+  return <ReviewTransaction {...props} title="Confirm batch" />
 }
 
-const ConfirmBatchFlow = (props: ConfirmBatchProps) => {
+const ConfirmBatchFlow = ({ onSubmit }: ConfirmBatchProps) => {
   const { length } = useDraftBatch()
+
   return (
-    <TxLayout
-      title="Confirm batch"
-      subtitle={`This batch contains ${length} transaction${maybePlural(length)}`}
+    <TxFlow
       icon={BatchIcon}
-      step={0}
+      subtitle={`This batch contains ${length} transaction${maybePlural(length)}`}
+      eventCategory={TxFlowType.CONFIRM_BATCH}
+      ReviewTransactionComponent={ConfirmBatch}
+      onSubmit={onSubmit}
       isBatch
-    >
-      <ConfirmBatch {...props} />
-    </TxLayout>
+    />
   )
 }
 

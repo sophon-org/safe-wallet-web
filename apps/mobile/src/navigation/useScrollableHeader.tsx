@@ -1,12 +1,13 @@
 // useScrollableHeader.ts
 import { useEffect } from 'react'
 import { NativeSyntheticEvent, NativeScrollEvent } from 'react-native'
-import { useNavigation } from 'expo-router'
+import { useNavigation } from '@react-navigation/native'
 import Animated, { useSharedValue, useAnimatedStyle, withTiming } from 'react-native-reanimated'
 
 interface UseScrollableHeaderProps {
   children: React.ReactNode
   scrollYThreshold?: number // Default threshold for opacity change
+  alwaysVisible?: boolean
 }
 
 /**
@@ -19,15 +20,20 @@ interface UseScrollableHeaderProps {
  * @param children
  * @param scrollYThreshold
  */
-export const useScrollableHeader = ({ children, scrollYThreshold = 37 }: UseScrollableHeaderProps) => {
+export const useScrollableHeader = ({ children, alwaysVisible, scrollYThreshold = 37 }: UseScrollableHeaderProps) => {
   const navigation = useNavigation()
-  const opacity = useSharedValue(0)
+  const opacity = useSharedValue(alwaysVisible ? 1 : 0)
 
   // Update navigation header title dynamically
   useEffect(() => {
     navigation.setOptions({
       headerTitle: () => (
-        <Animated.View style={[{ flexDirection: 'row', alignItems: 'center' }, animatedHeaderStyle]}>
+        <Animated.View
+          style={[
+            { flex: 1, justifyContent: 'center', flexDirection: 'row', alignItems: 'center' },
+            animatedHeaderStyle,
+          ]}
+        >
           {children}
         </Animated.View>
       ),
@@ -41,7 +47,7 @@ export const useScrollableHeader = ({ children, scrollYThreshold = 37 }: UseScro
   // Scroll event handler for updating opacity
   const handleScroll = (event: NativeSyntheticEvent<NativeScrollEvent>) => {
     const scrollY = event.nativeEvent.contentOffset.y
-    opacity.value = scrollY > scrollYThreshold ? 1 : 0
+    opacity.value = scrollY > scrollYThreshold ? 1 : alwaysVisible ? 1 : 0
   }
 
   return {

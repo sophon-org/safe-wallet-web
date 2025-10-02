@@ -163,7 +163,7 @@ describe('txSender', () => {
 
   describe('createExistingTx', () => {
     it('should create a tx from an existing proposal', async () => {
-      const tx = await createExistingTx('4', '0x123', '0x345')
+      const tx = await createExistingTx('4', '0x345')
 
       expect(getTransactionDetails).toHaveBeenCalledWith('4', '0x345')
       expect(extractTxInfo).toHaveBeenCalled()
@@ -496,13 +496,9 @@ describe('txSender', () => {
       const expectedData = '0xfefe'
 
       const multisendContractMock = {
-        contract: {
-          interface: {
-            encodeFunctionData: jest.fn(() => expectedData),
-          },
-        } as any,
-        getAddress: async () => mockMultisendAddress,
-      } as MultiSendCallOnlyContractImplementationType
+        encode: jest.fn(() => expectedData),
+        getAddress: () => mockMultisendAddress,
+      } as unknown as MultiSendCallOnlyContractImplementationType
 
       jest
         .spyOn(safeContracts, 'getReadOnlyMultiSendCallOnlyContract')

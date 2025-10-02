@@ -119,6 +119,7 @@ export type Chain = {
   chainLogoUri?: string | null
   l2: boolean
   isTestnet: boolean
+  zk: boolean
   nativeCurrency: NativeCurrency
   transactionService: string
   blockExplorerUriTemplate: BlockExplorerUriTemplate
@@ -167,9 +168,15 @@ export type IndexingStatus = {
 }
 export const {
   useChainsGetChainsV1Query,
+  useLazyChainsGetChainsV1Query,
   useChainsGetChainV1Query,
+  useLazyChainsGetChainV1Query,
   useChainsGetAboutChainV1Query,
+  useLazyChainsGetAboutChainV1Query,
   useChainsGetBackboneV1Query,
+  useLazyChainsGetBackboneV1Query,
   useChainsGetMasterCopiesV1Query,
+  useLazyChainsGetMasterCopiesV1Query,
   useChainsGetIndexingStatusV1Query,
+  useLazyChainsGetIndexingStatusV1Query,
 } = injectedRtkApi

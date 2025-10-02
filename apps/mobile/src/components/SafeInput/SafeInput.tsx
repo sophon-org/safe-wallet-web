@@ -41,18 +41,20 @@ export function SafeInput({
   return (
     <Theme name={`input_${getInputThemeName(hasError, success)}`}>
       <StyledInputContainer minHeight={height} testID="safe-input">
-        {left}
+        {left ? <View paddingLeft={'$3'}>{left}</View> : null}
 
         <StyledInput
           {...props}
           size="$5"
           flex={1}
-          maxHeight={height}
+          // maxHeight={height}
           autoCapitalize="none"
+          paddingHorizontal={'$3'}
+          // keyboardType={'ascii-capable'}
           autoCorrect={false}
           placeholder={placeholder}
         />
-        {right}
+        {right ? <View paddingHorizontal={'$3'}>{right}</View> : null}
       </StyledInputContainer>
       {hasError && <ErrorDisplay error={error} />}
     </Theme>

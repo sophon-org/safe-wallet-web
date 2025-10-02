@@ -1,6 +1,6 @@
 import React from 'react'
-import { Onboarding } from './Onboarding.container'
 import { fireEvent, render } from '@/src/tests/test-utils'
+import { Onboarding } from './Onboarding.container'
 
 const mockNavigate = jest.fn()
 
@@ -21,6 +21,6 @@ describe('Onboarding Component', () => {
     const button = getByText('Get started')
 
     fireEvent.press(button)
-    expect(mockNavigate).toHaveBeenCalledWith('/(tabs)')
+    expect(mockNavigate).toHaveBeenCalledWith('/get-started')
   })
 })

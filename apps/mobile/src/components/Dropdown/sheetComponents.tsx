@@ -1,8 +1,9 @@
 import React from 'react'
 import { View as RCView, StyleSheet } from 'react-native'
 import { View } from 'tamagui'
-import { BottomSheetBackgroundProps, useBottomSheetModal } from '@gorhom/bottom-sheet'
+import { BottomSheetBackgroundProps, useBottomSheet } from '@gorhom/bottom-sheet'
 import { BlurView } from 'expo-blur'
+import { useRouter } from 'expo-router'
 
 const BackgroundComponent = React.memo(({ style }: BottomSheetBackgroundProps) => {
   return (
@@ -12,10 +13,15 @@ const BackgroundComponent = React.memo(({ style }: BottomSheetBackgroundProps) =
   )
 })
 
-const BackdropComponent = React.memo(() => {
-  const { dismiss } = useBottomSheetModal()
-
-  const handleClose = () => dismiss()
+const BackdropComponent = React.memo(({ shouldNavigateBack = true }: { shouldNavigateBack?: boolean }) => {
+  const { close } = useBottomSheet()
+  const router = useRouter()
+  const handleClose = () => {
+    close()
+    if (shouldNavigateBack) {
+      router.back()
+    }
+  }
 
   return (
     <View
@@ -27,7 +33,7 @@ const BackdropComponent = React.memo(() => {
       width="100%"
       height="100%"
     >
-      <BlurView style={styles.absolute} intensity={100} experimentalBlurMethod={'dimezisBlurView'} tint={'dark'} />
+      <BlurView style={styles.absolute} intensity={100} tint={'dark'} />
     </View>
   )
 })
