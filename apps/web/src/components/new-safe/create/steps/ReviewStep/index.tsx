@@ -202,7 +202,19 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
 
   const handleCreateSafeClick = async () => {
     try {
-      if (!wallet || !chain || !newSafeProps) return
+      console.log('🚀 [SAFE CREATION] Starting Safe creation process')
+      console.log('🚀 [SAFE CREATION] Wallet:', wallet?.address)
+      console.log('🚀 [SAFE CREATION] Chain:', chain?.chainId, chain?.chainName)
+      console.log('🚀 [SAFE CREATION] NewSafeProps:', newSafeProps)
+
+      if (!wallet || !chain || !newSafeProps) {
+        console.error('❌ [SAFE CREATION] Missing required data:', {
+          wallet: !!wallet,
+          chain: !!chain,
+          newSafeProps: !!newSafeProps,
+        })
+        return
+      }
 
       setIsCreating(true)
 
@@ -272,7 +284,16 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
   }
 
   const createSafe = async (chain: ChainInfo, props: ReplayedSafeProps, safeAddress: string) => {
-    if (!wallet) return
+    console.log('🔧 [CREATE SAFE] Starting createSafe function')
+    console.log('🔧 [CREATE SAFE] Chain:', chain.chainId, chain.chainName)
+    console.log('🔧 [CREATE SAFE] Props:', props)
+    console.log('🔧 [CREATE SAFE] SafeAddress:', safeAddress)
+    console.log('🔧 [CREATE SAFE] Wallet:', wallet?.address)
+
+    if (!wallet) {
+      console.error('❌ [CREATE SAFE] No wallet available')
+      return
+    }
 
     gtmSetChainId(chain.chainId)
 
@@ -316,25 +337,40 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
         onSubmit(data)
       }
 
+      console.log('🔧 [CREATE SAFE] Will relay:', willRelay)
+      console.log('🔧 [CREATE SAFE] Is counterfactual enabled:', isCounterfactualEnabled)
+      console.log('🔧 [CREATE SAFE] Pay method:', payMethod)
+
       if (willRelay) {
+        console.log('📡 [CREATE SAFE] Using relay method')
         const taskId = await relaySafeCreation(chain, props)
         onSubmitCallback(taskId)
       } else {
+        console.log('💳 [CREATE SAFE] Using direct execution (paymaster)')
         await signAndExecuteSafeCreation(
           chain,
           props,
           wallet,
           (txHash) => {
+            console.log('✅ [CREATE SAFE] Transaction successful, hash:', txHash)
             onSubmitCallback(undefined, txHash)
           },
           data.safeVersion,
         )
       }
     } catch (_err) {
+      console.error('❌ [CREATE SAFE] Error caught:', _err)
+      console.error('❌ [CREATE SAFE] Error stack:', _err instanceof Error ? _err.stack : 'No stack trace')
+
       const error = asError(_err)
+      console.error('❌ [CREATE SAFE] Processed error:', error)
+      console.error('❌ [CREATE SAFE] Is wallet rejection:', isWalletRejection(error))
+
       const submitError = isWalletRejection(error)
         ? 'User rejected signing.'
         : 'Error creating the Safe Account. Please try again later.'
+
+      console.error('❌ [CREATE SAFE] Final error message:', submitError)
       setSubmitError(submitError)
 
       if (isWalletRejection(error)) {

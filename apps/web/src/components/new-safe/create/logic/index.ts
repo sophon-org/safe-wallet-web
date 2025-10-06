@@ -340,11 +340,29 @@ export const signAndExecuteSafeCreation = async (
   callback: (txHash: string) => void,
   version?: SafeVersion,
 ) => {
+  console.log('💳 [PAYMASTER] Starting signAndExecuteSafeCreation')
+  console.log('💳 [PAYMASTER] Chain:', chain.chainId, chain.chainName)
+  console.log('💳 [PAYMASTER] Wallet address:', wallet.address)
+  console.log('💳 [PAYMASTER] UndeployedSafeProps:', undeployedSafeProps)
+  console.log('💳 [PAYMASTER] Version:', version)
+
   const { createProxyWithNonceCallData, proxyFactoryAddress } = await generateCreateProxyWithNonceCallData(
     chain,
     undeployedSafeProps,
     version,
   )
+
+  console.log('💳 [PAYMASTER] Generated call data:', createProxyWithNonceCallData)
+  console.log('💳 [PAYMASTER] Proxy factory address:', proxyFactoryAddress)
+  console.log('💳 [PAYMASTER] PAYMASTER_ADDRESSES:', PAYMASTER_ADDRESSES)
+  console.log('💳 [PAYMASTER] Chain ID:', chain.chainId)
+  console.log('💳 [PAYMASTER] Paymaster address for chain:', PAYMASTER_ADDRESSES[chain.chainId])
+
+  if (!PAYMASTER_ADDRESSES[chain.chainId]) {
+    console.error('❌ [PAYMASTER] No paymaster address found for chain:', chain.chainId)
+    throw new Error(`No paymaster address found for chain ${chain.chainId}`)
+  }
+
   const paymasterParams = utils.getPaymasterParams(
     PAYMASTER_ADDRESSES[chain.chainId], // Paymaster address
     {
@@ -352,13 +370,21 @@ export const signAndExecuteSafeCreation = async (
       innerInput: new Uint8Array(),
     },
   )
+
+  console.log('💳 [PAYMASTER] Generated paymaster params:', paymasterParams)
+  console.log('💳 [PAYMASTER] Creating browser provider and signer')
+  console.log('💳 [PAYMASTER] Chain RPC URI:', chain.rpcUri.value)
+
   const browserProvider = new BrowserProvider(wallet.provider)
   const signer = Signer.from(
     await browserProvider.getSigner(),
     Number(chain.chainId),
     new ZKProvider(chain.rpcUri.value, { name: chain.chainName, chainId: Number(chain.chainId) }),
   )
-  const tx = await signer.sendTransaction({
+
+  console.log('💳 [PAYMASTER] Signer created successfully')
+
+  const transactionData = {
     type: utils.EIP712_TX_TYPE,
     from: wallet.address,
     to: proxyFactoryAddress,
@@ -367,7 +393,14 @@ export const signAndExecuteSafeCreation = async (
       gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
       paymasterParams,
     },
-  })
+  }
+
+  console.log('💳 [PAYMASTER] Transaction data:', transactionData)
+  console.log('💳 [PAYMASTER] Sending transaction...')
+
+  const tx = await signer.sendTransaction(transactionData)
+
+  console.log('✅ [PAYMASTER] Transaction sent successfully:', tx.hash)
   callback(tx.hash)
 }
 
@@ -376,11 +409,21 @@ const generateCreateProxyWithNonceCallData = async (
   undeployedSafeProps: UndeployedSafeProps,
   version?: SafeVersion,
 ) => {
+  console.log('🔧 [PROXY FACTORY] Starting generateCreateProxyWithNonceCallData')
+  console.log('🔧 [PROXY FACTORY] Chain:', chain.chainId, chain.chainName)
+  console.log('🔧 [PROXY FACTORY] UndeployedSafeProps:', undeployedSafeProps)
+  console.log('🔧 [PROXY FACTORY] Version:', version)
+
   const latestSafeVersion = getLatestSafeVersion()
   const safeVersion = version ?? latestSafeVersion
+  console.log('🔧 [PROXY FACTORY] Safe version to use:', safeVersion)
+
   const readOnlyProxyFactoryContract = await getReadOnlyProxyFactoryContract(safeVersion)
   const proxyFactoryAddress = readOnlyProxyFactoryContract.getAddress()
+  console.log('🔧 [PROXY FACTORY] Proxy factory address:', proxyFactoryAddress)
+
   const replayedSafeProps = assertNewUndeployedSafeProps(undeployedSafeProps, chain)
+  console.log('🔧 [PROXY FACTORY] Replayed safe props:', replayedSafeProps)
   const createProxyWithNonceCallData = Safe_proxy_factory__factory.createInterface().encodeFunctionData(
     'createProxyWithNonce',
     [
@@ -389,5 +432,10 @@ const generateCreateProxyWithNonceCallData = async (
       BigInt(replayedSafeProps.saltNonce),
     ],
   )
+
+  console.log('🔧 [PROXY FACTORY] Generated call data:', createProxyWithNonceCallData)
+  console.log('🔧 [PROXY FACTORY] Master copy:', replayedSafeProps.masterCopy)
+  console.log('🔧 [PROXY FACTORY] Salt nonce:', replayedSafeProps.saltNonce)
+
   return { createProxyWithNonceCallData, proxyFactoryAddress }
 }
