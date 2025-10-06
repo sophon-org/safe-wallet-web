@@ -1,5 +1,4 @@
 import chains from './chains'
-import { HELP_CENTER_URL } from '@safe-global/utils/config/constants'
 
 export const IS_PRODUCTION = process.env.NEXT_PUBLIC_IS_PRODUCTION === 'true'
 export const IS_DEV = process.env.NODE_ENV === 'development'
@@ -119,6 +118,12 @@ export const SAFE_PASS_URL = 'community.safe.global'
 export const ECOSYSTEM_ID_ADDRESS =
   process.env.NEXT_PUBLIC_ECOSYSTEM_ID_ADDRESS || '0x0000000000000000000000000000000000000000'
 export const MULTICHAIN_HELP_ARTICLE = `${HELP_CENTER_URL}/en/articles/222612-multi-chain-safe`
+
+// Tenderly Configuration
+export const TENDERLY_SIMULATE_ENDPOINT_URL =
+  process.env.NEXT_PUBLIC_TENDERLY_SIMULATE_ENDPOINT_URL || 'https://api.tenderly.co'
+export const TENDERLY_ORG_NAME = process.env.NEXT_PUBLIC_TENDERLY_ORG_NAME || 'safe-global'
+export const TENDERLY_PROJECT_NAME = process.env.UEXT_PUBLIC_TENDERLY_PROJECT_NAME || 'safe-integrations'
 
 export const TERMS_LINK =
   process.env.NEXT_PUBLIC_TERMS_LINK ||

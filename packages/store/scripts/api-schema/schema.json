@@ -547,9 +547,7 @@
             "description": "Empty response body. Cookie value is removed and set to expire."
           }
         },
-        "tags": [
-          "auth"
-        ]
+        "tags": ["auth"]
       }
     },
     "/v1/chains/{chainId}/safes/{safeAddress}/balances/{fiatCode}": {
@@ -1776,9 +1774,7 @@
           }
         },
         "summary": "Delete all subscriptions of a device",
-        "tags": [
-          "notifications"
-        ]
+        "tags": ["notifications"]
       }
     },
     "/v2/chains/{chainId}/notifications/devices/{deviceUuid}": {
@@ -1987,9 +1983,7 @@
           }
         },
         "summary": "",
-        "tags": [
-          "notifications"
-        ]
+        "tags": ["notifications"]
       }
     },
     "/v1/chains/{chainId}/notifications/devices/{uuid}": {
@@ -2020,9 +2014,7 @@
           }
         },
         "summary": "",
-        "tags": [
-          "notifications"
-        ]
+        "tags": ["notifications"]
       }
     },
     "/v1/chains/{chainId}/notifications/devices/{uuid}/safes/{safeAddress}": {
@@ -2061,9 +2053,7 @@
           }
         },
         "summary": "",
-        "tags": [
-          "notifications"
-        ]
+        "tags": ["notifications"]
       }
     },
     "/v1/users": {
@@ -2088,9 +2078,7 @@
             "description": "User (wallet) not found"
           }
         },
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       },
       "delete": {
         "operationId": "usersDeleteV1",
@@ -2106,9 +2094,7 @@
             "description": "User (wallet) not found"
           }
         },
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/v1/users/wallet": {
@@ -2133,9 +2119,7 @@
             "description": "Wallet already exists"
           }
         },
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/v1/users/wallet/add": {
@@ -2173,9 +2157,7 @@
             "description": "Wallet already exists"
           }
         },
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/v1/users/wallet/{walletAddress}": {
@@ -2205,9 +2187,7 @@
             "description": "Cannot remove the current wallet"
           }
         },
-        "tags": [
-          "users"
-        ]
+        "tags": ["users"]
       }
     },
     "/v1/spaces/{spaceId}/address-book": {
@@ -2244,9 +2224,7 @@
             "description": "User, member or space not found"
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       },
       "put": {
         "operationId": "addressBooksUpsertAddressBookItemsV1",
@@ -2294,9 +2272,7 @@
             "description": "User, member or space not found"
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       }
     },
     "/v1/spaces/{spaceId}/address-book/{address}": {
@@ -2331,9 +2307,7 @@
             "description": "User, member or Space not found"
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       }
     },
     "/v1/spaces": {
@@ -2371,9 +2345,7 @@
             "description": "User not found."
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       },
       "get": {
         "operationId": "spacesGetV1",
@@ -2402,9 +2374,7 @@
             "description": "User not found."
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       }
     },
     "/v1/spaces/create-with-user": {
@@ -2439,9 +2409,7 @@
             "description": "Forbidden resource"
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       }
     },
     "/v1/spaces/{id}": {
@@ -2478,9 +2446,7 @@
             "description": "Space not found. OR User not found."
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       },
       "patch": {
         "operationId": "spacesUpdateV1",
@@ -2525,9 +2491,7 @@
             "description": "User not found."
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       },
       "delete": {
         "operationId": "spacesDeleteV1",
@@ -2555,9 +2519,7 @@
             "description": "User not found."
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       }
     },
     "/v1/spaces/{spaceId}/safes": {
@@ -2594,9 +2556,7 @@
             "description": "User not found."
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       },
       "get": {
         "operationId": "spaceSafesGetV1",
@@ -2628,9 +2588,7 @@
             "description": "User not found."
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       },
       "delete": {
         "operationId": "spaceSafesDeleteV1",
@@ -2665,9 +2623,7 @@
             "description": "Space has no Safes OR user not found."
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       }
     },
     "/v1/spaces/{spaceId}/members/invite": {
@@ -2717,9 +2673,7 @@
             "description": "Too many invites"
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       }
     },
     "/v1/spaces/{spaceId}/members/accept": {
@@ -2759,9 +2713,7 @@
             "description": "User invite not pending"
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       }
     },
     "/v1/spaces/{spaceId}/members/decline": {
@@ -2791,9 +2743,7 @@
             "description": "User invite not pending"
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       }
     },
     "/v1/spaces/{spaceId}/members": {
@@ -2827,9 +2777,7 @@
             "description": "Signer or space not found"
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       },
       "delete": {
         "description": "Remove own membership from a space.",
@@ -2862,9 +2810,7 @@
           }
         },
         "summary": "Leave a space",
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       }
     },
     "/v1/spaces/{spaceId}/members/{userId}/role": {
@@ -2915,9 +2861,7 @@
             "description": "Cannot remove last admin"
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       }
     },
     "/v1/spaces/{spaceId}/members/alias": {
@@ -2956,9 +2900,7 @@
           }
         },
         "summary": "Update member alias",
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       }
     },
     "/v1/spaces/{spaceId}/members/{userId}": {
@@ -2999,9 +2941,7 @@
             "description": "Cannot remove last admin"
           }
         },
-        "tags": [
-          "spaces"
-        ]
+        "tags": ["spaces"]
       }
     },
     "/v1/chains/{chainId}/owners/{ownerAddress}/safes": {
@@ -3067,9 +3007,7 @@
           }
         },
         "summary": "Deprecated",
-        "tags": [
-          "owners"
-        ]
+        "tags": ["owners"]
       }
     },
     "/v2/owners/{ownerAddress}/safes": {
@@ -3406,9 +3344,7 @@
             "description": "Safe not targeted."
           }
         },
-        "tags": [
-          "targeted-messaging"
-        ]
+        "tags": ["targeted-messaging"]
       }
     },
     "/v1/targeted-messaging/outreaches/{outreachId}/chains/{chainId}/safes/{safeAddress}/signers/{signerAddress}/submissions": {
@@ -3594,9 +3530,7 @@
           }
         },
         "summary": "Deprecated",
-        "tags": [
-          "transactions"
-        ]
+        "tags": ["transactions"]
       }
     },
     "/v1/chains/{chainId}/safes/{safeAddress}/multisig-transactions/raw": {
@@ -3842,9 +3776,7 @@
           }
         },
         "summary": "Deprecated",
-        "tags": [
-          "transactions"
-        ]
+        "tags": ["transactions"]
       }
     },
     "/v1/chains/{chainId}/safes/{safeAddress}/multisig-transactions": {
@@ -4476,9 +4408,7 @@
           }
         },
         "summary": "Deprecated",
-        "tags": [
-          "transactions"
-        ]
+        "tags": ["transactions"]
       }
     }
   },
@@ -4613,11 +4543,7 @@
             }
           }
         },
-        "required": [
-          "name",
-          "address",
-          "chainIds"
-        ]
+        "required": ["name", "address", "chainIds"]
       },
       "AddressBook": {
         "type": "object",
@@ -4775,19 +4701,10 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "NATIVE_TOKEN"
-            ]
+            "enum": ["NATIVE_TOKEN"]
           }
         },
-        "required": [
-          "address",
-          "decimals",
-          "logoUri",
-          "name",
-          "symbol",
-          "type"
-        ]
+        "required": ["address", "decimals", "logoUri", "name", "symbol", "type"]
       },
       "Erc20Token": {
         "type": "object",
@@ -4809,19 +4726,10 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "ERC20"
-            ]
+            "enum": ["ERC20"]
           }
         },
-        "required": [
-          "address",
-          "decimals",
-          "logoUri",
-          "name",
-          "symbol",
-          "type"
-        ]
+        "required": ["address", "decimals", "logoUri", "name", "symbol", "type"]
       },
       "Erc721Token": {
         "type": "object",
@@ -4843,19 +4751,10 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "ERC721"
-            ]
+            "enum": ["ERC721"]
           }
         },
-        "required": [
-          "address",
-          "decimals",
-          "logoUri",
-          "name",
-          "symbol",
-          "type"
-        ]
+        "required": ["address", "decimals", "logoUri", "name", "symbol", "type"]
       },
       "Balance": {
         "type": "object",
@@ -5721,19 +5620,14 @@
             }
           }
         },
-        "required": [
-          "method"
-        ]
+        "required": ["method"]
       },
       "MultiSend": {
         "type": "object",
         "properties": {
           "operation": {
             "type": "number",
-            "enum": [
-              0,
-              1
-            ]
+            "enum": [0, 1]
           },
           "value": {
             "type": "string"
@@ -5748,11 +5642,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "operation",
-          "value",
-          "to"
-        ]
+        "required": ["operation", "value", "to"]
       },
       "DataDecodedParameter": {
         "type": "object",
@@ -5800,13 +5690,7 @@
           },
           "accuracy": {
             "type": "string",
-            "enum": [
-              "FULL_MATCH",
-              "PARTIAL_MATCH",
-              "ONLY_FUNCTION_MATCH",
-              "NO_MATCH",
-              "UNKNOWN"
-            ],
+            "enum": ["FULL_MATCH", "PARTIAL_MATCH", "ONLY_FUNCTION_MATCH", "NO_MATCH", "UNKNOWN"],
             "default": "UNKNOWN"
           }
         },
@@ -6046,11 +5930,7 @@
             "example": "0x1234567890123456789012345678901234567890"
           }
         },
-        "required": [
-          "chainId",
-          "deviceUuid",
-          "safeAddress"
-        ]
+        "required": ["chainId", "deviceUuid", "safeAddress"]
       },
       "DeleteAllSubscriptionsDto": {
         "type": "object",
@@ -6064,9 +5944,7 @@
             }
           }
         },
-        "required": [
-          "subscriptions"
-        ]
+        "required": ["subscriptions"]
       },
       "TypedDataParameter": {
         "type": "object",
@@ -6078,10 +5956,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "type"
-        ]
+        "required": ["name", "type"]
       },
       "TypedDataDomain": {
         "type": "object",
@@ -6126,12 +6001,7 @@
             "additionalProperties": true
           }
         },
-        "required": [
-          "domain",
-          "primaryType",
-          "types",
-          "message"
-        ]
+        "required": ["domain", "primaryType", "types", "message"]
       },
       "AddressInfo": {
         "type": "object",
@@ -6160,10 +6030,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "owner",
-          "signature"
-        ]
+        "required": ["owner", "signature"]
       },
       "Message": {
         "type": "object",
@@ -6173,10 +6040,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "NEEDS_CONFIRMATION",
-              "CONFIRMED"
-            ]
+            "enum": ["NEEDS_CONFIRMATION", "CONFIRMED"]
           },
           "logoUri": {
             "type": "string",
@@ -6246,10 +6110,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "NEEDS_CONFIRMATION",
-              "CONFIRMED"
-            ]
+            "enum": ["NEEDS_CONFIRMATION", "CONFIRMED"]
           },
           "logoUri": {
             "type": "string",
@@ -6300,9 +6161,7 @@
           },
           "type": {
             "type": "string",
-            "enum": [
-              "MESSAGE"
-            ]
+            "enum": ["MESSAGE"]
           }
         },
         "required": [
@@ -6465,10 +6324,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "id",
-          "address"
-        ]
+        "required": ["id", "address"]
       },
       "UserWithWallets": {
         "type": "object",
@@ -6478,10 +6334,7 @@
           },
           "status": {
             "type": "number",
-            "enum": [
-              0,
-              1
-            ]
+            "enum": [0, 1]
           },
           "wallets": {
             "type": "array",
@@ -6490,11 +6343,7 @@
             }
           }
         },
-        "required": [
-          "id",
-          "status",
-          "wallets"
-        ]
+        "required": ["id", "status", "wallets"]
       },
       "CreatedUserWithWallet": {
         "type": "object",
@@ -6503,9 +6352,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "id"
-        ]
+        "required": ["id"]
       },
       "WalletAddedToUser": {
         "type": "object",
@@ -6514,9 +6361,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "id"
-        ]
+        "required": ["id"]
       },
       "SpaceAddressBookItemDto": {
         "type": "object",
@@ -6540,13 +6385,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name",
-          "address",
-          "chainIds",
-          "createdBy",
-          "lastUpdatedBy"
-        ]
+        "required": ["name", "address", "chainIds", "createdBy", "lastUpdatedBy"]
       },
       "SpaceAddressBookDto": {
         "type": "object",
@@ -6561,10 +6400,7 @@
             }
           }
         },
-        "required": [
-          "spaceId",
-          "data"
-        ]
+        "required": ["spaceId", "data"]
       },
       "UpsertAddressBookItemsDto": {
         "type": "object",
@@ -6576,9 +6412,7 @@
             }
           }
         },
-        "required": [
-          "items"
-        ]
+        "required": ["items"]
       },
       "CreateSpaceDto": {
         "type": "object",
@@ -6587,9 +6421,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "name"
-        ]
+        "required": ["name"]
       },
       "CreateSpaceResponse": {
         "type": "object",
@@ -6601,10 +6433,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "name",
-          "id"
-        ]
+        "required": ["name", "id"]
       },
       "UserDto": {
         "type": "object",
@@ -6614,16 +6443,10 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "PENDING",
-              "ACTIVE"
-            ]
+            "enum": ["PENDING", "ACTIVE"]
           }
         },
-        "required": [
-          "id",
-          "status"
-        ]
+        "required": ["id", "status"]
       },
       "MemberDto": {
         "type": "object",
@@ -6633,10 +6456,7 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "ADMIN",
-              "MEMBER"
-            ]
+            "enum": ["ADMIN", "MEMBER"]
           },
           "name": {
             "type": "string"
@@ -6646,11 +6466,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "INVITED",
-              "ACTIVE",
-              "DECLINED"
-            ]
+            "enum": ["INVITED", "ACTIVE", "DECLINED"]
           },
           "createdAt": {
             "format": "date-time",
@@ -6664,16 +6480,7 @@
             "$ref": "#/components/schemas/UserDto"
           }
         },
-        "required": [
-          "id",
-          "role",
-          "name",
-          "invitedBy",
-          "status",
-          "createdAt",
-          "updatedAt",
-          "user"
-        ]
+        "required": ["id", "role", "name", "invitedBy", "status", "createdAt", "updatedAt", "user"]
       },
       "GetSpaceResponse": {
         "type": "object",
@@ -6686,9 +6493,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "ACTIVE"
-            ]
+            "enum": ["ACTIVE"]
           },
           "members": {
             "type": "array",
@@ -6697,12 +6502,7 @@
             }
           }
         },
-        "required": [
-          "id",
-          "name",
-          "status",
-          "members"
-        ]
+        "required": ["id", "name", "status", "members"]
       },
       "UpdateSpaceDto": {
         "type": "object",
@@ -6712,9 +6512,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "ACTIVE"
-            ]
+            "enum": ["ACTIVE"]
           }
         }
       },
@@ -6725,9 +6523,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "id"
-        ]
+        "required": ["id"]
       },
       "CreateSpaceSafeDto": {
         "type": "object",
@@ -6739,10 +6535,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "chainId",
-          "address"
-        ]
+        "required": ["chainId", "address"]
       },
       "CreateSpaceSafesDto": {
         "type": "object",
@@ -6754,9 +6547,7 @@
             }
           }
         },
-        "required": [
-          "safes"
-        ]
+        "required": ["safes"]
       },
       "GetSpaceSafeResponse": {
         "type": "object",
@@ -6770,15 +6561,11 @@
               }
             },
             "example": {
-              "{chainId}": [
-                "0x..."
-              ]
+              "{chainId}": ["0x..."]
             }
           }
         },
-        "required": [
-          "safes"
-        ]
+        "required": ["safes"]
       },
       "DeleteSpaceSafeDto": {
         "type": "object",
@@ -6790,10 +6577,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "chainId",
-          "address"
-        ]
+        "required": ["chainId", "address"]
       },
       "DeleteSpaceSafesDto": {
         "type": "object",
@@ -6805,9 +6589,7 @@
             }
           }
         },
-        "required": [
-          "safes"
-        ]
+        "required": ["safes"]
       },
       "InviteUserDto": {
         "type": "object",
@@ -6822,17 +6604,10 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "ADMIN",
-              "MEMBER"
-            ]
+            "enum": ["ADMIN", "MEMBER"]
           }
         },
-        "required": [
-          "address",
-          "name",
-          "role"
-        ]
+        "required": ["address", "name", "role"]
       },
       "InviteUsersDto": {
         "type": "object",
@@ -6844,9 +6619,7 @@
             }
           }
         },
-        "required": [
-          "users"
-        ]
+        "required": ["users"]
       },
       "Invitation": {
         "type": "object",
@@ -6862,31 +6635,18 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "ADMIN",
-              "MEMBER"
-            ]
+            "enum": ["ADMIN", "MEMBER"]
           },
           "status": {
             "type": "string",
-            "enum": [
-              "INVITED",
-              "ACTIVE",
-              "DECLINED"
-            ]
+            "enum": ["INVITED", "ACTIVE", "DECLINED"]
           },
           "invitedBy": {
             "type": "string",
             "nullable": true
           }
         },
-        "required": [
-          "userId",
-          "name",
-          "spaceId",
-          "role",
-          "status"
-        ]
+        "required": ["userId", "name", "spaceId", "role", "status"]
       },
       "AcceptInviteDto": {
         "type": "object",
@@ -6897,9 +6657,7 @@
             "maxLength": 30
           }
         },
-        "required": [
-          "name"
-        ]
+        "required": ["name"]
       },
       "MemberUser": {
         "type": "object",
@@ -6909,16 +6667,10 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "PENDING",
-              "ACTIVE"
-            ]
+            "enum": ["PENDING", "ACTIVE"]
           }
         },
-        "required": [
-          "id",
-          "status"
-        ]
+        "required": ["id", "status"]
       },
       "Member": {
         "type": "object",
@@ -6928,18 +6680,11 @@
           },
           "role": {
             "type": "string",
-            "enum": [
-              "ADMIN",
-              "MEMBER"
-            ]
+            "enum": ["ADMIN", "MEMBER"]
           },
           "status": {
             "type": "string",
-            "enum": [
-              "INVITED",
-              "ACTIVE",
-              "DECLINED"
-            ]
+            "enum": ["INVITED", "ACTIVE", "DECLINED"]
           },
           "name": {
             "type": "string"
@@ -6964,15 +6709,7 @@
             "$ref": "#/components/schemas/MemberUser"
           }
         },
-        "required": [
-          "id",
-          "role",
-          "status",
-          "name",
-          "createdAt",
-          "updatedAt",
-          "user"
-        ]
+        "required": ["id", "role", "status", "name", "createdAt", "updatedAt", "user"]
       },
       "MembersDto": {
         "type": "object",
@@ -6984,24 +6721,17 @@
             }
           }
         },
-        "required": [
-          "members"
-        ]
+        "required": ["members"]
       },
       "UpdateRoleDto": {
         "type": "object",
         "properties": {
           "role": {
             "type": "string",
-            "enum": [
-              "ADMIN",
-              "MEMBER"
-            ]
+            "enum": ["ADMIN", "MEMBER"]
           }
         },
-        "required": [
-          "role"
-        ]
+        "required": ["role"]
       },
       "UpdateMemberAliasDto": {
         "type": "object",
@@ -7011,9 +6741,7 @@
             "description": "The new alias for the member"
           }
         },
-        "required": [
-          "alias"
-        ]
+        "required": ["alias"]
       },
       "SafeList": {
         "type": "object",
@@ -7054,9 +6782,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "taskId"
-        ]
+        "required": ["taskId"]
       },
       "RelaysRemaining": {
         "type": "object",
@@ -7068,10 +6794,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "remaining",
-          "limit"
-        ]
+        "required": ["remaining", "limit"]
       },
       "SafeAppProvider": {
         "type": "object",
@@ -7324,10 +7047,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "outreachId",
-          "address"
-        ]
+        "required": ["outreachId", "address"]
       },
       "Submission": {
         "type": "object",
@@ -7463,9 +7183,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "ADD_OWNER"
-            ]
+            "enum": ["ADD_OWNER"]
           },
           "owner": {
             "$ref": "#/components/schemas/AddressInfo"
@@ -7474,106 +7192,76 @@
             "type": "number"
           }
         },
-        "required": [
-          "type",
-          "owner",
-          "threshold"
-        ]
+        "required": ["type", "owner", "threshold"]
       },
       "ChangeMasterCopy": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "CHANGE_MASTER_COPY"
-            ]
+            "enum": ["CHANGE_MASTER_COPY"]
           },
           "implementation": {
             "$ref": "#/components/schemas/AddressInfo"
           }
         },
-        "required": [
-          "type",
-          "implementation"
-        ]
+        "required": ["type", "implementation"]
       },
       "ChangeThreshold": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "CHANGE_THRESHOLD"
-            ]
+            "enum": ["CHANGE_THRESHOLD"]
           },
           "threshold": {
             "type": "number"
           }
         },
-        "required": [
-          "type",
-          "threshold"
-        ]
+        "required": ["type", "threshold"]
       },
       "DeleteGuard": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "DELETE_GUARD"
-            ]
+            "enum": ["DELETE_GUARD"]
           }
         },
-        "required": [
-          "type"
-        ]
+        "required": ["type"]
       },
       "DisableModule": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "DISABLE_MODULE"
-            ]
+            "enum": ["DISABLE_MODULE"]
           },
           "module": {
             "$ref": "#/components/schemas/AddressInfo"
           }
         },
-        "required": [
-          "type",
-          "module"
-        ]
+        "required": ["type", "module"]
       },
       "EnableModule": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "ENABLE_MODULE"
-            ]
+            "enum": ["ENABLE_MODULE"]
           },
           "module": {
             "$ref": "#/components/schemas/AddressInfo"
           }
         },
-        "required": [
-          "type",
-          "module"
-        ]
+        "required": ["type", "module"]
       },
       "RemoveOwner": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "REMOVE_OWNER"
-            ]
+            "enum": ["REMOVE_OWNER"]
           },
           "owner": {
             "$ref": "#/components/schemas/AddressInfo"
@@ -7582,47 +7270,33 @@
             "type": "number"
           }
         },
-        "required": [
-          "type",
-          "owner",
-          "threshold"
-        ]
+        "required": ["type", "owner", "threshold"]
       },
       "SetFallbackHandler": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "SET_FALLBACK_HANDLER"
-            ]
+            "enum": ["SET_FALLBACK_HANDLER"]
           },
           "handler": {
             "$ref": "#/components/schemas/AddressInfo"
           }
         },
-        "required": [
-          "type",
-          "handler"
-        ]
+        "required": ["type", "handler"]
       },
       "SetGuard": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "SET_GUARD"
-            ]
+            "enum": ["SET_GUARD"]
           },
           "guard": {
             "$ref": "#/components/schemas/AddressInfo"
           }
         },
-        "required": [
-          "type",
-          "guard"
-        ]
+        "required": ["type", "guard"]
       },
       "SettingsChange": {
         "type": "object",
@@ -7650,9 +7324,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "SWAP_OWNER"
-            ]
+            "enum": ["SWAP_OWNER"]
           },
           "oldOwner": {
             "$ref": "#/components/schemas/AddressInfo"
@@ -7661,11 +7333,7 @@
             "$ref": "#/components/schemas/AddressInfo"
           }
         },
-        "required": [
-          "type",
-          "oldOwner",
-          "newOwner"
-        ]
+        "required": ["type", "oldOwner", "newOwner"]
       },
       "SettingsChangeTransaction": {
         "type": "object",
@@ -7716,11 +7384,7 @@
             ]
           }
         },
-        "required": [
-          "type",
-          "dataDecoded",
-          "settingsInfo"
-        ]
+        "required": ["type", "dataDecoded", "settingsInfo"]
       },
       "Erc20Transfer": {
         "type": "object",
@@ -7872,11 +7536,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "tokenAddress",
-          "integratorFee",
-          "lifiFee"
-        ]
+        "required": ["tokenAddress", "integratorFee", "lifiFee"]
       },
       "TokenInfo": {
         "type": "object",
@@ -7914,9 +7574,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "SwapAndBridge"
-            ]
+            "enum": ["SwapAndBridge"]
           },
           "humanDescription": {
             "type": "string",
@@ -7934,15 +7592,7 @@
           },
           "status": {
             "type": "string",
-            "enum": [
-              "NOT_FOUND",
-              "INVALID",
-              "PENDING",
-              "DONE",
-              "FAILED",
-              "UNKNOWN",
-              "AWAITING_EXECUTION"
-            ]
+            "enum": ["NOT_FOUND", "INVALID", "PENDING", "DONE", "FAILED", "UNKNOWN", "AWAITING_EXECUTION"]
           },
           "substatus": {
             "type": "string",
@@ -8120,9 +7770,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "Swap"
-            ]
+            "enum": ["Swap"]
           },
           "humanDescription": {
             "type": "string",
@@ -8156,16 +7804,7 @@
             "nullable": true
           }
         },
-        "required": [
-          "type",
-          "recipient",
-          "fees",
-          "fromToken",
-          "fromAmount",
-          "toToken",
-          "toAmount",
-          "lifiExplorerUrl"
-        ]
+        "required": ["type", "recipient", "fees", "fromToken", "fromAmount", "toToken", "toAmount", "lifiExplorerUrl"]
       },
       "SwapTransferTransactionInfo": {
         "type": "object",
@@ -8315,64 +7954,46 @@
         "properties": {
           "durationType": {
             "type": "string",
-            "enum": [
-              "AUTO"
-            ]
+            "enum": ["AUTO"]
           }
         },
-        "required": [
-          "durationType"
-        ]
+        "required": ["durationType"]
       },
       "DurationLimit": {
         "type": "object",
         "properties": {
           "durationType": {
             "type": "string",
-            "enum": [
-              "LIMIT_DURATION"
-            ]
+            "enum": ["LIMIT_DURATION"]
           },
           "duration": {
             "type": "string"
           }
         },
-        "required": [
-          "durationType",
-          "duration"
-        ]
+        "required": ["durationType", "duration"]
       },
       "StartTimeAtMining": {
         "type": "object",
         "properties": {
           "startType": {
             "type": "string",
-            "enum": [
-              "AT_MINING_TIME"
-            ]
+            "enum": ["AT_MINING_TIME"]
           }
         },
-        "required": [
-          "startType"
-        ]
+        "required": ["startType"]
       },
       "StartTimeAtEpoch": {
         "type": "object",
         "properties": {
           "startType": {
             "type": "string",
-            "enum": [
-              "AT_EPOCH"
-            ]
+            "enum": ["AT_EPOCH"]
           },
           "epoch": {
             "type": "number"
           }
         },
-        "required": [
-          "startType",
-          "epoch"
-        ]
+        "required": ["startType", "epoch"]
       },
       "TwapOrderTransactionInfo": {
         "type": "object",
@@ -8714,12 +8335,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "address",
-          "name",
-          "description",
-          "logoUri"
-        ]
+        "required": ["address", "name", "description", "logoUri"]
       },
       "VaultExtraReward": {
         "type": "object",
@@ -8737,21 +8353,14 @@
             "type": "string"
           }
         },
-        "required": [
-          "tokenInfo",
-          "nrr",
-          "claimable",
-          "claimableNext"
-        ]
+        "required": ["tokenInfo", "nrr", "claimable", "claimableNext"]
       },
       "VaultDepositTransactionInfo": {
         "type": "object",
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "VaultDeposit"
-            ]
+            "enum": ["VaultDeposit"]
           },
           "humanDescription": {
             "type": "string",
@@ -8810,9 +8419,7 @@
         "properties": {
           "type": {
             "type": "string",
-            "enum": [
-              "VaultRedeem"
-            ]
+            "enum": ["VaultRedeem"]
           },
           "humanDescription": {
             "type": "string",
@@ -8928,10 +8535,7 @@
             "type": "number"
           }
         },
-        "required": [
-          "signer",
-          "submittedAt"
-        ]
+        "required": ["signer", "submittedAt"]
       },
       "MultisigExecutionDetails": {
         "type": "object",
@@ -9329,9 +8933,7 @@
             }
           }
         },
-        "required": [
-          "results"
-        ]
+        "required": ["results"]
       },
       "ModuleExecutionInfo": {
         "type": "object",
@@ -9560,9 +9162,7 @@
             "type": "string"
           }
         },
-        "required": [
-          "signature"
-        ]
+        "required": ["signature"]
       },
       "IncomingTransfer": {
         "type": "object",
@@ -9909,12 +9509,7 @@
             ]
           }
         },
-        "required": [
-          "created",
-          "creator",
-          "transactionHash",
-          "factoryAddress"
-        ]
+        "required": ["created", "creator", "transactionHash", "factoryAddress"]
       },
       "TXSCreationTransaction": {
         "type": "object",
@@ -9942,15 +9537,7 @@
             "type": "object"
           }
         },
-        "required": [
-          "created",
-          "creator",
-          "transactionHash",
-          "factoryAddress",
-          "masterCopy",
-          "setupData",
-          "saltNonce"
-        ]
+        "required": ["created", "creator", "transactionHash", "factoryAddress", "masterCopy", "setupData", "saltNonce"]
       }
     }
   }

@@ -27,3 +27,9 @@ export const isRouteEnabled = (route: string, chain?: ChainInfo) => {
   const featureRoute = FeatureRoutes[route]
   return !featureRoute || hasFeature(chain, featureRoute)
 }
+
+// Re-export FEATURES and hasFeature for compatibility
+export { FEATURES, hasFeature } from '@safe-global/utils/utils/chains'
+
+// Safe version utilities - re-export from protocol-kit
+export const getLatestSafeVersion = (): '1.4.1' => '1.4.1'
