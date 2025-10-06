@@ -13,7 +13,7 @@ describe('GasParams', () => {
       maxPriorityFeePerGas: BigInt('10000'),
     }
 
-    const { getByText } = render(<GasParams params={params} isExecution={true} isEIP1559={true} onEdit={jest.fn} />)
+    const { getByText } = render(<GasParams params={params} isExecution={true} onEdit={jest.fn} />)
 
     expect(getByText('Estimated fee')).toBeInTheDocument()
   })
@@ -27,7 +27,7 @@ describe('GasParams', () => {
       maxPriorityFeePerGas: BigInt('10000'),
     }
 
-    const { getByText } = render(<GasParams params={params} isExecution={false} isEIP1559={true} onEdit={jest.fn} />)
+    const { getByText } = render(<GasParams params={params} isExecution={false} onEdit={jest.fn} />)
 
     expect(getByText('Signing the transaction with nonce 0')).toBeInTheDocument()
   })
@@ -40,7 +40,7 @@ describe('GasParams', () => {
       maxPriorityFeePerGas: BigInt('10000'),
     }
 
-    const { getByText } = render(<GasParams params={params} isExecution={false} isEIP1559={true} onEdit={jest.fn} />)
+    const { getByText } = render(<GasParams params={params} isExecution={false} onEdit={jest.fn} />)
 
     expect(getByText('Signing the transaction with nonce')).toBeInTheDocument()
   })
@@ -60,9 +60,7 @@ describe('GasParams', () => {
       },
     } as unknown as ChainInfo
 
-    const { getByText } = render(
-      <GasParams params={params} isExecution={true} isEIP1559={true} onEdit={jest.fn} chain={chainInfo} />,
-    )
+    const { getByText } = render(<GasParams params={params} isExecution={true} onEdit={jest.fn} chain={chainInfo} />)
 
     expect(getByText('Estimated fee')).toBeInTheDocument()
     expect(getByText('0.42 SepoliaETH')).toBeInTheDocument()
@@ -75,9 +73,7 @@ describe('GasParams', () => {
       maxPriorityFeePerGas: BigInt('10000'),
     }
 
-    const { getByText, queryByText } = render(
-      <GasParams params={params} isExecution={true} isEIP1559={true} onEdit={jest.fn} />,
-    )
+    const { getByText, queryByText } = render(<GasParams params={params} isExecution={true} onEdit={jest.fn} />)
 
     expect(getByText('Estimated fee')).toBeInTheDocument()
     expect(queryByText('0.21')).not.toBeInTheDocument()
@@ -91,7 +87,7 @@ describe('GasParams', () => {
       maxPriorityFeePerGas: BigInt('10000'),
     }
 
-    const { getByText } = render(<GasParams params={params} isExecution={true} isEIP1559={true} onEdit={jest.fn} />)
+    const { getByText } = render(<GasParams params={params} isExecution={true} onEdit={jest.fn} />)
 
     expect(getByText('Safe Account transaction nonce')).toBeInTheDocument()
     expect(getByText('123')).toBeInTheDocument()
@@ -106,7 +102,7 @@ describe('GasParams', () => {
       safeTxGas: 100,
     }
 
-    const { getByText } = render(<GasParams params={params} isExecution={true} isEIP1559={true} onEdit={jest.fn} />)
+    const { getByText } = render(<GasParams params={params} isExecution={true} onEdit={jest.fn} />)
 
     expect(getByText('safeTxGas')).toBeInTheDocument()
     expect(getByText('100')).toBeInTheDocument()
@@ -121,7 +117,7 @@ describe('GasParams', () => {
       maxPriorityFeePerGas: BigInt('10000'),
     }
 
-    const { getByText } = render(<GasParams params={params} isExecution={true} isEIP1559={true} onEdit={jest.fn} />)
+    const { getByText } = render(<GasParams params={params} isExecution={true} onEdit={jest.fn} />)
 
     expect(getByText('Gas limit')).toBeInTheDocument()
     expect(getByText('30000')).toBeInTheDocument()
@@ -139,7 +135,6 @@ describe('GasParams', () => {
       <GasParams
         params={params}
         isExecution={true}
-        isEIP1559={true}
         onEdit={jest.fn}
         gasLimitError={new Error('Error estimating gas')}
       />,
@@ -157,7 +152,7 @@ describe('GasParams', () => {
       maxPriorityFeePerGas: BigInt('20000'),
     }
 
-    const { getByText } = render(<GasParams params={params} isExecution={true} isEIP1559={true} onEdit={jest.fn} />)
+    const { getByText } = render(<GasParams params={params} isExecution={true} onEdit={jest.fn} />)
 
     expect(getByText('Max priority fee (Gwei)')).toBeInTheDocument()
     expect(getByText('0.00002')).toBeInTheDocument()
@@ -175,7 +170,7 @@ describe('GasParams', () => {
       maxPriorityFeePerGas: BigInt('20000'),
     }
 
-    const { getByText } = render(<GasParams params={params} isExecution={true} isEIP1559={false} onEdit={jest.fn} />)
+    const { getByText } = render(<GasParams params={params} isExecution={true} onEdit={jest.fn} />)
 
     expect(getByText('Gas price (Gwei)')).toBeInTheDocument()
     expect(getByText('0.00001')).toBeInTheDocument()
@@ -194,7 +189,6 @@ describe('GasParams', () => {
       <GasParams
         params={params}
         isExecution={true}
-        isEIP1559={false}
         onEdit={jest.fn}
         gasLimitError={new Error('Error estimating gas')}
       />,
@@ -212,7 +206,7 @@ describe('GasParams', () => {
       maxPriorityFeePerGas: BigInt('20000'),
     }
 
-    const { getByText } = render(<GasParams params={params} isExecution={false} isEIP1559={false} onEdit={jest.fn} />)
+    const { getByText } = render(<GasParams params={params} isExecution={false} onEdit={jest.fn} />)
 
     expect(getByText('Edit')).toBeInTheDocument()
   })
@@ -226,7 +220,7 @@ describe('GasParams', () => {
       maxPriorityFeePerGas: BigInt('20000'),
     }
 
-    const { getByText } = render(<GasParams params={params} isExecution={true} isEIP1559={false} onEdit={jest.fn} />)
+    const { getByText } = render(<GasParams params={params} isExecution={true} onEdit={jest.fn} />)
 
     expect(getByText('Edit')).toBeInTheDocument()
   })

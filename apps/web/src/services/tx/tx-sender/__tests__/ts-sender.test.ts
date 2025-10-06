@@ -1,7 +1,7 @@
 import { setSafeSDK } from '@/hooks/coreSDK/safeCoreSDK'
 import type Safe from '@safe-global/protocol-kit'
 import type { MultiSendCallOnlyContractImplementationType } from '@safe-global/protocol-kit'
-import { type ChainInfo, type TransactionDetails } from '@safe-global/safe-gateway-typescript-sdk'
+import { type TransactionDetails } from '@safe-global/safe-gateway-typescript-sdk'
 import { getTransactionDetails } from '@safe-global/safe-gateway-typescript-sdk'
 import extractTxInfo from '../../extractTxInfo'
 import proposeTx from '../../proposeTransaction'
@@ -389,16 +389,7 @@ describe('txSender', () => {
         nonce: 1,
       })
 
-      await dispatchTxExecution(
-        safeTx,
-        { nonce: 1 },
-        txId,
-        MockEip1193Provider,
-        SIGNER_ADDRESS,
-        safeAddress,
-        false,
-        {} as ChainInfo,
-      )
+      await dispatchTxExecution(safeTx, { nonce: 1 }, txId, MockEip1193Provider, SIGNER_ADDRESS, safeAddress, false)
 
       expect(mockSafeSDK.executeTransaction).toHaveBeenCalled()
       expect(txEvents.txDispatch).toHaveBeenCalledWith('EXECUTING', { txId, nonce: 1 })
@@ -426,9 +417,9 @@ describe('txSender', () => {
         nonce: 1,
       })
 
-      await expect(
-        dispatchTxExecution(safeTx, {}, txId, MockEip1193Provider, '5', safeAddress, false, {} as ChainInfo),
-      ).rejects.toThrow('error')
+      await expect(dispatchTxExecution(safeTx, {}, txId, MockEip1193Provider, '5', safeAddress, false)).rejects.toThrow(
+        'error',
+      )
 
       expect(mockSafeSDK.executeTransaction).toHaveBeenCalled()
       expect(txEvents.txDispatch).toHaveBeenCalledWith('FAILED', { txId, error: new Error('error'), nonce: 1 })
@@ -447,16 +438,7 @@ describe('txSender', () => {
         nonce: 1,
       })
 
-      await dispatchTxExecution(
-        safeTx,
-        { nonce: 1 },
-        txId,
-        MockEip1193Provider,
-        SIGNER_ADDRESS,
-        '0x123',
-        false,
-        {} as ChainInfo,
-      )
+      await dispatchTxExecution(safeTx, { nonce: 1 }, txId, MockEip1193Provider, SIGNER_ADDRESS, '0x123', false)
 
       expect(mockSafeSDK.executeTransaction).toHaveBeenCalled()
       expect(txEvents.txDispatch).toHaveBeenCalledWith('EXECUTING', { txId, nonce: 1 })

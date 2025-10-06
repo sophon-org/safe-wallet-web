@@ -110,7 +110,7 @@ describe('simulation utils', () => {
       expect(decodedTxData[9]).toContain(getPreValidatedSignature(ownerAddress))
 
       // Do not overwrite the threshold
-      expect(tenderlyPayload.state_objects).toBeUndefined()
+      expect((tenderlyPayload as any).state_objects).toBeUndefined()
     })
 
     it('fully signed executable multisig transaction with threshold 2', async () => {
@@ -152,7 +152,7 @@ describe('simulation utils', () => {
       // Do not add preValidatedSignature of connected owner as the tx is fully signed
       expect(decodedTxData[9]).not.toContain(getPreValidatedSignature(ownerAddress))
       // Do not overwrite the threshold
-      expect(tenderlyPayload.state_objects).toBeUndefined()
+      expect((tenderlyPayload as any).state_objects).toBeUndefined()
     })
 
     it('partially signed multisig transaction with threshold 2 and higher nonce', async () => {
@@ -192,8 +192,8 @@ describe('simulation utils', () => {
       expect(decodedTxData[9]).toContain(getPreValidatedSignature(ownerAddress))
       expect(decodedTxData[9]).toHaveLength(SIGNATURE_LENGTH * 2 + 2)
       // Do  overwrite the nonce but not the threshold
-      expect(tenderlyPayload.state_objects).toBeDefined()
-      const safeOverwrite = tenderlyPayload.state_objects![mockSafeAddress]
+      expect((tenderlyPayload as any).state_objects).toBeDefined()
+      const safeOverwrite = (tenderlyPayload as any).state_objects![mockSafeAddress]
       expect(safeOverwrite?.storage).toBeDefined()
       expect(safeOverwrite.storage![NONCE_STORAGE_POSITION]).toBe(toBeHex('0x1', 32))
       expect(safeOverwrite.storage![THRESHOLD_STORAGE_POSITION]).toBeUndefined()
@@ -237,7 +237,7 @@ describe('simulation utils', () => {
       expect(decodedTxData[9]).toContain(getPreValidatedSignature(ownerAddress))
       expect(decodedTxData[9]).toHaveLength(SIGNATURE_LENGTH * 2 + 2)
       // Do not overwrite the threshold
-      expect(tenderlyPayload.state_objects).toBeUndefined()
+      expect((tenderlyPayload as any).state_objects).toBeUndefined()
     })
 
     it('unsigned signed not-executable multisig transaction with threshold 2', async () => {
@@ -274,8 +274,8 @@ describe('simulation utils', () => {
       // Do add preValidatedSignature of connected owner as the tx is only partially signed
       expect(decodedTxData[9]).toContain(getPreValidatedSignature(ownerAddress))
       // Overwrite the threshold with 1
-      expect(tenderlyPayload.state_objects).toBeDefined()
-      const safeOverwrite = tenderlyPayload.state_objects![mockSafeAddress]
+      expect((tenderlyPayload as any).state_objects).toBeDefined()
+      const safeOverwrite = (tenderlyPayload as any).state_objects![mockSafeAddress]
       expect(safeOverwrite?.storage).toBeDefined()
       expect(safeOverwrite.storage![THRESHOLD_STORAGE_POSITION]).toBe(toBeHex('0x1', 32))
       expect(safeOverwrite.storage![NONCE_STORAGE_POSITION]).toBeUndefined()
@@ -323,7 +323,7 @@ describe('simulation utils', () => {
       expect(tenderlyPayload.gas).toEqual(30_000_000)
       expect(decodedTxData[0]).toBeDefined()
 
-      expect(tenderlyPayload.state_objects).toBeUndefined()
+      expect((tenderlyPayload as any).state_objects).toBeUndefined()
     })
   })
 })
