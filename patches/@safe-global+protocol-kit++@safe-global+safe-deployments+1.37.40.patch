@@ -1,0 +1,12 @@
+diff --git a/node_modules/@safe-global/protocol-kit/dist/src/Safe.d.ts b/node_modules/@safe-global/protocol-kit/dist/src/Safe.d.ts
+index 1234567..abcdefg 100644
+--- a/node_modules/@safe-global/protocol-kit/dist/src/Safe.d.ts
++++ b/node_modules/@safe-global/protocol-kit/dist/src/Safe.d.ts
+@@ -10,7 +10,7 @@ export declare class Safe {
+     /**
+      * Executes a Safe transaction
+      */
+-    executeTransaction(safeTransaction: SafeTransaction | SafeMultisigTransactionResponse, options?: TransactionOptions): Promise<TransactionResult>;
++    executeTransaction(safeTransaction: SafeTransaction | SafeMultisigTransactionResponse, options?: TransactionOptions, chain?: any): Promise<TransactionResult>;
+ }
+

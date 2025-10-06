@@ -1,0 +1,123 @@
+diff --git a/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe.json b/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe.json
+index 1234567..abcdefg 100644
+--- a/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe.json
++++ b/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safe.json
+@@ -28,6 +28,10 @@
+   "deployedNetworks": {
+     "networks": {
+       "zksync": {
++        "address": "0xC35F063962328aC65cED5D4c3fC5dEf8dec68dFa",
++        "codeHash": "0xfa4d4fc0fa9f1a061571a3f3f66502464edf1a519ab1ab93dc232addf4fbe30f"
++      }
++    },
++    "networkAddresses": {
++      "531050104": "zksync",
++      "50104": "zksync",
+         "address": "0xC35F063962328aC65cED5D4c3fC5dEf8dec68dFa",
+         "codeHash": "0xfa4d4fc0fa9f1a061571a3f3f66502464edf1a519ab1ab93dc232addf4fbe30f"
+       },
+       "canonical": {
+@@ -35,6 +39,8 @@
+         "codeHash": "0x1fe2df852ba3299d6534ef416eefa406e56ced995bca886ab7a553e6d0c5e1c4"
+       }
+     },
+     "networkAddresses": {
++      "280": "zksync",
++      "282": "zksync",
+       "531050104": "zksync",
+       "50104": "zksync",
+       "1": "canonical",
+*** End of file ***
+diff --git a/node_modules/@safe-global/safe-deployments/dist/assets/v1.3.0/safe.json b/node_modules/@safe-global/safe-deployments/dist/assets/v1.3.0/safe.json
+index 1234567..abcdefg 100644
+--- a/node_modules/@safe-global/safe-deployments/dist/assets/v1.3.0/safe.json
++++ b/node_modules/@safe-global/safe-deployments/dist/assets/v1.3.0/safe.json
+@@ -28,6 +28,10 @@
+   "deployedNetworks": {
+     "networks": {
+       "zksync": {
++        "address": "0xC35F063962328aC65cED5D4c3fC5dEf8dec68dFa",
++        "codeHash": "0xfa4d4fc0fa9f1a061571a3f3f66502464edf1a519ab1ab93dc232addf4fbe30f"
++      }
++    },
++    "networkAddresses": {
++      "531050104": "zksync",
++      "50104": "zksync",
+         "address": "0xC35F063962328aC65cED5D4c3fC5dEf8dec68dFa",
+         "codeHash": "0xfa4d4fc0fa9f1a061571a3f3f66502464edf1a519ab1ab93dc232addf4fbe30f"
+       },
+       "canonical": {
+@@ -35,6 +39,8 @@
+         "codeHash": "0x1fe2df852ba3299d6534ef416eefa406e56ced995bca886ab7a553e6d0c5e1c4"
+       }
+     },
+     "networkAddresses": {
++      "280": "zksync", 
++      "282": "zksync",
+       "531050104": "zksync",
+       "50104": "zksync",
+       "1": "canonical",
+*** End of file ***
+diff --git a/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safeProxyFactory.json b/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safeProxyFactory.json
+index 1234567..abcdefg 100644
+--- a/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safeProxyFactory.json
++++ b/node_modules/@safe-global/safe-deployments/dist/assets/v1.4.1/safeProxyFactory.json
+@@ -28,6 +28,10 @@
+   "deployedNetworks": {
+     "networks": {
+       "zksync": {
++        "address": "0xfa4d4fc0fa9f1a061571a3f3f66502464edf1a519ab1ab93dc232addf4fbe30f",
++        "codeHash": "0xfa4d4fc0fa9f1a061571a3f3f66502464edf1a519ab1ab93dc232addf4fbe30f"
++      }
++    },
++    "networkAddresses": {
++      "531050104": "zksync",
++      "50104": "zksync",
+         "address": "0xfa4d4fc0fa9f1a061571a3f3f66502464edf1a519ab1ab93dc232addf4fbe30f",
+         "codeHash": "0xfa4d4fc0fa9f1a061571a3f3f66502464edf1a519ab1ab93dc232addf4fbe30f"
+       },
+       "canonical": {
+@@ -35,6 +39,8 @@
+         "codeHash": "0x1fe2df852ba3299d6534ef416eefa406e56ced995bca886ab7a553e6d0c5e1c4"
+       }
+     },
+     "networkAddresses": {
++      "280": "zksync",
++      "282": "zksync", 
++      "531050104": "zksync",
++      "50104": "zksync",
+       "1": "canonical",
+       "5": "canonical",
+*** End of file ***
+diff --git a/node_modules/@safe-global/safe-deployments/dist/assets/v1.3.0/safeProxyFactory.json b/node_modules/@safe-global/safe-deployments/dist/assets/v1.3.0/safeProxyFactory.json
+index 1234567..abcdefg 100644
+--- a/node_modules/@safe-global/safe-deployments/dist/assets/v1.3.0/safeProxyFactory.json
++++ b/node_modules/@safe-global/safe-deployments/dist/assets/v1.3.0/safeProxyFactory.json
+@@ -28,6 +28,10 @@
+   "deployedNetworks": {
+     "networks": {
+       "zksync": {
++        "address": "0xfa4d4fc0fa9f1a061571a3f3f66502464edf1a519ab1ab93dc232addf4fbe30f",
++        "codeHash": "0xfa4d4fc0fa9f1a061571a3f3f66502464edf1a519ab1ab93dc232addf4fbe30f"
++      }
++    },
++    "networkAddresses": {
++      "531050104": "zksync",
++      "50104": "zksync",
+         "address": "0xfa4d4fc0fa9f1a061571a3f3f66502464edf1a519ab1ab93dc232addf4fbe30f",
+         "codeHash": "0xfa4d4fc0fa9f1a061571a3f3f66502464edf1a519ab1ab93dc232addf4fbe30f"
+       },
+       "canonical": {
+@@ -35,6 +39,8 @@
+         "codeHash": "0x1fe2df852ba3299d6534ef416eefa406e56ced995bca886ab7a553e6d0c5e1c4"
+       }
+     },
+     "networkAddresses": {
++      "280": "zksync",
++      "282": "zksync",
++      "531050104": "zksync",
++      "50104": "zksync",
+       "1": "canonical",
+       "5": "canonical",
+*** End of file ***
+
