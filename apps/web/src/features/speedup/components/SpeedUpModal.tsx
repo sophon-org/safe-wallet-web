@@ -28,7 +28,7 @@ import ErrorCodes from '@safe-global/utils/services/exceptions/ErrorCodes'
 import CheckWallet from '@/components/common/CheckWallet'
 import { useLazyGetTransactionDetailsQuery } from '@/store/api/gateway'
 import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
-import { FEATURES } from '@safe-global/utils/utils/chains'
+// import { FEATURES } from '@safe-global/utils/utils/chains'
 
 type Props = {
   open: boolean

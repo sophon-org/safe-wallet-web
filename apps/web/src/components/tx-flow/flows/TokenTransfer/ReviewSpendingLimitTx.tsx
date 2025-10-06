@@ -103,7 +103,7 @@ const ReviewSpendingLimitTx = ({
         wallet.provider,
         wallet.address,
         safeAddress,
-        safe.modules,
+        (safe.modules as any) || null,
         currentChain as ChainInfo,
       )
       onSubmit('', true)

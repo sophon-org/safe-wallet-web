@@ -35,7 +35,7 @@ export const useSimulation = (): UseSimulationReturn => {
       try {
         const simulationPayload = await getSimulationPayload(params)
 
-        const data = await getSimulation(simulationPayload, tenderly)
+        const data = await getSimulation(simulationPayload as any, tenderly)
 
         setSimulation(data)
         setSimulationRequestStatus(FETCH_STATUS.SUCCESS)

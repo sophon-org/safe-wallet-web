@@ -2,7 +2,7 @@ import { generatePreValidatedSignature } from '@safe-global/protocol-kit/dist/sr
 import EthSafeTransaction from '@safe-global/protocol-kit/dist/src/utils/transactions/SafeTransaction'
 import { encodeMultiSendData } from '@safe-global/protocol-kit/dist/src/utils/transactions/utils'
 import { type SafeInfo, type ChainInfo } from '@safe-global/safe-gateway-typescript-sdk'
-import type { MetaTransactionData, SafeTransaction } from '@safe-global/safe-core-sdk-types'
+import type { MetaTransactionData, SafeTransaction } from '@safe-global/types-kit'
 
 import {
   getReadOnlyMultiSendCallOnlyContract,
@@ -13,7 +13,7 @@ import { FEATURES, hasFeature } from '@/utils/chains'
 import type { StateObject, TenderlySimulatePayload, TenderlySimulation } from '@/components/tx/security/tenderly/types'
 import { getWeb3ReadOnly } from '@/hooks/wallets/web3'
 import { toBeHex } from 'ethers'
-import type { EnvState } from '@/store/settingsSlice'
+import type { EnvState } from '@safe-global/store/settingsSlice'
 
 export const isTxSimulationEnabled = (chain?: ChainInfo): boolean => {
   if (!chain) {
@@ -88,7 +88,7 @@ export const _getSingleTransactionPayload = async (
   if (needsOwnerSignature) {
     const simulatedTransaction = new EthSafeTransaction(transaction.data)
 
-    transaction.signatures.forEach((signature) => {
+    transaction.signatures.forEach((signature: any) => {
       simulatedTransaction.addSignature(signature)
     })
     simulatedTransaction.addSignature(generatePreValidatedSignature(params.executionOwner))
@@ -112,7 +112,7 @@ export const _getSingleTransactionPayload = async (
   ])
 
   return {
-    to: await readOnlySafeContract.getAddress(),
+    to: readOnlySafeContract.getAddress(),
     input,
   }
 }
@@ -124,8 +124,8 @@ export const _getMultiSendCallOnlyPayload = async (
   const readOnlyMultiSendContract = await getReadOnlyMultiSendCallOnlyContract(params.safe.version)
 
   return {
-    to: await readOnlyMultiSendContract.getAddress(),
-    input: readOnlyMultiSendContract.encode('multiSend', [data]),
+    to: readOnlyMultiSendContract.getAddress(),
+    input: readOnlyMultiSendContract.encode('multiSend', [data as any]),
   }
 }
 
@@ -226,11 +226,11 @@ export const getSimulationPayload = async (params: SimulationTxParams): Promise<
     gas: gasLimit,
     // With gas price 0 account don't need token for gas
     gas_price: '0',
-    state_objects:
+    state_override:
       stateOverwritesLength > 0
         ? _getStateOverride(params.safe.address.value, undefined, undefined, stateOverwrites)
         : undefined,
     save: true,
     save_if_fails: true,
-  }
+  } as any
 }

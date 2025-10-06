@@ -23,7 +23,7 @@ import ChainIndicator from '@/components/common/ChainIndicator'
 import { type ChainInfo } from '@safe-global/safe-gateway-typescript-sdk'
 import { useMemo, useState } from 'react'
 import { useCompatibleNetworks } from '../../hooks/useCompatibleNetworks'
-import { PayMethod } from '@/features/counterfactual/PayNowPayLater'
+import { PayMethod } from '@safe-global/utils/features/counterfactual/types'
 import { MULTICHAIN_HELP_ARTICLE } from '@/config/constants'
 import { computeNewSafeAddress } from '@/components/new-safe/create/logic'
 

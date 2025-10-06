@@ -5,7 +5,7 @@ import { AppTitle } from '@/components/tx-flow/flows/SignMessage'
 import { useCallback } from 'react'
 import { type SubmitCallback, TxFlow } from '../../TxFlow'
 import { type ReviewTransactionContentProps } from '@/components/tx/ReviewTransactionV2/ReviewTransactionContent'
-import { dispatchSafeAppsTx } from '@/services/tx/tx-sender'
+import { dispatchSafeAppsTxLegacy } from '@/services/tx/tx-sender'
 import { trackSafeAppTxCount } from '@/services/safe-apps/track-app-usage-count'
 import { getSafeTxHashFromTxId } from '@/utils/transactions'
 
@@ -44,7 +44,7 @@ const SafeAppsTxFlow = ({
       }
 
       trackSafeAppTxCount(Number(data.appId))
-      dispatchSafeAppsTx({ safeAppRequestId: data.requestId, txId: args.txId, safeTxHash })
+      dispatchSafeAppsTxLegacy({ safeAppRequestId: data.requestId, txId: args.txId })
       onSubmit?.(args.txId, safeTxHash)
     },
     [data.appId, data.requestId, onSubmit],

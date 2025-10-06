@@ -7,7 +7,8 @@ import TxLayout from '@/components/tx-flow/common/TxLayout'
 import ErrorMessage from '@/components/tx/ErrorMessage'
 import { ExecutionMethod, ExecutionMethodSelector } from '@/components/tx/ExecutionMethodSelector'
 import { safeCreationDispatch, SafeCreationEvent } from '@/features/counterfactual/services/safeCreationEvents'
-import { selectUndeployedSafe, type UndeployedSafe } from '@/features/counterfactual/store/undeployedSafesSlice'
+import { selectUndeployedSafe } from '@/features/counterfactual/store/undeployedSafesSlice'
+import type { UndeployedSafe } from '@safe-global/utils/features/counterfactual/store/types'
 import { CF_TX_GROUP_KEY, extractCounterfactualSafeSetup, isPredictedSafeProps } from '@/features/counterfactual/utils'
 import useChainId from '@/hooks/useChainId'
 import { useCurrentChain } from '@/hooks/useChains'
@@ -18,12 +19,12 @@ import useWalletCanPay from '@/hooks/useWalletCanPay'
 import useWallet from '@/hooks/wallets/useWallet'
 import { OVERVIEW_EVENTS, trackEvent, WALLET_EVENTS } from '@/services/analytics'
 import { TX_EVENTS, TX_TYPES } from '@/services/analytics/events/transactions'
-import { asError } from '@/services/exceptions/utils'
+import { asError } from '@safe-global/utils/services/exceptions/utils'
 import { useAppSelector } from '@/store'
 import { hasFeature } from '@/utils/chains'
 import { hasRemainingRelays } from '@/utils/relaying'
 import { Box, Button, CircularProgress, Divider, Grid, Typography } from '@mui/material'
-import type { DeploySafeProps } from '@safe-global/protocol-kit'
+// import type { PredictedSafeProps } from '@safe-global/protocol-kit'
 import { FEATURES } from '@/utils/chains'
 import React, { useContext, useMemo, useState } from 'react'
 import { getLatestSafeVersion } from '@/utils/chains'
@@ -47,7 +48,7 @@ const useActivateAccount = (undeployedSafe: UndeployedSafe | undefined) => {
   const maxFeePerGas = gasPrice?.maxFeePerGas
   const maxPriorityFeePerGas = gasPrice?.maxPriorityFeePerGas
 
-  const options: DeploySafeProps['options'] = isEIP1559
+  const options: any = isEIP1559
     ? {
         maxFeePerGas: maxFeePerGas?.toString(),
         maxPriorityFeePerGas: maxPriorityFeePerGas?.toString(),
@@ -122,7 +123,7 @@ const ActivateAccountFlow = () => {
           undeployedSafe.props,
           wallet,
           onSubmit,
-          safeVersion ?? getLatestSafeVersion(chain),
+          safeVersion ?? getLatestSafeVersion(),
         )
       }
     } catch (_err) {

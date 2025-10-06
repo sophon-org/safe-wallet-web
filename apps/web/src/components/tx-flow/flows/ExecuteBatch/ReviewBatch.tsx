@@ -1,6 +1,6 @@
 import useWallet from '@/hooks/wallets/useWallet'
 import { CircularProgress, Typography, Button, CardActions, Divider, Alert } from '@mui/material'
-import useAsync from '@/hooks/useAsync'
+import useAsync from '@safe-global/utils/hooks/useAsync'
 import { FEATURES } from '@/utils/chains'
 import { getReadOnlyMultiSendCallOnlyContract } from '@/services/contracts/safeContracts'
 import { useCurrentChain } from '@/hooks/useChains'
@@ -21,7 +21,7 @@ import { getMultiSendTxs } from '@/utils/transactions'
 import TxCard from '../../common/TxCard'
 import CheckWallet from '@/components/common/CheckWallet'
 import type { ExecuteBatchFlowProps } from '.'
-import { asError } from '@/services/exceptions/utils'
+import { asError } from '@safe-global/utils/services/exceptions/utils'
 import SendToBlock from '@/components/tx/SendToBlock'
 import ConfirmationTitle, { ConfirmationTitleTypes } from '@/components/tx/SignOrExecuteForm/ConfirmationTitle'
 import commonCss from '@/components/tx-flow/common/styles.module.css'
@@ -68,7 +68,7 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
   const canRelay = hasRemainingRelays(relays)
   const willRelay = canRelay && executionMethod === ExecutionMethod.RELAY
 
-  const latestSafeVersion = getLatestSafeVersion(chain)
+  const latestSafeVersion = getLatestSafeVersion()
 
   const {
     data: txsWithDetails,
@@ -90,7 +90,7 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
 
   const [multisendContractAddress = ''] = useAsync(async () => {
     if (!multiSendContract) return ''
-    return await multiSendContract.getAddress()
+    return multiSendContract.getAddress()
   }, [multiSendContract])
 
   const [multiSendTxs] = useAsync(async () => {

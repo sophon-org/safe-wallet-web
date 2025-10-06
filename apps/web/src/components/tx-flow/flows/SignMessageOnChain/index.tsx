@@ -6,7 +6,7 @@ import { useCallback } from 'react'
 import { TxFlowType } from '@/services/analytics'
 import { type ReviewTransactionProps } from '@/components/tx/ReviewTransactionV2'
 import { type SubmitCallback, TxFlow } from '../../TxFlow'
-import { dispatchSafeAppsTx } from '@/services/tx/tx-sender'
+import { dispatchSafeAppsTxLegacy } from '@/services/tx/tx-sender'
 import { getSafeTxHashFromTxId } from '@/utils/transactions'
 
 const SignMessageOnChainFlow = ({ props }: { props: Omit<SignMessageOnChainProps, 'onSubmit'> }) => {
@@ -29,7 +29,7 @@ const SignMessageOnChainFlow = ({ props }: { props: Omit<SignMessageOnChainProps
         return
       }
 
-      await dispatchSafeAppsTx({ safeAppRequestId: requestId, safeTxHash, txId: args.txId })
+      await dispatchSafeAppsTxLegacy({ safeAppRequestId: requestId, txId: args.txId })
     },
     [requestId],
   )

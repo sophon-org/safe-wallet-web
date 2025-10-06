@@ -14,7 +14,7 @@ import type {
   Transaction,
   TransactionOptions,
   TransactionResult,
-} from '@safe-global/safe-core-sdk-types'
+} from '@safe-global/types-kit'
 import { didRevert } from '@/utils/ethers-utils'
 import { type SpendingLimitTxParams } from '@/components/tx-flow/flows/TokenTransfer/ReviewSpendingLimitTx'
 import { getSpendingLimitContract } from '@/services/contracts/spendingLimitContracts'
@@ -34,7 +34,7 @@ import {
 } from './sdk'
 import { utils } from 'zksync-ethers'
 import { createWeb3, getUserNonce } from '@/hooks/wallets/web3'
-import { asError } from '@/services/exceptions/utils'
+import { asError } from '@safe-global/utils/services/exceptions/utils'
 import chains from '@/config/chains'
 import { createExistingTx } from './create'
 import { getLatestSafeVersion } from '@/utils/chains'
@@ -218,7 +218,7 @@ export const dispatchSafeTxSpeedUp = async (
   // Execute the tx
   let result: TransactionResult | undefined
   try {
-    const safeTx = await createExistingTx(chainId, safeAddress, txId)
+    const safeTx = await createExistingTx(chainId, safeAddress, txId as any)
 
     // TODO: This is a workaround until there is a fix for unchecked transactions in the protocol-kit
     if (isSmartAccount) {
@@ -246,7 +246,7 @@ export const dispatchSafeTxSpeedUp = async (
     txHash: result.hash,
     signerAddress,
     signerNonce,
-    gasLimit: txOptions.gasLimit,
+    gasLimit: txOptions.gasLimit?.toString(),
     txType: 'SafeTx',
   })
 
@@ -301,7 +301,6 @@ export const dispatchTxExecution = async (
   signerAddress: string,
   safeAddress: string,
   isSmartAccount: boolean,
-  chain: ChainInfo,
 ): Promise<string> => {
   const sdk = await getSafeSDKWithSigner(provider)
   const eventParams = { txId, nonce: safeTx.data.nonce }
@@ -324,7 +323,7 @@ export const dispatchTxExecution = async (
         transactionResponse: null,
       }
     } else {
-      result = await sdk.executeTransaction(safeTx, txOptions, chain)
+      result = await sdk.executeTransaction(safeTx, txOptions)
     }
     txDispatch(TxEvent.EXECUTING, { ...eventParams })
   } catch (error) {
@@ -338,7 +337,7 @@ export const dispatchTxExecution = async (
     txHash: result.hash,
     signerAddress,
     signerNonce,
-    gasLimit: txOptions.gasLimit,
+    gasLimit: txOptions.gasLimit?.toString(),
     txType: 'SafeTx',
   })
 
@@ -361,7 +360,7 @@ export const dispatchBatchExecution = async (
   let result: ContractTransactionResponse | TransactionResult
   const txIds = txs.map((tx) => tx.txId)
   let signerNonce = overrides.nonce
-  let txData = multiSendContract.encode('multiSend', [multiSendTxData])
+  let txData = multiSendContract.encode('multiSend', [multiSendTxData as any])
 
   try {
     if (signerNonce === undefined || signerNonce === null) {
@@ -381,7 +380,7 @@ export const dispatchBatchExecution = async (
         },
       )
 
-      const txTo = await multiSendContract.getAddress()
+      const txTo = multiSendContract.getAddress()
 
       // Use zksync-ethers approach like the SDK patch
       const { BrowserProvider, Provider: ZKProvider, Signer } = await import('zksync-ethers')
@@ -597,6 +596,15 @@ export const dispatchSafeAppsTx = async (
   return safeTxHash
 }
 
+// Overloaded version for legacy compatibility
+export const dispatchSafeAppsTxLegacy = async (params: {
+  safeAppRequestId: RequestId
+  txId?: string
+}): Promise<string> => {
+  txDispatch(TxEvent.SAFE_APPS_REQUEST, { ...params, safeTxHash: 'legacy' })
+  return 'legacy-hash' // No-op return
+}
+
 export const dispatchTxRelay = async (
   safeTx: SafeTransaction,
   safe: SafeInfo,
@@ -625,7 +633,7 @@ export const dispatchTxRelay = async (
       to: safe.address.value,
       data,
       gasLimit: gasLimit?.toString(),
-      version: safe.version ?? getLatestSafeVersion(chain),
+      version: safe.version ?? getLatestSafeVersion(),
     })
     const taskId = relayResponse.taskId
 
@@ -651,8 +659,8 @@ export const dispatchBatchExecutionRelay = async (
   safeAddress: string,
   safeVersion: string,
 ) => {
-  const to = await multiSendContract.getAddress()
-  const data = multiSendContract.contract.interface.encodeFunctionData('multiSend', [multiSendTxData])
+  const to = multiSendContract.getAddress()
+  const data = multiSendContract.encode('multiSend', [multiSendTxData as any])
   const groupKey = multiSendTxData
 
   let relayResponse

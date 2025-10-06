@@ -3,7 +3,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { getIndexingStatus } from '@safe-global/safe-gateway-typescript-sdk'
 import useAsync from '@safe-global/utils/hooks/useAsync'
 import useChainId from '@/hooks/useChainId'
-import useIntervalCounter from '@/hooks/useIntervalCounter'
+// import useIntervalCounter from '@/hooks/useIntervalCounter'
 import { OpenInNewRounded } from '@mui/icons-material'
 
 const STATUS_PAGE = 'https://status.safe.global'
@@ -14,7 +14,7 @@ const useIndexingStatus = () => {
 
   return useAsync(
     () => {
-      if (count === undefined) return
+      if (chainId === undefined) return
       return getIndexingStatus(chainId)
     },
     [chainId],
