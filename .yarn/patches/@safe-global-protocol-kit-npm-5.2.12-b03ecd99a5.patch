@@ -1,0 +1,298 @@
+diff --git a/dist/src/Safe.js b/dist/src/Safe.js
+index 86b55c4221375e031c0aae41cbe28cc6ed29de1a..66fce0a57a4b590ba17d6e607300b37372d32721 100644
+--- a/dist/src/Safe.js
++++ b/dist/src/Safe.js
+@@ -1054,7 +1054,7 @@ class Safe {
+      * @throws "There are X signatures missing"
+      * @throws "Cannot specify gas and gasLimit together in transaction options"
+      */
+-    async executeTransaction(safeTransaction, options) {
++    async executeTransaction(safeTransaction, options, chain) {
+         if (!__classPrivateFieldGet(this, _Safe_contractManager, "f").safeContract) {
+             throw new Error('Safe is not deployed');
+         }
+@@ -1093,7 +1093,7 @@ class Safe {
+         const txResponse = await __classPrivateFieldGet(this, _Safe_contractManager, "f").safeContract.execTransaction(signedSafeTransaction, {
+             from: signerAddress,
+             ...options
+-        });
++        }, chain);
+         return txResponse;
+     }
+     /**
+diff --git a/dist/src/contracts/BaseContract.js b/dist/src/contracts/BaseContract.js
+index 4f7256ecc62f3466f170de05acbf6b12f4f2150c..ab0b1e474eb0b11d01b76f7602fe908c9dd102a6 100644
+--- a/dist/src/contracts/BaseContract.js
++++ b/dist/src/contracts/BaseContract.js
+@@ -4,6 +4,7 @@ var __classPrivateFieldGet = (this && this.__classPrivateFieldGet) || function (
+     if (typeof state === "function" ? receiver !== state || !f : !state.has(receiver)) throw new TypeError("Cannot read private member from an object whose class did not declare it");
+     return kind === "m" ? f : kind === "a" ? f.call(receiver) : f ? f.value : state.get(receiver);
+ };
++const { BrowserProvider, Provider: ZKProvider, Contract: ZKContract, Signer, utils } = require('zksync-ethers');
+ var _BaseContract_instances, _BaseContract_resolveAddress;
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const viem_1 = require("viem");
+@@ -74,6 +75,7 @@ class BaseContract {
+             throw new Error(`Invalid ${contractName.replace('Version', '')} contract address`);
+         }
+         this.chainId = chainId;
++        this.chainId = chainId.toString();
+         this.contractName = contractName;
+         this.safeVersion = safeVersion;
+         this.contractAddress = resolvedAddress;
+@@ -86,6 +88,9 @@ class BaseContract {
+     }
+     async init() {
+         this.wallet = await this.safeProvider.getExternalSigner();
++        if (this.chainId && (this.chainId === '531050104' || this.chainId === '50104')) {
++            this.contract = new ZKContract(this.contractAddress, this.contractAbi, this.wallet);
++        }
+     }
+     async getTransactionReceipt(hash) {
+         return (0, actions_1.getTransactionReceipt)(this.runner, { hash });
+diff --git a/dist/src/contracts/Safe/v1.3.0/SafeContract_v1_3_0.js b/dist/src/contracts/Safe/v1.3.0/SafeContract_v1_3_0.js
+index 2818ebbfa49d2a9d6fecc9a949694f403c5da79f..2534be7bfe8dc640992fd6c5fd767e195b816181 100644
+--- a/dist/src/contracts/Safe/v1.3.0/SafeContract_v1_3_0.js
++++ b/dist/src/contracts/Safe/v1.3.0/SafeContract_v1_3_0.js
+@@ -2,6 +2,7 @@
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
++const { BrowserProvider, Provider: ZKProvider, Contract: ZKContract, Signer, utils } = require('zksync-ethers');
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const actions_1 = require("viem/actions");
+ const SafeBaseContract_1 = __importDefault(require("../../../contracts/Safe/SafeBaseContract"));
+@@ -200,7 +201,67 @@ class SafeContract_v1_3_0 extends SafeBaseContract_1.default {
+      * @param options - Transaction options.
+      * @returns Transaction result.
+      */
+-    async execTransaction(safeTransaction, options) {
++    async execTransaction(safeTransaction, options, chain) {
++        // Sophon paymaster configuration
++        const PAYMASTER_ADDRESSES = {
++            "531050104": '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
++            "50104": '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
++        };
++
++        // Check if Sophon chain and use paymaster
++        if (chain && PAYMASTER_ADDRESSES[chain.chainId]) {
++            const safeAddress = await this.getAddress();
++            
++            // Setup paymaster parameters
++            const paymasterParams = utils.getPaymasterParams(
++                PAYMASTER_ADDRESSES[chain.chainId],
++                {
++                    type: 'General',
++                    innerInput: new Uint8Array(),
++                }
++            );
++
++            // Encode transaction data
++            const calldata = this.contract.interface.encodeFunctionData('execTransaction', [
++                safeTransaction.data.to,
++                safeTransaction.data.value,
++                safeTransaction.data.data,
++                safeTransaction.data.operation,
++                safeTransaction.data.safeTxGas,
++                safeTransaction.data.baseGas,
++                safeTransaction.data.gasPrice,
++                safeTransaction.data.gasToken,
++                safeTransaction.data.refundReceiver,
++                safeTransaction.encodedSignatures()
++            ]);
++
++            // Create zkSync-compatible signer
++            const browserProvider = new BrowserProvider(this.safeProvider.provider);
++            const signer = Signer.from(
++                await browserProvider.getSigner(),
++                Number(chain.chainId),
++                new ZKProvider(chain.rpcUri.value, {
++                    name: chain.chainName,
++                    chainId: Number(chain.chainId)
++                })
++            );
++
++            // Execute EIP712 transaction with paymaster
++            const tx = await signer.sendTransaction({
++                type: utils.EIP712_TX_TYPE,
++                from: options.from,
++                to: safeAddress,
++                data: calldata,
++                customData: {
++                    gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
++                    paymasterParams,
++                }
++            });
++
++            return tx;
++        }
++
++        // Standard execution path
+         const gasLimit = options?.gasLimit ||
+             (await this.estimateGas('execTransaction', [
+                 safeTransaction.data.to,
+diff --git a/dist/src/contracts/Safe/v1.4.1/SafeContract_v1_4_1.js b/dist/src/contracts/Safe/v1.4.1/SafeContract_v1_4_1.js
+index 6a9a71eac47c7b546eb182b1b5633e7d481ffd45..9e9d7eff2fed5c78234b0ce294798685646838fd 100644
+--- a/dist/src/contracts/Safe/v1.4.1/SafeContract_v1_4_1.js
++++ b/dist/src/contracts/Safe/v1.4.1/SafeContract_v1_4_1.js
+@@ -2,6 +2,7 @@
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
++const { BrowserProvider, Provider: ZKProvider, Contract: ZKContract, Signer, utils } = require('zksync-ethers');
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const actions_1 = require("viem/actions");
+ const SafeBaseContract_1 = __importDefault(require("../../../contracts/Safe/SafeBaseContract"));
+@@ -200,7 +201,67 @@ class SafeContract_v1_4_1 extends SafeBaseContract_1.default {
+      * @param options - Transaction options.
+      * @returns Transaction result.
+      */
+-    async execTransaction(safeTransaction, options) {
++    async execTransaction(safeTransaction, options, chain) {
++        // Sophon paymaster configuration
++        const PAYMASTER_ADDRESSES = {
++            "531050104": '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
++            "50104": '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
++        };
++
++        // Check if Sophon chain and use paymaster
++        if (chain && PAYMASTER_ADDRESSES[chain.chainId]) {
++            const safeAddress = await this.getAddress();
++            
++            // Setup paymaster parameters
++            const paymasterParams = utils.getPaymasterParams(
++                PAYMASTER_ADDRESSES[chain.chainId],
++                {
++                    type: 'General',
++                    innerInput: new Uint8Array(),
++                }
++            );
++
++            // Encode transaction data
++            const calldata = this.contract.interface.encodeFunctionData('execTransaction', [
++                safeTransaction.data.to,
++                safeTransaction.data.value,
++                safeTransaction.data.data,
++                safeTransaction.data.operation,
++                safeTransaction.data.safeTxGas,
++                safeTransaction.data.baseGas,
++                safeTransaction.data.gasPrice,
++                safeTransaction.data.gasToken,
++                safeTransaction.data.refundReceiver,
++                safeTransaction.encodedSignatures()
++            ]);
++
++            // Create zkSync-compatible signer
++            const browserProvider = new BrowserProvider(this.safeProvider.provider);
++            const signer = Signer.from(
++                await browserProvider.getSigner(),
++                Number(chain.chainId),
++                new ZKProvider(chain.rpcUri.value, {
++                    name: chain.chainName,
++                    chainId: Number(chain.chainId)
++                })
++            );
++
++            // Execute EIP712 transaction with paymaster
++            const tx = await signer.sendTransaction({
++                type: utils.EIP712_TX_TYPE,
++                from: options.from,
++                to: safeAddress,
++                data: calldata,
++                customData: {
++                    gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
++                    paymasterParams,
++                }
++            });
++
++            return tx;
++        }
++
++        // Standard execution path
+         const gasLimit = options?.gasLimit ||
+             (await this.estimateGas('execTransaction', [
+                 safeTransaction.data.to,
+diff --git a/dist/src/contracts/SafeProxyFactory/v1.4.1/SafeProxyFactoryContract_v1_4_1.js b/dist/src/contracts/SafeProxyFactory/v1.4.1/SafeProxyFactoryContract_v1_4_1.js
+index bf8b308c74d2cec9106e1f8b07da2b991d29cbac..0f29d5b6c8b4294cd70a395553071a83c44b9a99 100644
+--- a/dist/src/contracts/SafeProxyFactory/v1.4.1/SafeProxyFactoryContract_v1_4_1.js
++++ b/dist/src/contracts/SafeProxyFactory/v1.4.1/SafeProxyFactoryContract_v1_4_1.js
+@@ -2,9 +2,11 @@
+ var __importDefault = (this && this.__importDefault) || function (mod) {
+     return (mod && mod.__esModule) ? mod : { "default": mod };
+ };
++const { BrowserProvider, Provider: ZKProvider, Contract: ZKContract, Signer, utils } = require('zksync-ethers');
+ Object.defineProperty(exports, "__esModule", { value: true });
+ const SafeProxyFactoryBaseContract_1 = __importDefault(require("../../../contracts/SafeProxyFactory/SafeProxyFactoryBaseContract"));
+ const types_kit_1 = require("@safe-global/types-kit");
++const utils_1 = require("../../../contracts/utils");
+ /**
+  * SafeProxyFactoryContract_v1_4_1  is the implementation specific to the Safe Proxy Factory contract version 1.4.1.
+  *
+@@ -66,6 +68,67 @@ class SafeProxyFactoryContract_v1_4_1 extends SafeProxyFactoryBaseContract_1.def
+         this.createProxyWithNonce = async (args) => {
+             return [await this.write('createProxyWithNonce', args)];
+         };
++        
++        /**
++         * Creates a proxy with nonce using Sophon paymaster when on Sophon chain
++         * @param singleton - The singleton address
++         * @param initializer - Initializer data
++         * @param saltNonce - Salt nonce for deployment
++         * @param options - Transaction options
++         */
++        this.createProxyWithNonceWithPaymaster = async (singleton, initializer, saltNonce, options = {}) => {
++            const txData = this.encode('createProxyWithNonce', [singleton, initializer, saltNonce]);
++            const converted = this.convertOptions(options);
++            
++            // Sophon paymaster configuration for Safe creation
++            const PAYMASTER_ADDRESSES = {
++                "531050104": '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
++                "50104": '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
++            };
++
++            // Check if Sophon chain and use paymaster
++            if (PAYMASTER_ADDRESSES[this.chainId]) {
++                // Setup paymaster parameters
++                const paymasterParams = utils.getPaymasterParams(
++                    PAYMASTER_ADDRESSES[this.chainId],
++                    {
++                        type: 'General',
++                        innerInput: new Uint8Array(),
++                    }
++                );
++
++                // Create zkSync-compatible signer
++                const browserProvider = new BrowserProvider(this.safeProvider.provider);
++                const signer = Signer.from(
++                    await browserProvider.getSigner(),
++                    Number(this.chainId),
++                    new ZKProvider(this.safeProvider.getExternalProvider().url, {
++                        name: 'Sophon',
++                        chainId: Number(this.chainId)
++                    })
++                );
++
++                // Execute Safe creation with paymaster
++                const tx = await signer.sendTransaction({
++                    type: utils.EIP712_TX_TYPE,
++                    to: this.contractAddress,
++                    data: txData,
++                    from: converted.account,
++                    customData: {
++                        gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
++                        paymasterParams,
++                    }
++                });
++
++                // Return proxy address from tx receipt
++                const receipt = await tx.wait();
++                const proxyCreationEvent = receipt.logs.find(log => log.topics[0] === '0x4f51faf6c4561ff95f067657e43439f0f856d97c04d9ec9070a6199ad418e2351bd355458e');
++                const proxyAddress = '0x' + proxyCreationEvent.data.slice(26);
++                return proxyAddress;
++            }
++
++            return (0, utils_1.toTxResult)(this.runner, await this.write('createProxyWithNonce', [singleton, initializer, saltNonce], converted), options);
++        };
+     }
+ }
+ exports.default = SafeProxyFactoryContract_v1_4_1;

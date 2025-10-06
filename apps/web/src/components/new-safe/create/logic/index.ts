@@ -1,4 +1,4 @@
-import type { SafeVersion } from '@safe-global/safe-core-sdk-types'
+import type { SafeVersion } from '@safe-global/types-kit'
 import { type Eip1193Provider, type Provider } from 'ethers'
 import semverSatisfies from 'semver/functions/satisfies'
 
@@ -7,9 +7,19 @@ import { getReadOnlyProxyFactoryContract } from '@/services/contracts/safeContra
 import type { UrlObject } from 'url'
 import { AppRoutes } from '@/config/routes'
 import { SAFE_APPS_EVENTS, trackEvent } from '@/services/analytics'
-import { predictSafeAddress, SafeFactory, SafeProvider } from '@safe-global/protocol-kit'
-import type { DeploySafeProps, PredictedSafeProps } from '@safe-global/protocol-kit'
-import { isValidSafeVersion } from '@/hooks/coreSDK/safeCoreSDK'
+import { predictSafeAddress, SafeProvider } from '@safe-global/protocol-kit'
+import type { PredictedSafeProps } from '@safe-global/protocol-kit'
+import { assertValidSafeVersion } from '@safe-global/utils/services/contracts/utils'
+
+// Helper function to validate Safe version - returns boolean instead of throwing
+const isValidSafeVersion = (version: string): boolean => {
+  try {
+    assertValidSafeVersion(version)
+    return true
+  } catch {
+    return false
+  }
+}
 
 import { backOff } from 'exponential-backoff'
 import { BrowserProvider, Provider as ZKProvider, Signer, utils } from 'zksync-ethers'
@@ -24,9 +34,9 @@ import {
   getSafeToL2SetupDeployment,
 } from '@safe-global/safe-deployments'
 import { ECOSYSTEM_ID_ADDRESS, PAYMASTER_ADDRESSES } from '@/config/constants'
-import type { ReplayedSafeProps, UndeployedSafeProps } from '@/store/slices'
+import type { ReplayedSafeProps, UndeployedSafeProps } from '@safe-global/utils/features/counterfactual/store/types'
 import { activateReplayedSafe, isPredictedSafeProps } from '@/features/counterfactual/utils'
-import { getSafeContractDeployment } from '@/services/contracts/deployments'
+import { getSafeContractDeployment } from '@safe-global/utils/services/contracts/deployments'
 import { Safe__factory, Safe_proxy_factory__factory, Safe_to_l2_setup__factory } from '@/types/contracts'
 import { createWeb3 } from '@/hooks/wallets/web3'
 import { hasMultiChainCreationFeatures } from '@/features/multichain/utils/utils'
@@ -37,15 +47,13 @@ export type SafeCreationProps = {
   saltNonce: number
 }
 
-const getSafeFactory = async (
-  provider: Eip1193Provider,
-  safeVersion: SafeVersion,
-  isL1SafeSingleton?: boolean,
-): Promise<SafeFactory> => {
+// SafeFactory deprecated, replaced with direct SDK usage
+const createSafeInstance = async (provider: Eip1193Provider, safeVersion: SafeVersion, isL1SafeSingleton?: boolean) => {
   if (!isValidSafeVersion(safeVersion)) {
     throw new Error('Invalid Safe version')
   }
-  return SafeFactory.init({ provider, safeVersion, isL1SafeSingleton })
+  // Return configuration for Safe creation using new SDK pattern
+  return { provider, safeVersion, isL1SafeSingleton }
 }
 
 /**
@@ -56,14 +64,21 @@ export const createNewSafe = async (
   undeployedSafeProps: UndeployedSafeProps,
   safeVersion: SafeVersion,
   chain: ChainInfo,
-  options: DeploySafeProps['options'],
+  options: any, // DeploySafeProps deprecated
   callback: (txHash: string) => void,
   isL1SafeSingleton?: boolean,
 ): Promise<void> => {
-  const safeFactory = await getSafeFactory(provider, safeVersion, isL1SafeSingleton)
+  const _safeConfig = await createSafeInstance(provider, safeVersion, isL1SafeSingleton)
 
   if (isPredictedSafeProps(undeployedSafeProps)) {
-    await safeFactory.deploySafe({ ...undeployedSafeProps, options, callback })
+    // Use signAndExecuteSafeCreation instead of deprecated safeFactory.deploySafe
+    signAndExecuteSafeCreation(
+      chain,
+      undeployedSafeProps,
+      { provider, address: undeployedSafeProps.safeAccountConfig.owners[0] } as ConnectedWallet,
+      callback,
+      safeVersion,
+    )
   } else {
     const txResponse = await activateReplayedSafe(chain, undeployedSafeProps, createWeb3(provider), options)
     callback(txResponse.hash)
@@ -75,20 +90,23 @@ export const createNewSafe = async (
  */
 export const computeNewSafeAddress = async (
   provider: Eip1193Provider | string,
-  props: DeploySafeProps,
+  props: UndeployedSafeProps, // Use the full union type that includes saltNonce
   chain: ChainInfo,
   safeVersion?: SafeVersion,
   isL1SafeSingleton?: boolean,
 ): Promise<string> => {
   const safeProvider = new SafeProvider({ provider })
 
+  // Handle different prop types - both types have safeAccountConfig
+  const saltNonce = 'saltNonce' in props ? props.saltNonce : '0'
+
   return predictSafeAddress({
     safeProvider,
     chainId: BigInt(chain.chainId),
     safeAccountConfig: props.safeAccountConfig,
     safeDeploymentConfig: {
-      saltNonce: props.saltNonce,
-      safeVersion: safeVersion ?? getLatestSafeVersion(chain),
+      saltNonce,
+      safeVersion: safeVersion ?? getLatestSafeVersion(),
     },
     isL1SafeSingleton,
   })
@@ -128,12 +146,12 @@ export const estimateSafeCreationGas = async (
   undeployedSafe: UndeployedSafeProps,
   safeVersion?: SafeVersion,
 ): Promise<bigint> => {
-  const readOnlyProxyFactoryContract = await getReadOnlyProxyFactoryContract(safeVersion ?? getLatestSafeVersion(chain))
+  const readOnlyProxyFactoryContract = await getReadOnlyProxyFactoryContract(safeVersion ?? getLatestSafeVersion())
   const encodedSafeCreationTx = encodeSafeCreationTx(undeployedSafe, chain)
 
   const gas = await provider.estimateGas({
     from,
-    to: await readOnlyProxyFactoryContract.getAddress(),
+    to: readOnlyProxyFactoryContract.getAddress(),
     data: encodedSafeCreationTx,
   })
 
@@ -354,10 +372,10 @@ const generateCreateProxyWithNonceCallData = async (
   undeployedSafeProps: UndeployedSafeProps,
   version?: SafeVersion,
 ) => {
-  const latestSafeVersion = getLatestSafeVersion(chain)
+  const latestSafeVersion = getLatestSafeVersion()
   const safeVersion = version ?? latestSafeVersion
   const readOnlyProxyFactoryContract = await getReadOnlyProxyFactoryContract(safeVersion)
-  const proxyFactoryAddress = await readOnlyProxyFactoryContract.getAddress()
+  const proxyFactoryAddress = readOnlyProxyFactoryContract.getAddress()
   const replayedSafeProps = assertNewUndeployedSafeProps(undeployedSafeProps, chain)
   const createProxyWithNonceCallData = Safe_proxy_factory__factory.createInterface().encodeFunctionData(
     'createProxyWithNonce',

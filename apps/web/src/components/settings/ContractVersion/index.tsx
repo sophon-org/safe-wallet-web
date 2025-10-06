@@ -18,7 +18,7 @@ export const ContractVersion = () => {
   const { setTxFlow } = useContext(TxModalContext)
   const [masterCopies] = useMasterCopies()
   const { safe, safeLoaded } = useSafeInfo()
-  const currentChain = useCurrentChain()
+  const _currentChain = useCurrentChain()
   const masterCopyAddress = safe.implementation.value
 
   const safeMasterCopy: MasterCopy | undefined = useMemo(() => {
@@ -29,7 +29,7 @@ export const ContractVersion = () => {
   const showUpdateDialog = safeMasterCopy?.deployer === MasterCopyDeployer.GNOSIS && needsUpdate
   const isLatestVersion = safe.version && !showUpdateDialog
 
-  const latestSafeVersion = getLatestSafeVersion(currentChain)
+  const latestSafeVersion = getLatestSafeVersion()
   const isSafe130 = safe.version === '1.3.0' || safe.version === '1.3.0+L2'
 
   return (
