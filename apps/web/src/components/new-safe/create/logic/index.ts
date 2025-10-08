@@ -340,28 +340,11 @@ export const signAndExecuteSafeCreation = async (
   callback: (txHash: string) => void,
   version?: SafeVersion,
 ) => {
-  console.log('💳 [PAYMASTER] Starting signAndExecuteSafeCreation')
-  console.log('💳 [PAYMASTER] Chain:', chain.chainId, chain.chainName)
-  console.log('💳 [PAYMASTER] Wallet address:', wallet.address)
-  console.log('💳 [PAYMASTER] UndeployedSafeProps:', undeployedSafeProps)
-  console.log('💳 [PAYMASTER] Version:', version)
-  console.log('💳 [PAYMASTER] Environment check - IS_PRODUCTION:', process.env.NODE_ENV === 'production')
-  console.log(
-    '💳 [PAYMASTER] Gateway URL being used:',
-    process.env.NEXT_PUBLIC_GATEWAY_URL_PRODUCTION || process.env.NEXT_PUBLIC_GATEWAY_URL_STAGING,
-  )
-
   const { createProxyWithNonceCallData, proxyFactoryAddress } = await generateCreateProxyWithNonceCallData(
     chain,
     undeployedSafeProps,
     version,
   )
-
-  console.log('💳 [PAYMASTER] Generated call data:', createProxyWithNonceCallData)
-  console.log('💳 [PAYMASTER] Proxy factory address:', proxyFactoryAddress)
-  console.log('💳 [PAYMASTER] PAYMASTER_ADDRESSES:', PAYMASTER_ADDRESSES)
-  console.log('💳 [PAYMASTER] Chain ID:', chain.chainId)
-  console.log('💳 [PAYMASTER] Paymaster address for chain:', PAYMASTER_ADDRESSES[chain.chainId])
 
   if (!PAYMASTER_ADDRESSES[chain.chainId]) {
     console.error('❌ [PAYMASTER] No paymaster address found for chain:', chain.chainId)
@@ -376,66 +359,34 @@ export const signAndExecuteSafeCreation = async (
     },
   )
 
-  console.log('💳 [PAYMASTER] Generated paymaster params:', paymasterParams)
-  console.log('💳 [PAYMASTER] Creating browser provider and signer')
-  console.log('💳 [PAYMASTER] Chain RPC URI:', chain.rpcUri.value)
-  console.log('💳 [PAYMASTER] Chain RPC URI authentication:', chain.rpcUri.authentication)
-  console.log('💳 [PAYMASTER] Chain ID (number):', Number(chain.chainId))
-  console.log('💳 [PAYMASTER] Chain name:', chain.chainName)
-  console.log('💳 [PAYMASTER] Full chain object:', chain)
-
   const browserProvider = new BrowserProvider(wallet.provider)
-  console.log('💳 [PAYMASTER] Browser provider created:', !!browserProvider)
 
   let signer
   try {
     // Use hardcoded RPC URLs for Sophon as fallback if gateway RPC fails
     let rpcUrl = chain.rpcUri.value
-    console.log('💳 [PAYMASTER] Original gateway RPC URL:', rpcUrl)
 
     if (chain.chainId === '531050104') {
       // Sophon Testnet - use the correct RPC URL
       rpcUrl = 'https://rpc.testnet.sophon.xyz'
-      console.log('💳 [PAYMASTER] Using correct Sophon Testnet RPC:', rpcUrl)
     } else if (chain.chainId === '50104') {
       // Sophon Mainnet
       rpcUrl = 'https://rpc.sophon.xyz'
-      console.log('💳 [PAYMASTER] Using hardcoded Sophon Mainnet RPC:', rpcUrl)
     }
 
     const zkProvider = new ZKProvider(rpcUrl, { name: chain.chainName, chainId: Number(chain.chainId) })
-    console.log('💳 [PAYMASTER] ZK Provider created:', !!zkProvider)
-    console.log('💳 [PAYMASTER] ZK Provider chain ID:', zkProvider.chainId)
-
-    // Test if ZKProvider is working
-    console.log('💳 [PAYMASTER] Testing ZKProvider connectivity...')
-    const network = await zkProvider.getNetwork()
-    console.log('💳 [PAYMASTER] ZK Provider network:', network)
-
-    // Test if we can get block number
-    const blockNumber = await zkProvider.getBlockNumber()
-    console.log('💳 [PAYMASTER] ZK Provider block number:', blockNumber)
 
     const browserSigner = await browserProvider.getSigner()
-    console.log('💳 [PAYMASTER] Browser signer obtained:', !!browserSigner)
-
-    // Try creating signer using Wallet pattern instead of Signer.from
-    console.log('💳 [PAYMASTER] Trying Wallet pattern...')
 
     // Get the private key from the browser signer (this might not work in browser)
     try {
       // This approach might not work in browser environment
-      console.log('💳 [PAYMASTER] Wallet pattern not suitable for browser')
       throw new Error('Wallet pattern not suitable for browser')
     } catch (error) {
-      console.log('💳 [PAYMASTER] Falling back to Signer.from pattern')
-
       // Use Signer (L2) as required for Sophon
-      console.log('💳 [PAYMASTER] Using Signer (L2) for Sophon...')
       signer = Signer.from(browserSigner, Number(chain.chainId), zkProvider)
 
-      // Force set providerL2 to ensure it's available
-      console.log('💳 [PAYMASTER] Force setting providerL2')
+      // @ts-ignore - Accessing protected property
       signer.providerL2 = zkProvider
 
       // Also try to set it through the prototype if needed
@@ -446,35 +397,6 @@ export const signAndExecuteSafeCreation = async (
         configurable: true,
       })
     }
-
-    console.log('💳 [PAYMASTER] Signer created with Signer.from')
-    console.log('💳 [PAYMASTER] Signer type:', signer.constructor.name)
-    console.log('💳 [PAYMASTER] Signer has providerL2:', 'providerL2' in signer)
-
-    // Try to access providerL2 through different methods
-    try {
-      console.log('💳 [PAYMASTER] Direct providerL2 access:', !!signer.providerL2)
-    } catch (error) {
-      console.log('💳 [PAYMASTER] Cannot access providerL2 directly:', error.message)
-    }
-
-    // Try to access through _providerL2 method if it exists
-    try {
-      if (typeof signer._providerL2 === 'function') {
-        const providerL2 = signer._providerL2()
-        console.log('💳 [PAYMASTER] _providerL2 method result:', !!providerL2)
-      }
-    } catch (error) {
-      console.log('💳 [PAYMASTER] _providerL2 method error:', error.message)
-    }
-
-    console.log('💳 [PAYMASTER] Signer created successfully')
-    console.log('💳 [PAYMASTER] Signer provider:', !!signer.provider)
-    console.log('💳 [PAYMASTER] Signer providerL2 check:', signer.providerL2 ? 'EXISTS' : 'MISSING')
-
-    // Test if signer is working
-    const signerAddress = await signer.getAddress()
-    console.log('💳 [PAYMASTER] Signer address:', signerAddress)
   } catch (error) {
     console.error('❌ [PAYMASTER] Error creating signer:', error)
     throw error
@@ -491,38 +413,22 @@ export const signAndExecuteSafeCreation = async (
     },
   }
 
-  console.log('💳 [PAYMASTER] Transaction data:', transactionData)
-  console.log('💳 [PAYMASTER] Sending transaction...')
-
-  // Debug: Check signer state before sending transaction
-  console.log('💳 [PAYMASTER] Signer before sendTransaction:')
-  console.log('💳 [PAYMASTER] - Signer provider:', !!signer.provider)
-  console.log('💳 [PAYMASTER] - Signer providerL2:', !!signer.providerL2)
-  console.log('💳 [PAYMASTER] - Signer address:', await signer.getAddress())
-
-  // Try to ensure the context is maintained by binding the method
-  console.log('💳 [PAYMASTER] About to call sendTransaction...')
-  console.log('💳 [PAYMASTER] Signer constructor name:', signer.constructor.name)
-  console.log('💳 [PAYMASTER] Signer instanceof Signer:', signer instanceof Signer)
-
   // Override populateFeeData to bypass the providerL2 check
+  // @ts-ignore - Accessing protected method
   const originalPopulateFeeData = signer.populateFeeData.bind(signer)
-  signer.populateFeeData = async function (transaction) {
-    console.log('💳 [PAYMASTER] Custom populateFeeData called')
-    console.log('💳 [PAYMASTER] this.providerL2 in custom method:', !!this.providerL2)
-
+  // @ts-ignore - Overriding protected method
+  signer.populateFeeData = async function (transaction: any) {
     // Call the original method but catch the providerL2 error
     try {
       return await originalPopulateFeeData(transaction)
     } catch (error) {
-      if (error.message === 'Initialize provider L2') {
+      if ((error as Error).message === 'Initialize provider L2') {
         console.log('💳 [PAYMASTER] Bypassing providerL2 check error')
         // Manually populate fee data without providerL2 check
         const tx = { ...transaction }
 
         // Get current gas prices from the provider
         const feeData = await this.provider.getFeeData()
-        console.log('💳 [PAYMASTER] Current fee data:', feeData)
 
         // Set higher gas values for faster transaction processing
         if (!tx.gasLimit) {
@@ -540,11 +446,6 @@ export const signAndExecuteSafeCreation = async (
             : 10000000000 // 10 gwei default (very high for speed)
         }
 
-        console.log('💳 [PAYMASTER] Final gas values:', {
-          gasLimit: tx.gasLimit,
-          maxFeePerGas: tx.maxFeePerGas,
-          maxPriorityFeePerGas: tx.maxPriorityFeePerGas,
-        })
         return tx
       }
       throw error
