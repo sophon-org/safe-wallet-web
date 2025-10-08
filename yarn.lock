@@ -9764,7 +9764,7 @@ __metadata:
     typechain: "npm:^8.3.2"
     typescript: "npm:5.8.3"
     typescript-plugin-css-modules: "npm:^4.2.2"
-    zksync-ethers: "npm:6.11.2"
+    zksync-ethers: "patch:zksync-ethers@npm%3A6.11.2#~/.yarn/patches/zksync-ethers-npm-6.11.2-e3638d44b5.patch"
     zodiac-roles-deployments: "npm:^2.3.4"
   languageName: unknown
   linkType: soft
@@ -36104,6 +36104,15 @@ __metadata:
   peerDependencies:
     ethers: ^6.7.1
   checksum: 10/75aaaa6b85c215389dddcfbc025528567df5ac7713bf1ad8f4fc780a19711738ed6390c2fa7a227f75f88a9d9ae8fad52b95135322e96ef6608157991517a3bc
+  languageName: node
+  linkType: hard
+
+"zksync-ethers@patch:zksync-ethers@npm%3A6.11.2#~/.yarn/patches/zksync-ethers-npm-6.11.2-e3638d44b5.patch":
+  version: 6.11.2
+  resolution: "zksync-ethers@patch:zksync-ethers@npm%3A6.11.2#~/.yarn/patches/zksync-ethers-npm-6.11.2-e3638d44b5.patch::version=6.11.2&hash=7ae6c0"
+  peerDependencies:
+    ethers: ^6.7.1
+  checksum: 10/54f602af196dad9ece7d8d089e47a072919768775f86d487595f2552de9876f72103d0894bd31b36ddb2241f3e779fd643924a99c65509d8b39304c6896e4311
   languageName: node
   linkType: hard
 
