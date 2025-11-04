@@ -6,10 +6,12 @@ import ChainIndicator from '@/components/common/ChainIndicator'
 import SidebarHeader from '@/components/sidebar/SidebarHeader'
 import SidebarNavigation from '@/components/sidebar/SidebarNavigation'
 import SidebarFooter from '@/components/sidebar/SidebarFooter'
+import IndexingStatus from '@/components/sidebar/IndexingStatus'
 
 import css from './styles.module.css'
 import { trackEvent, OVERVIEW_EVENTS } from '@/services/analytics'
 import MyAccounts from '@/features/myAccounts'
+import { IS_PRODUCTION } from '@/config/constants'
 
 const Sidebar = (): ReactElement => {
   const [isDrawerOpen, setIsDrawerOpen] = useState<boolean>(false)
@@ -49,6 +51,10 @@ const Sidebar = (): ReactElement => {
         <Divider flexItem />
 
         <SidebarFooter />
+
+        <Divider flexItem />
+
+        {!IS_PRODUCTION && <IndexingStatus />}
       </div>
       <Drawer variant="temporary" anchor="left" open={isDrawerOpen} onClose={onDrawerToggle}>
         <div className={css.drawer}>

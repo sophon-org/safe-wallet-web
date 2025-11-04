@@ -3,21 +3,27 @@ import { formatDistanceToNow } from 'date-fns'
 import { getIndexingStatus } from '@safe-global/safe-gateway-typescript-sdk'
 import useAsync from '@safe-global/utils/hooks/useAsync'
 import useChainId from '@/hooks/useChainId'
-// import useIntervalCounter from '@/hooks/useIntervalCounter'
+import useIntervalCounter from '@/hooks/useIntervalCounter'
 import { OpenInNewRounded } from '@mui/icons-material'
+import { IS_PRODUCTION } from '@/config/constants'
 
-const STATUS_PAGE = 'https://status.safe.global'
+const STATUS_PAGE = IS_PRODUCTION
+  ? 'https://tx-status-app.safe.protofire.io/?serviceUrl=https://gateway.safe.sophon.xyz'
+  : 'https://tx-status-app.safe.protofire.io/?serviceUrl=https://gateway.staging.safe.sophon.xyz'
+
 const MAX_SYNC_DELAY = 1000 * 60 * 5 // 5 minutes
+const POLL_INTERVAL = 1000 * 60 // 1 minute
 
 const useIndexingStatus = () => {
   const chainId = useChainId()
+  const [count] = useIntervalCounter(POLL_INTERVAL)
 
   return useAsync(
     () => {
-      if (chainId === undefined) return
+      if (count === undefined) return
       return getIndexingStatus(chainId)
     },
-    [chainId],
+    [chainId, count],
     false,
   )
 }
