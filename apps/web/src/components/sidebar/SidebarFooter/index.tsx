@@ -1,5 +1,4 @@
 import type { ReactElement } from 'react'
-import { useEffect } from 'react'
 
 import {
   SidebarList,
@@ -7,40 +6,16 @@ import {
   SidebarListItemIcon,
   SidebarListItemText,
 } from '@/components/sidebar/SidebarList'
-import { loadBeamer } from '@/services/beamer'
-import { useAppSelector } from '@/store'
-import { CookieAndTermType, hasConsentFor } from '@/store/cookiesAndTermsSlice'
-//import { openCookieBanner } from '@/store/popupSlice'
-//import BeamerIcon from '@/public/images/sidebar/whats-new.svg'
+import { BEAMER_SELECTOR } from '@/services/beamer'
 import HelpCenterIcon from '@/public/images/sidebar/help-center.svg'
 import { Divider, Link, ListItem, SvgIcon, Typography } from '@mui/material'
 import DebugToggle from '../DebugToggle'
-import { HELP_CENTER_URL, IS_PRODUCTION } from '@/config/constants'
-import { useCurrentChain } from '@/hooks/useChains'
-import Track from '@/components/common/Track'
-import { OVERVIEW_EVENTS } from '@/services/analytics'
+import { HELP_CENTER_URL, IS_PRODUCTION, NEW_SUGGESTION_FORM } from '@/config/constants'
 import darkPalette from '@/components/theme/darkPalette'
+import SuggestionIcon from '@/public/images/sidebar/lightbulb_icon.svg'
 import ProtofireLogo from '@/public/images/protofire-logo.svg'
-// import IndexingStatus from '@/components/sidebar/IndexingStatus'
 
 const SidebarFooter = (): ReactElement => {
-  //const dispatch = useAppDispatch()
-  const chain = useCurrentChain()
-  const hasBeamerConsent = useAppSelector((state) => hasConsentFor(state, CookieAndTermType.UPDATES))
-
-  useEffect(() => {
-    // Initialise Beamer when consent was previously given
-    if (hasBeamerConsent && chain?.shortName) {
-      loadBeamer(chain.shortName)
-    }
-  }, [hasBeamerConsent, chain?.shortName])
-
-  // const handleBeamer = () => {
-  //   if (!hasBeamerConsent) {
-  //     dispatch(openCookieBanner({ warningKey: CookieAndTermType.UPDATES }))
-  //   }
-  // }
-
   return (
     <SidebarList>
       {!IS_PRODUCTION && (
@@ -53,35 +28,36 @@ const SidebarFooter = (): ReactElement => {
         </>
       )}
 
-      {/* <Track {...OVERVIEW_EVENTS.WHATS_NEW}>
-        <ListItem disablePadding>
-          <SidebarListItemButton id={BEAMER_SELECTOR} onClick={handleBeamer}>
+      <ListItem disablePadding>
+        <a target="_blank" rel="noopener noreferrer" href={HELP_CENTER_URL} style={{ width: '100%', marginTop: '8px' }}>
+          <SidebarListItemButton>
             <SidebarListItemIcon color="primary">
-              <BeamerIcon />
+              <HelpCenterIcon />
             </SidebarListItemIcon>
-            <SidebarListItemText data-testid="list-item-whats-new" bold>
-              What&apos;s new
+            <SidebarListItemText data-testid="list-item-need-help" bold>
+              Need help?
             </SidebarListItemText>
           </SidebarListItemButton>
-        </ListItem>
-      </Track> */}
+        </a>
+      </ListItem>
+      <ListItem disablePadding>
+        <a
+          target="_blank"
+          rel="noopener noreferrer"
+          href={NEW_SUGGESTION_FORM}
+          style={{ width: '100%', marginTop: '8px' }}
+        >
+          <SidebarListItemButton id={BEAMER_SELECTOR} style={{ backgroundColor: '#12FF80', color: 'black' }}>
+            <SidebarListItemIcon color="primary">
+              <SuggestionIcon />
+            </SidebarListItemIcon>
+            <SidebarListItemText bold>New Features Suggestion?</SidebarListItemText>
+          </SidebarListItemButton>
+        </a>
+      </ListItem>
 
-      <Track {...OVERVIEW_EVENTS.HELP_CENTER}>
-        <ListItem disablePadding>
-          <a target="_blank" rel="noopener noreferrer" href={HELP_CENTER_URL} style={{ width: '100%' }}>
-            <SidebarListItemButton>
-              <SidebarListItemIcon color="primary">
-                <HelpCenterIcon />
-              </SidebarListItemIcon>
-              <SidebarListItemText data-testid="list-item-need-help" bold>
-                Need help?
-              </SidebarListItemText>
-            </SidebarListItemButton>
-          </a>
-        </ListItem>
-      </Track>
       <ListItem>
-        <SidebarListItemText>
+        <SidebarListItemText style={{ marginTop: '8px' }}>
           <Typography variant="caption">
             Supported by{' '}
             <SvgIcon

@@ -100,9 +100,10 @@
 }
 
 /* Keystone modal */
-#kv_sdk_container + .ReactModalPortal > div {
+#kv_sdk_container+.ReactModalPortal>div {
   z-index: 1301 !important;
 }
-#kv_sdk_container + .ReactModalPortal .ReactModal__Content {
+
+#kv_sdk_container+.ReactModalPortal .ReactModal__Content {
   padding: 0 !important;
 }

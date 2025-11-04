@@ -64,6 +64,8 @@ export enum SafeAppsTag {
   SWAP_FALLBACK = 'swap-fallback',
 }
 
+export const NEW_SUGGESTION_FORM = 'https://safe-feature-request.protofire.io'
+
 // Help Center
 export const HELP_CENTER_URL = 'https://safe-support.protofire.io'
 export const SAFE_HELP_CENTER_URL = 'https://help.safe.global'

@@ -174,7 +174,7 @@ export const CookieAndTermBanner = ({
 
               <Grid item>
                 <Button onClick={handleAcceptAll} variant="contained" color="secondary" size="small" disableElevation>
-                  Accept all
+                  Save settings
                 </Button>
               </Grid>
             </Grid>
