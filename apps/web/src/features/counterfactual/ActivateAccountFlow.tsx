@@ -1,5 +1,5 @@
 import { signAndExecuteSafeCreation, relaySafeCreation } from '@/components/new-safe/create/logic'
-import { SafeSetupOverview } from '@/components/new-safe/create/steps/ReviewStep'
+import { SafeSetupOverview, NetworkFee } from '@/components/new-safe/create/steps/ReviewStep'
 import ReviewRow from '@/components/new-safe/ReviewRow'
 import { TxModalContext } from '@/components/tx-flow'
 import TxCard from '@/components/tx-flow/common/TxCard'
@@ -32,6 +32,7 @@ import { useEstimateSafeCreationGas } from '@/components/new-safe/create/useEsti
 import useIsWrongChain from '@/hooks/useIsWrongChain'
 import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
 import CheckWallet from '@/components/common/CheckWallet'
+import { PAYMASTER_ADDRESSES } from '@/config/constants'
 
 const useActivateAccount = (undeployedSafe: UndeployedSafe | undefined) => {
   const chain = useCurrentChain()
@@ -57,9 +58,13 @@ const useActivateAccount = (undeployedSafe: UndeployedSafe | undefined) => {
     : { gasPrice: maxFeePerGas?.toString(), gasLimit: gasLimit?.toString() }
 
   const totalFee = getTotalFeeFormatted(maxFeePerGas, gasLimit, chain)
-  const walletCanPay = useWalletCanPay()
 
-  return { options, totalFee, walletCanPay }
+  // If chain has a paymaster, wallet doesn't need to pay
+  const hasPaymaster = chain && PAYMASTER_ADDRESSES[chain.chainId]
+  const walletCanPayResult = useWalletCanPay({ gasLimit, maxFeePerGas })
+  const walletCanPay = hasPaymaster || walletCanPayResult
+
+  return { options, totalFee, walletCanPay, hasPaymaster }
 }
 
 const ActivateAccountFlow = () => {
@@ -73,7 +78,7 @@ const ActivateAccountFlow = () => {
   const undeployedSafe = useAppSelector((state) => selectUndeployedSafe(state, chainId, safeAddress))
   const { setTxFlow } = useContext(TxModalContext)
   const wallet = useWallet()
-  const { walletCanPay } = useActivateAccount(undeployedSafe)
+  const { walletCanPay, totalFee, hasPaymaster } = useActivateAccount(undeployedSafe)
   const isWrongChain = useIsWrongChain()
 
   const undeployedSafeSetup = useMemo(
@@ -174,16 +179,21 @@ const ActivateAccountFlow = () => {
               name="Est. network fee"
               value={
                 <>
-                  <Typography variant="body2">Free (Sponsored by Sophon)</Typography>
-                  {/* <NetworkFee totalFee={totalFee} isWaived={willRelay || isWrongChain} chain={chain} />
+                  {hasPaymaster ? (
+                    <Typography variant="body2">Free (Sponsored by Sophon)</Typography>
+                  ) : (
+                    <>
+                      <NetworkFee totalFee={totalFee} isWaived={willRelay || isWrongChain} chain={chain} />
 
-                  {!willRelay && (
-                    <Typography variant="body2" color="text.secondary" mt={1}>
-                      {isWrongChain
-                        ? `Switch your connected wallet to ${chain?.chainName} to see the correct estimated network fee`
-                        : 'You will have to confirm a transaction with your connected wallet.'}
-                    </Typography>
-                  )} */}
+                      {!willRelay && (
+                        <Typography variant="body2" color="text.secondary" mt={1}>
+                          {isWrongChain
+                            ? `Switch your connected wallet to ${chain?.chainName} to see the correct estimated network fee`
+                            : 'You will have to confirm a transaction with your connected wallet.'}
+                        </Typography>
+                      )}
+                    </>
+                  )}
                 </>
               }
             />

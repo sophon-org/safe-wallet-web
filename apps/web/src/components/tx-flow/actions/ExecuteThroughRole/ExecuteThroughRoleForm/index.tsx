@@ -30,6 +30,7 @@ import useSafeInfo from '@/hooks/useSafeInfo'
 import { assertOnboard, assertWallet } from '@/utils/helpers'
 import { dispatchModuleTxExecution } from '@/services/tx/tx-sender'
 import { Status } from 'zodiac-roles-deployments'
+import { PAYMASTER_ADDRESSES } from '@/config/constants'
 
 const Role = ({ children }: { children: string }) => {
   let humanReadableRoleKey = children
@@ -133,7 +134,9 @@ export const ExecuteThroughRoleForm = ({
     setTxFlow(<SuccessScreenFlow txId={txId} />, undefined, false)
   }
 
-  const walletCanPay = useWalletCanPay()
+  const hasPaymaster = currentChain && PAYMASTER_ADDRESSES[currentChain.chainId]
+  const walletCanPayResult = useWalletCanPay({ gasLimit, maxFeePerGas: advancedParams.maxFeePerGas })
+  const walletCanPay = hasPaymaster || walletCanPayResult
 
   const submitDisabled = !txThroughRole || isPending || disableSubmit || (needsRiskConfirmation && !isRiskConfirmed)
 

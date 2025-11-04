@@ -31,6 +31,7 @@ import NonOwnerError from '@/components/tx/SignOrExecuteForm/NonOwnerError'
 import SplitMenuButton from '@/components/common/SplitMenuButton'
 import type { SlotComponentProps, SlotName } from '../../slots'
 import { TxFlowContext } from '../../TxFlowProvider'
+import { PAYMASTER_ADDRESSES } from '@/config/constants'
 
 export const ExecuteForm = ({
   safeTx,
@@ -134,7 +135,9 @@ export const ExecuteForm = ({
     setTxFlow(<SuccessScreenFlow txId={executedTxId} />, undefined, false)
   }
 
-  const walletCanPay = useWalletCanPay()
+  const hasPaymaster = currentChain && PAYMASTER_ADDRESSES[currentChain.chainId]
+  const walletCanPayResult = useWalletCanPay({ gasLimit, maxFeePerGas: advancedParams.maxFeePerGas })
+  const walletCanPay = hasPaymaster || walletCanPayResult
 
   const cannotPropose = !isOwner && !onlyExecute
   const submitDisabled =

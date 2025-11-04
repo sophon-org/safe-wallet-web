@@ -15,6 +15,8 @@ import {
 import css from './styles.module.css'
 import ErrorMessage from '@/components/tx/ErrorMessage'
 import { PayMethod } from '@safe-global/utils/features/counterfactual/types'
+import { useCurrentChain } from '@/hooks/useChains'
+import { PAYMASTER_ADDRESSES } from '@/config/constants'
 
 const PayNowPayLater = ({
   isMultiChain,
@@ -25,6 +27,9 @@ const PayNowPayLater = ({
   payMethod: PayMethod
   setPayMethod: Dispatch<SetStateAction<PayMethod>>
 }) => {
+  const chain = useCurrentChain()
+  const hasPaymaster = chain && PAYMASTER_ADDRESSES[chain.chainId]
+
   const onChoosePayMethod = (_: ChangeEvent<HTMLInputElement>, newPayMethod: string) => {
     setPayMethod(newPayMethod as PayMethod)
   }
@@ -85,9 +90,11 @@ const PayNowPayLater = ({
               label={
                 <>
                   <Typography className={css.radioTitle}>Pay now</Typography>
-                  <Typography className={css.radioSubtitle} variant="body2" color="text.secondary">
-                    Free (Sponsored by Sophon)
-                  </Typography>
+                  {hasPaymaster && (
+                    <Typography className={css.radioSubtitle} variant="body2" color="text.secondary">
+                      Free (Sponsored by Sophon)
+                    </Typography>
+                  )}
                 </>
               }
               control={<Radio />}
