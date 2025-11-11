@@ -3,8 +3,6 @@ import { type ChainInfo } from '@safe-global/safe-gateway-typescript-sdk'
 import { sameAddress } from '@/utils/addresses'
 import { createWeb3ReadOnly, getRpcServiceUrl } from '@/hooks/wallets/web3'
 import { type ReplayedSafeProps } from '@safe-global/utils/features/counterfactual/store/types'
-import { predictAddressBasedOnReplayData } from '@/features/multichain/utils/utils'
-import chains from '@/config/chains'
 import { computeNewSafeAddress, isZkSyncLikeChain } from '.'
 
 export const getAvailableSaltNonce = async (
