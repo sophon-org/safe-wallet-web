@@ -11,16 +11,22 @@ import { sameAddress } from '@safe-global/utils/utils/addresses'
 import { areOwnersMatching } from '@safe-global/utils/utils/safe-setup-comparison'
 import { Safe_proxy_factory__factory } from '@safe-global/utils/types/contracts'
 import { extractCounterfactualSafeSetup } from '@/features/counterfactual/utils'
-import { encodeSafeSetupCall } from '@/components/new-safe/create/logic'
+import { encodeSafeSetupCall, isZkSyncLikeChain } from '@/components/new-safe/create/logic'
+import { type SafeVersion } from '@safe-global/types-kit'
 import { type SafeItem } from '@/features/myAccounts/hooks/useAllSafes'
 import { type MultiChainSafeItem } from '@/features/myAccounts/hooks/useAllSafesGrouped'
 import { LATEST_SAFE_VERSION } from '@safe-global/utils/config/constants'
 import { FEATURES, hasFeature } from '@safe-global/utils/utils/chains'
+import { SafeProvider, predictSafeAddress as protocolPredictSafeAddress } from '@safe-global/protocol-kit'
 
 type SafeSetup = {
   owners: string[]
   threshold: number
   chainId: string
+}
+
+type NetworkLike = {
+  chainId: bigint | number | string
 }
 
 export const isChangingSignerSetup = (decodedData: DecodedDataResponse | undefined) => {
@@ -128,6 +134,36 @@ export const predictSafeAddress = async (
 }
 
 export const predictAddressBasedOnReplayData = async (safeCreationData: ReplayedSafeProps, provider: Provider) => {
+  const getNetwork = (provider as { getNetwork?: () => Promise<NetworkLike> }).getNetwork
+  const network = getNetwork ? await getNetwork() : undefined
+  const rawChainId = network?.chainId
+  let chainId: string | undefined
+
+  if (typeof rawChainId === 'bigint' || typeof rawChainId === 'number') {
+    chainId = rawChainId.toString()
+  } else {
+    chainId = rawChainId
+  }
+
+  if (chainId && isZkSyncLikeChain(chainId) && safeCreationData.safeVersion) {
+    const safeProvider = new SafeProvider({ provider: provider as unknown as any })
+    const safeVersion = safeCreationData.safeVersion as SafeVersion
+    return protocolPredictSafeAddress({
+      safeProvider,
+      chainId: 324n,
+      safeAccountConfig: safeCreationData.safeAccountConfig,
+      safeDeploymentConfig: {
+        saltNonce: safeCreationData.saltNonce,
+        safeVersion,
+      },
+      customContracts: {
+        safeProxyFactoryAddress: safeCreationData.factoryAddress,
+        safeSingletonAddress: safeCreationData.masterCopy,
+        fallbackHandlerAddress: safeCreationData.safeAccountConfig.fallbackHandler,
+      },
+    })
+  }
+
   const initializer = encodeSafeSetupCall(safeCreationData.safeAccountConfig)
   return predictSafeAddress(
     { initializer, saltNonce: safeCreationData.saltNonce, singleton: safeCreationData.masterCopy },
