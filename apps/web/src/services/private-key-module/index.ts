@@ -104,9 +104,9 @@ const PrivateKeyModule = (chainId: ChainInfo['chainId'], rpcUri: ChainInfo['rpcU
               },
 
               eth_signTypedData: async ({ params }) => {
-                const [, _t] = params;
+                const [, _t] = params
 
-                const typedData = JSON.parse(_t);
+                const typedData = JSON.parse(_t)
 
                 return await wallet.signTypedData(
                   typedData.domain,
@@ -120,7 +120,7 @@ const PrivateKeyModule = (chainId: ChainInfo['chainId'], rpcUri: ChainInfo['rpcU
 
                 let parsedTypedData
                 try {
-                  parsedTypedData = JSON.parse(`${typedData}`);
+                  parsedTypedData = JSON.parse(`${typedData}`)
                 } catch (error: unknown) {
                   if (error instanceof Error) {
                     throw new Error('Failed to parse typedData: ' + error.message)
