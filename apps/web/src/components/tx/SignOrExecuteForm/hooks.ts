@@ -148,7 +148,16 @@ export const useTxActions = (): TxActions => {
         await dispatchTxRelay(safeTx, safe as any, txId, chain, txOptions.gasLimit?.toString())
       } else {
         const isSmartAccount = await isSmartContractWallet(signer.chainId, signer.address)
-        await dispatchTxExecution(safeTx, txOptions, txId, signer.provider, signer.address, safeAddress, isSmartAccount)
+        await dispatchTxExecution(
+          safeTx,
+          txOptions,
+          txId,
+          signer.provider,
+          signer.address,
+          safeAddress,
+          isSmartAccount,
+          chain,
+        )
       }
 
       return txId
