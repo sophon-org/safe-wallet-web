@@ -318,6 +318,7 @@ export const dispatchTxExecution = async (
   signerAddress: string,
   safeAddress: string,
   isSmartAccount: boolean,
+  chain?: ChainInfo,
 ): Promise<string> => {
   const sdk = await getSafeSDKWithSigner(provider)
   const eventParams = { txId, nonce: safeTx.data.nonce }
@@ -340,7 +341,7 @@ export const dispatchTxExecution = async (
         transactionResponse: null,
       }
     } else {
-      result = await sdk.executeTransaction(safeTx, txOptions)
+      result = await sdk.executeTransaction(safeTx, txOptions, chain)
     }
     txDispatch(TxEvent.EXECUTING, { ...eventParams })
   } catch (error) {

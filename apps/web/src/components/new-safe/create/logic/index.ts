@@ -8,7 +8,7 @@ import type { UrlObject } from 'url'
 import { AppRoutes } from '@/config/routes'
 import { SAFE_APPS_EVENTS, trackEvent } from '@/services/analytics'
 import { predictSafeAddress, SafeProvider } from '@safe-global/protocol-kit'
-import type { PredictedSafeProps } from '@safe-global/protocol-kit'
+import type { ContractNetworkConfig, PredictedSafeProps } from '@safe-global/protocol-kit'
 import { assertValidSafeVersion } from '@safe-global/utils/services/contracts/utils'
 
 // Helper function to validate Safe version - returns boolean instead of throwing
@@ -44,6 +44,12 @@ import {
 } from '@safe-global/utils/types/contracts'
 import { createWeb3 } from '@/hooks/wallets/web3'
 import { hasMultiChainCreationFeatures } from '@/features/multichain/utils/utils'
+export const ZKSYNC_LIKE_CHAIN_IDS = new Set<string>(['50104', '531050104'])
+
+export const isZkSyncLikeChain = (chainId?: string): boolean => {
+  if (!chainId) return false
+  return ZKSYNC_LIKE_CHAIN_IDS.has(chainId)
+}
 
 export type SafeCreationProps = {
   owners: string[]
@@ -100,19 +106,49 @@ export const computeNewSafeAddress = async (
   isL1SafeSingleton?: boolean,
 ): Promise<string> => {
   const safeProvider = new SafeProvider({ provider })
-
-  // Handle different prop types - both types have safeAccountConfig
   const saltNonce = 'saltNonce' in props ? props.saltNonce : '0'
+  const propsWithNonce = 'saltNonce' in props ? props : { ...props, saltNonce }
+  const chainIdString = chain.chainId?.toString()
+  const chainIdBigInt = BigInt(chainIdString ?? chain.chainId)
+
+  let replayedSafeProps: ReplayedSafeProps | undefined
+  let resolvedSafeVersion = safeVersion
+
+  try {
+    replayedSafeProps = assertNewUndeployedSafeProps(propsWithNonce, chain)
+    resolvedSafeVersion = resolvedSafeVersion ?? replayedSafeProps.safeVersion ?? getLatestSafeVersion()
+  } catch (error) {
+    if (!isPredictedSafeProps(propsWithNonce)) {
+      throw error
+    }
+    resolvedSafeVersion =
+      resolvedSafeVersion ?? propsWithNonce.safeDeploymentConfig?.safeVersion ?? getLatestSafeVersion()
+  }
+
+  if (!resolvedSafeVersion) {
+    throw new Error('Failed to resolve Safe version')
+  }
+
+  const customContracts: ContractNetworkConfig | undefined = replayedSafeProps
+    ? {
+        safeSingletonAddress: replayedSafeProps.masterCopy,
+        safeProxyFactoryAddress: replayedSafeProps.factoryAddress,
+        fallbackHandlerAddress: replayedSafeProps.safeAccountConfig.fallbackHandler,
+      }
+    : undefined
+
+  const predictionChainId = isZkSyncLikeChain(chainIdString) ? 324n : chainIdBigInt
 
   return predictSafeAddress({
     safeProvider,
-    chainId: BigInt(chain.chainId),
-    safeAccountConfig: props.safeAccountConfig,
+    chainId: predictionChainId,
+    safeAccountConfig: replayedSafeProps?.safeAccountConfig ?? propsWithNonce.safeAccountConfig,
     safeDeploymentConfig: {
       saltNonce,
-      safeVersion: safeVersion ?? getLatestSafeVersion(),
+      safeVersion: resolvedSafeVersion,
     },
     isL1SafeSingleton,
+    customContracts,
   })
 }
 

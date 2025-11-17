@@ -59,10 +59,12 @@ export function ReviewNestedSafe({
   }, [chain, safeAddress, nestedSafes, version])
 
   const [predictedSafeAddress] = useAsync(async () => {
-    if (provider && safeAccountConfig) {
-      return predictAddressBasedOnReplayData(safeAccountConfig, provider)
+    if (!provider || !safeAccountConfig || !chain) {
+      return undefined
     }
-  }, [provider, safeAccountConfig])
+
+    return predictAddressBasedOnReplayData(safeAccountConfig, provider)
+  }, [provider, safeAccountConfig, chain])
 
   useEffect(() => {
     if (!chain || !safeAccountConfig || !predictedSafeAddress) {
