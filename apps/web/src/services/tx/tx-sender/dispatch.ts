@@ -156,29 +156,46 @@ export const dispatchOnChainSigning = async (
     // TODO: This is a workaround until there is a fix for unchecked transactions in the protocol-kit
     const encodedApproveHashTx = await prepareApproveTxHash(safeTxHash, provider)
 
-    const paymasterParams = utils.getPaymasterParams(
-      PAYMASTER_ADDRESSES[chainId], // Paymaster address
-      {
-        type: 'General',
-        innerInput: new Uint8Array(),
-      },
-    )
+    const isPaymasterSupported = PAYMASTER_ADDRESSES[chainId]
 
-    await provider.request({
-      method: 'eth_sendTransaction',
-      params: [
+    if (isPaymasterSupported) {
+      const paymasterParams = utils.getPaymasterParams(
+        PAYMASTER_ADDRESSES[chainId], // Paymaster address
         {
-          from: signerAddress,
-          to: safeAddress,
-          data: encodedApproveHashTx,
-          gas: options?.gasLimit,
-          customData: {
-            gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
-            paymasterParams,
-          },
+          type: 'General',
+          innerInput: new Uint8Array(),
         },
-      ],
-    })
+      )
+
+      await provider.request({
+        method: 'eth_sendTransaction',
+        params: [
+          {
+            from: signerAddress,
+            to: safeAddress,
+            data: encodedApproveHashTx,
+            gas: options?.gasLimit,
+            customData: {
+              gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+              paymasterParams,
+            },
+          },
+        ],
+      })
+    } else {
+      // Fallback to standard transaction without paymaster
+      await provider.request({
+        method: 'eth_sendTransaction',
+        params: [
+          {
+            from: signerAddress,
+            to: safeAddress,
+            data: encodedApproveHashTx,
+            gas: options?.gasLimit,
+          },
+        ],
+      })
+    }
 
     txDispatch(TxEvent.ONCHAIN_SIGNATURE_REQUESTED, eventParams)
   } catch (err) {

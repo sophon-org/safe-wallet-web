@@ -2,6 +2,7 @@ import type { NamedAddress } from '@/components/new-safe/create/types'
 import EthHashInfo from '@/components/common/EthHashInfo'
 import { safeCreationDispatch, SafeCreationEvent } from '@/features/counterfactual/services/safeCreationEvents'
 import NetworkLogosList from '@/features/multichain/components/NetworkLogosList'
+import useGasPrice, { getTotalFeeFormatted } from '@/hooks/useGasPrice'
 import type { StepRenderProps } from '@/components/new-safe/CardStepper/useCardStepper'
 import type { NewSafeFormData } from '@/components/new-safe/create'
 import {
@@ -48,6 +49,8 @@ import { type ReplayedSafeProps } from '@safe-global/utils/features/counterfactu
 import { predictAddressBasedOnReplayData } from '@/features/multichain/utils/utils'
 import { createWeb3ReadOnly, getRpcServiceUrl } from '@/hooks/wallets/web3'
 import { updateAddressBook } from '../../logic/address-book'
+import { useEstimateSafeCreationGas } from '@/components/new-safe/create/useEstimateSafeCreationGas'
+import { PAYMASTER_ADDRESSES } from '@/config/constants'
 import chains from '@/config/chains'
 
 export const NetworkFee = ({
@@ -155,6 +158,7 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
   const wallet = useWallet()
   const dispatch = useAppDispatch()
   const router = useRouter()
+  const [gasPrice] = useGasPrice()
   const customRpc = useAppSelector(selectRpc)
   const [payMethod, setPayMethod] = useState(PayMethod.PayLater)
   const [executionMethod, setExecutionMethod] = useState(ExecutionMethod.RELAY)
@@ -189,7 +193,15 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
   )
 
   // We estimate with a random nonce as we'll just slightly overestimates like this
-  const walletCanPay = useWalletCanPay()
+  const { gasLimit } = useEstimateSafeCreationGas(newSafeProps, data.safeVersion)
+
+  const maxFeePerGas = gasPrice?.maxFeePerGas
+
+  const hasPaymaster = chain && PAYMASTER_ADDRESSES[chain.chainId]
+  const walletCanPayResult = useWalletCanPay({ gasLimit, maxFeePerGas })
+  const walletCanPay = hasPaymaster || walletCanPayResult
+
+  const totalFee = getTotalFeeFormatted(maxFeePerGas, gasLimit, chain)
 
   const allSafes = useAllSafes()
   const knownAddresses = useMemo(() => uniq(allSafes?.map((safe) => safe.address)), [allSafes])
@@ -426,7 +438,7 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
               </Box>
             )}
 
-            {/* {payMethod === PayMethod.PayNow && (
+            {payMethod === PayMethod.PayNow && !hasPaymaster && (
               <Grid item>
                 <Typography
                   component="div"
@@ -439,7 +451,7 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
                   wallet
                 </Typography>
               </Grid>
-            )} */}
+            )}
           </Box>
         </>
       )}
@@ -474,20 +486,24 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
                 name="Est. network fee"
                 value={
                   <>
-                    {/*<NetworkFee totalFee={totalFee} isWaived={willRelay} chain={chain} />
-
-                    {!willRelay && (
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: 'text.secondary',
-                          mt: 1,
-                        }}
-                      >
-                        You will have to confirm a transaction with your connected wallet.
-                      </Typography>
-                    )} */}
-                    <Typography variant="body2">Free (Sponsored by Sophon)</Typography>
+                    {chain && !hasPaymaster ? (
+                      <Typography variant="body2">Free (Sponsored by Sophon)</Typography>
+                    ) : (
+                      <>
+                        <NetworkFee totalFee={totalFee} isWaived={willRelay} chain={chain} />
+                        {!willRelay && (
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: 'text.secondary',
+                              mt: 1,
+                            }}
+                          >
+                            You will have to confirm a transaction with your connected wallet.
+                          </Typography>
+                        )}
+                      </>
+                    )}
                   </>
                 }
               />

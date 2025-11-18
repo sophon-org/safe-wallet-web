@@ -27,6 +27,7 @@ import commonCss from '@/components/tx-flow/common/styles.module.css'
 import { TxSecurityContext } from '@/components/tx/security/shared/TxSecurityContext'
 import useIsSafeOwner from '@/hooks/useIsSafeOwner'
 import NonOwnerError from '@/components/tx/SignOrExecuteForm/NonOwnerError'
+import { PAYMASTER_ADDRESSES } from '@/config/constants'
 
 export const CounterfactualForm = ({
   safeTx,
@@ -95,7 +96,12 @@ export const CounterfactualForm = ({
     setTxFlow(undefined)
   }
 
-  const walletCanPay = useWalletCanPay()
+  const hasPaymaster = chain && PAYMASTER_ADDRESSES[chain.chainId]
+  const walletCanPayResult = useWalletCanPay({
+    gasLimit: gasLimit?.totalGas,
+    maxFeePerGas: advancedParams.maxFeePerGas,
+  })
+  const walletCanPay = hasPaymaster || walletCanPayResult
 
   const cannotPropose = !isOwner && !onlyExecute
   const submitDisabled =

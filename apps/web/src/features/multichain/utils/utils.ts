@@ -25,10 +25,6 @@ type SafeSetup = {
   chainId: string
 }
 
-type NetworkLike = {
-  chainId: bigint | number | string
-}
-
 export const isChangingSignerSetup = (decodedData: DecodedDataResponse | undefined) => {
   return decodedData?.method === 'addOwnerWithThreshold' || decodedData?.method === 'removeOwner'
 }
@@ -105,11 +101,26 @@ export const getDeviatingSetups = (
   return deviatingSetups
 }
 
+const getProviderChainId = async (provider: Provider): Promise<string | undefined> => {
+  try {
+    const network = await provider.getNetwork?.()
+    const chainId = network?.chainId
+
+    return chainId !== undefined ? String(chainId) : undefined
+  } catch (error) {
+    console.error('Error getting provider chain id:', error)
+    return undefined
+  }
+}
+
 const memoizedGetProxyCreationCode = memoize(
   async (factoryAddress: string, provider: Provider) => {
     return Safe_proxy_factory__factory.connect(factoryAddress, provider).proxyCreationCode()
   },
-  async (factoryAddress, provider) => `${factoryAddress}${(await provider.getNetwork()).chainId}`,
+  async (factoryAddress, provider) => {
+    const chainId = await getProviderChainId(provider)
+    return `${factoryAddress}${chainId}`
+  },
 )
 
 export const predictSafeAddress = async (
@@ -134,16 +145,7 @@ export const predictSafeAddress = async (
 }
 
 export const predictAddressBasedOnReplayData = async (safeCreationData: ReplayedSafeProps, provider: Provider) => {
-  const getNetwork = (provider as { getNetwork?: () => Promise<NetworkLike> }).getNetwork
-  const network = getNetwork ? await getNetwork() : undefined
-  const rawChainId = network?.chainId
-  let chainId: string | undefined
-
-  if (typeof rawChainId === 'bigint' || typeof rawChainId === 'number') {
-    chainId = rawChainId.toString()
-  } else {
-    chainId = rawChainId
-  }
+  const chainId = await getProviderChainId(provider)
 
   if (chainId && isZkSyncLikeChain(chainId) && safeCreationData.safeVersion) {
     const safeProvider = new SafeProvider({ provider: provider as unknown as any })

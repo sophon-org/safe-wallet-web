@@ -1,5 +1,5 @@
 import type { SafeVersion } from '@safe-global/types-kit'
-import { type Eip1193Provider, type Provider } from 'ethers'
+import { type Eip1193Provider, type Provider, BrowserProvider as EthersBrowserProvider } from 'ethers'
 import semverSatisfies from 'semver/functions/satisfies'
 
 import { getSafeInfo, type SafeInfo, type ChainInfo, relayTransaction } from '@safe-global/safe-gateway-typescript-sdk'
@@ -22,7 +22,7 @@ const isValidSafeVersion = (version: string): boolean => {
 }
 
 import { backOff } from 'exponential-backoff'
-import { BrowserProvider, Provider as ZKProvider, Signer, utils } from 'zksync-ethers'
+import { BrowserProvider as ZKBrowserProvider, Provider as ZKProvider, Signer, utils } from 'zksync-ethers'
 import { type ConnectedWallet } from '@/hooks/wallets/useOnboard'
 import { EMPTY_DATA, ZERO_ADDRESS } from '@safe-global/protocol-kit/dist/src/utils/constants'
 import { getLatestSafeVersion } from '@/utils/chains'
@@ -382,117 +382,137 @@ export const signAndExecuteSafeCreation = async (
     version,
   )
 
-  if (!PAYMASTER_ADDRESSES[chain.chainId]) {
-    console.error('❌ [PAYMASTER] No paymaster address found for chain:', chain.chainId)
-    throw new Error(`No paymaster address found for chain ${chain.chainId}`)
-  }
+  const hasPaymaster = PAYMASTER_ADDRESSES[chain.chainId]
 
-  const paymasterParams = utils.getPaymasterParams(
-    PAYMASTER_ADDRESSES[chain.chainId], // Paymaster address
-    {
-      type: 'General',
-      innerInput: new Uint8Array(),
-    },
-  )
+  if (hasPaymaster) {
+    const paymasterParams = utils.getPaymasterParams(
+      PAYMASTER_ADDRESSES[chain.chainId], // Paymaster address
+      {
+        type: 'General',
+        innerInput: new Uint8Array(),
+      },
+    )
 
-  const browserProvider = new BrowserProvider(wallet.provider)
+    const browserProvider = new ZKBrowserProvider(wallet.provider)
 
-  let signer
-  try {
-    // Use hardcoded RPC URLs for Sophon as fallback if gateway RPC fails
-    let rpcUrl = chain.rpcUri.value
-
-    if (chain.chainId === '531050104') {
-      // Sophon Testnet - use the correct RPC URL
-      rpcUrl = 'https://rpc.testnet.sophon.xyz'
-    } else if (chain.chainId === '50104') {
-      // Sophon Mainnet
-      rpcUrl = 'https://rpc.sophon.xyz'
-    }
-
-    const zkProvider = new ZKProvider(rpcUrl, { name: chain.chainName, chainId: Number(chain.chainId) })
-
-    const browserSigner = await browserProvider.getSigner()
-
-    // Get the private key from the browser signer (this might not work in browser)
+    let signer
     try {
-      // This approach might not work in browser environment
-      throw new Error('Wallet pattern not suitable for browser')
-    } catch (error) {
-      // Use Signer (L2) as required for Sophon
-      signer = Signer.from(browserSigner, Number(chain.chainId), zkProvider)
+      // Use hardcoded RPC URLs for Sophon as fallback if gateway RPC fails
+      let rpcUrl = chain.rpcUri.value
 
-      // @ts-ignore - Accessing protected property
-      signer.providerL2 = zkProvider
-
-      // Also try to set it through the prototype if needed
-      Object.defineProperty(signer, 'providerL2', {
-        value: zkProvider,
-        writable: true,
-        enumerable: true,
-        configurable: true,
-      })
-    }
-  } catch (error) {
-    console.error('❌ [PAYMASTER] Error creating signer:', error)
-    throw error
-  }
-
-  const transactionData = {
-    type: utils.EIP712_TX_TYPE,
-    from: wallet.address,
-    to: proxyFactoryAddress,
-    data: createProxyWithNonceCallData,
-    customData: {
-      gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
-      paymasterParams,
-    },
-  }
-
-  // Override populateFeeData to bypass the providerL2 check
-  // @ts-ignore - Accessing protected method
-  const originalPopulateFeeData = signer.populateFeeData.bind(signer)
-  // @ts-ignore - Overriding protected method
-  signer.populateFeeData = async function (transaction: any) {
-    // Call the original method but catch the providerL2 error
-    try {
-      return await originalPopulateFeeData(transaction)
-    } catch (error) {
-      if ((error as Error).message === 'Initialize provider L2') {
-        console.log('💳 [PAYMASTER] Bypassing providerL2 check error')
-        // Manually populate fee data without providerL2 check
-        const tx = { ...transaction }
-
-        // Get current gas prices from the provider
-        const feeData = await this.provider.getFeeData()
-
-        // Set higher gas values for faster transaction processing
-        if (!tx.gasLimit) {
-          tx.gasLimit = 5000000 // Much higher gas limit for faster processing
-        }
-        if (!tx.maxFeePerGas) {
-          // Use much higher gas prices for faster confirmation
-          tx.maxFeePerGas = feeData.maxFeePerGas
-            ? feeData.maxFeePerGas * 3n // 3x current price for speed
-            : 100000000000 // 100 gwei default (very high for speed)
-        }
-        if (!tx.maxPriorityFeePerGas) {
-          tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
-            ? feeData.maxPriorityFeePerGas * 3n // 3x current price for speed
-            : 10000000000 // 10 gwei default (very high for speed)
-        }
-
-        return tx
+      if (chain.chainId === '531050104') {
+        // Sophon Testnet - use the correct RPC URL
+        rpcUrl = 'https://rpc.testnet.sophon.xyz'
+      } else if (chain.chainId === '50104') {
+        // Sophon Mainnet
+        rpcUrl = 'https://rpc.sophon.xyz'
       }
+
+      const zkProvider = new ZKProvider(rpcUrl, { name: chain.chainName, chainId: Number(chain.chainId) })
+
+      const browserSigner = await browserProvider.getSigner()
+
+      // Get the private key from the browser signer (this might not work in browser)
+      try {
+        // This approach might not work in browser environment
+        throw new Error('Wallet pattern not suitable for browser')
+      } catch (error) {
+        // Use Signer (L2) as required for Sophon
+        signer = Signer.from(browserSigner, Number(chain.chainId), zkProvider)
+
+        // @ts-ignore - Accessing protected property
+        signer.providerL2 = zkProvider
+
+        // Also try to set it through the prototype if needed
+        Object.defineProperty(signer, 'providerL2', {
+          value: zkProvider,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        })
+      }
+    } catch (error) {
+      console.error('❌ [PAYMASTER] Error creating signer:', error)
+      throw error
+    }
+
+    const transactionData = {
+      type: utils.EIP712_TX_TYPE,
+      from: wallet.address,
+      to: proxyFactoryAddress,
+      data: createProxyWithNonceCallData,
+      customData: {
+        gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+        paymasterParams,
+      },
+    }
+
+    // Override populateFeeData to bypass the providerL2 check
+    // @ts-ignore - Accessing protected method
+    const originalPopulateFeeData = signer.populateFeeData.bind(signer)
+    // @ts-ignore - Overriding protected method
+    signer.populateFeeData = async function (transaction: any) {
+      // Call the original method but catch the providerL2 error
+      try {
+        return await originalPopulateFeeData(transaction)
+      } catch (error) {
+        if ((error as Error).message === 'Initialize provider L2') {
+          console.log('💳 [PAYMASTER] Bypassing providerL2 check error')
+          // Manually populate fee data without providerL2 check
+          const tx = { ...transaction }
+
+          // Get current gas prices from the provider
+          const feeData = await this.provider.getFeeData()
+
+          // Set higher gas values for faster transaction processing
+          if (!tx.gasLimit) {
+            tx.gasLimit = 5000000 // Much higher gas limit for faster processing
+          }
+          if (!tx.maxFeePerGas) {
+            // Use much higher gas prices for faster confirmation
+            tx.maxFeePerGas = feeData.maxFeePerGas
+              ? feeData.maxFeePerGas * 3n // 3x current price for speed
+              : 100000000000 // 100 gwei default (very high for speed)
+          }
+          if (!tx.maxPriorityFeePerGas) {
+            tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
+              ? feeData.maxPriorityFeePerGas * 3n // 3x current price for speed
+              : 10000000000 // 10 gwei default (very high for speed)
+          }
+
+          return tx
+        }
+        throw error
+      }
+    }
+
+    const boundSendTransaction = signer.sendTransaction.bind(signer)
+    const tx = await boundSendTransaction(transactionData)
+
+    console.log('✅ [PAYMASTER] Transaction sent successfully:', tx.hash)
+    callback(tx.hash)
+  } else {
+    console.log('🔧 [PAYMASTER] No paymaster found, using standard EVM transaction')
+
+    try {
+      const ethersBrowserProvider = new EthersBrowserProvider(wallet.provider)
+      const signer = await ethersBrowserProvider.getSigner()
+
+      const transactionData = {
+        from: wallet.address,
+        to: proxyFactoryAddress,
+        data: createProxyWithNonceCallData,
+      }
+
+      const tx = await signer.sendTransaction(transactionData)
+
+      console.log('✅ Transaction sent successfully:', tx.hash)
+      callback(tx.hash)
+    } catch (error) {
+      console.error('❌ Error sending transaction:', error)
       throw error
     }
   }
-
-  const boundSendTransaction = signer.sendTransaction.bind(signer)
-  const tx = await boundSendTransaction(transactionData)
-
-  console.log('✅ [PAYMASTER] Transaction sent successfully:', tx.hash)
-  callback(tx.hash)
 }
 
 const generateCreateProxyWithNonceCallData = async (
