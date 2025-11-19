@@ -39,9 +39,9 @@ import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
 import { HexEncodedData } from '@/components/transactions/HexEncodedData'
 import { getLatestSafeVersion } from '@/utils/chains'
 import AdvancedParams from '@/components/tx/AdvancedParams'
-import useGasLimit from '@/hooks/useGasLimit'
 import { useAdvancedParams } from '@/components/tx/AdvancedParams/useAdvancedParams'
 import useUserNonce from '@/components/tx/AdvancedParams/useUserNonce'
+import { useWeb3ReadOnly } from '@/hooks/wallets/web3'
 
 export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
   const [isSubmittable, setIsSubmittable] = useState<boolean>(true)
@@ -59,10 +59,9 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
 
   const { maxFeePerGas, maxPriorityFeePerGas } = gasPrice || {}
   const isEIP1559 = chain && hasFeature(chain, FEATURES.EIP1559)
+  const web3ReadOnly = useWeb3ReadOnly()
 
-  // Estimate gas limit for the bulk transaction
-  const { gasLimit, gasLimitError } = useGasLimit()
-  const [advancedParams, setAdvancedParams] = useAdvancedParams(gasLimit)
+  const [advancedParams, setAdvancedParams] = useAdvancedParams()
 
   const [relays] = useRelaysBySafe()
   const canRelay = hasRemainingRelays(relays)
@@ -103,6 +102,25 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
     return encodeMultiSendData(multiSendTxs)
   }, [txsWithDetails, multiSendTxs])
 
+  const [gasLimit, gasLimitError] = useAsync(async () => {
+    if (!wallet?.address || !multiSendContract || !multiSendTxData || !web3ReadOnly) {
+      return undefined
+    }
+
+    try {
+      const txData = multiSendContract.encode('multiSend', [multiSendTxData as any])
+      const gasEstimate = await web3ReadOnly.estimateGas({
+        to: multisendContractAddress,
+        from: wallet.address,
+        data: txData,
+      })
+      return gasEstimate
+    } catch (error) {
+      console.error('Failed to estimate gas:', error)
+      throw error
+    }
+  }, [wallet?.address, multiSendContract, multiSendTxData, web3ReadOnly])
+
   const onExecute = async () => {
     if (
       !userNonce ||
@@ -121,6 +139,10 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
       : { gasPrice: maxFeePerGas?.toString() }
 
     overrides.nonce = userNonce
+
+    if (advancedParams.gasLimit) {
+      overrides.gasLimit = advancedParams.gasLimit
+    }
 
     await dispatchBatchExecution(
       txsWithDetails,

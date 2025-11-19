@@ -428,8 +428,17 @@ export const dispatchBatchExecution = async (
     } else {
       // Fallback to regular execution without paymaster
       const signer = await getUncheckedSigner(provider)
-      // @ts-ignore
-      result = await multiSendContract.contract.connect(signer).multiSend(multiSendTxData, overrides)
+
+      const txResponse = await signer.sendTransaction({
+        to: multiSendContract.getAddress(),
+        data: txData,
+        ...overrides,
+      })
+
+      result = {
+        hash: txResponse.hash,
+        transactionResponse: txResponse,
+      }
     }
 
     txIds.forEach((txId) => {
