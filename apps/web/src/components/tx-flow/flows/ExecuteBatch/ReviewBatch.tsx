@@ -1,7 +1,7 @@
 import useWallet from '@/hooks/wallets/useWallet'
 import { CircularProgress, Typography, Button, CardActions, Divider, Alert } from '@mui/material'
 import useAsync from '@safe-global/utils/hooks/useAsync'
-import { FEATURES } from '@/utils/chains'
+import { FEATURES, getLatestSafeVersion, hasFeature } from '@safe-global/utils/utils/chains'
 import { getReadOnlyMultiSendCallOnlyContract } from '@/services/contracts/safeContracts'
 import { useCurrentChain } from '@/hooks/useChains'
 import useSafeInfo from '@/hooks/useSafeInfo'
@@ -11,7 +11,7 @@ import type { SyntheticEvent } from 'react'
 import ErrorMessage from '@/components/tx/ErrorMessage'
 import { ExecutionMethod, ExecutionMethodSelector } from '@/components/tx/ExecutionMethodSelector'
 import DecodedTxs from '@/components/tx-flow/flows/ExecuteBatch/DecodedTxs'
-import { TxSimulation } from '@/components/tx/security/tenderly'
+import TxChecks from '@/components/tx-flow/features/TxChecks/TxChecks'
 import { useRelaysBySafe } from '@/hooks/useRemainingRelays'
 import useOnboard from '@/hooks/wallets/useOnboard'
 import { logError, Errors } from '@/services/exceptions'
@@ -27,7 +27,6 @@ import ConfirmationTitle, { ConfirmationTitleTypes } from '@/components/tx/SignO
 import commonCss from '@/components/tx-flow/common/styles.module.css'
 import { TxModalContext } from '@/components/tx-flow'
 import useGasPrice from '@/hooks/useGasPrice'
-import { hasFeature } from '@/utils/chains'
 import type { Overrides } from 'ethers'
 import { trackEvent } from '@/services/analytics'
 import { TX_EVENTS, TX_TYPES } from '@/services/analytics/events/transactions'
@@ -37,17 +36,13 @@ import { isWalletRejection } from '@/utils/wallets'
 import WalletRejectionError from '@/components/tx/SignOrExecuteForm/WalletRejectionError'
 import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
 import { HexEncodedData } from '@/components/transactions/HexEncodedData'
-import { getLatestSafeVersion } from '@/utils/chains'
-import AdvancedParams from '@/components/tx/AdvancedParams'
-import { useAdvancedParams } from '@/components/tx/AdvancedParams/useAdvancedParams'
 import useUserNonce from '@/components/tx/AdvancedParams/useUserNonce'
-import { useWeb3ReadOnly } from '@/hooks/wallets/web3'
 
 export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
   const [isSubmittable, setIsSubmittable] = useState<boolean>(true)
   const [submitError, setSubmitError] = useState<Error | undefined>()
   const [isRejectedByUser, setIsRejectedByUser] = useState<Boolean>(false)
-  const [executionMethod, setExecutionMethod] = useState(ExecutionMethod.WALLET)
+  const [executionMethod, setExecutionMethod] = useState(ExecutionMethod.RELAY)
 
   const { setTxFlow } = useContext(TxModalContext)
   const { safe } = useSafeInfo()
@@ -55,19 +50,20 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
   const wallet = useWallet()
   const onboard = useOnboard()
   const [gasPrice] = useGasPrice()
+  const [relays] = useRelaysBySafe()
+
   const userNonce = useUserNonce()
 
-  const { maxFeePerGas, maxPriorityFeePerGas } = gasPrice || {}
+  const maxFeePerGas = gasPrice?.maxFeePerGas
+  const maxPriorityFeePerGas = gasPrice?.maxPriorityFeePerGas
+
   const isEIP1559 = chain && hasFeature(chain, FEATURES.EIP1559)
-  const web3ReadOnly = useWeb3ReadOnly()
 
-  const [advancedParams, setAdvancedParams] = useAdvancedParams()
-
-  const [relays] = useRelaysBySafe()
+  // Chain has relaying feature and available relays
   const canRelay = hasRemainingRelays(relays)
   const willRelay = canRelay && executionMethod === ExecutionMethod.RELAY
 
-  const latestSafeVersion = getLatestSafeVersion()
+  const latestSafeVersion = getLatestSafeVersion(chain)
 
   const {
     data: txsWithDetails,
@@ -99,27 +95,8 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
 
   const multiSendTxData = useMemo(() => {
     if (!txsWithDetails || !multiSendTxs) return
-    return encodeMultiSendData(multiSendTxs)
+    return encodeMultiSendData(multiSendTxs) as `0x${string}`
   }, [txsWithDetails, multiSendTxs])
-
-  const [gasLimit, gasLimitError] = useAsync(async () => {
-    if (!wallet?.address || !multiSendContract || !multiSendTxData || !web3ReadOnly) {
-      return undefined
-    }
-
-    try {
-      const txData = multiSendContract.encode('multiSend', [multiSendTxData as any])
-      const gasEstimate = await web3ReadOnly.estimateGas({
-        to: multisendContractAddress,
-        from: wallet.address,
-        data: txData,
-      })
-      return gasEstimate
-    } catch (error) {
-      console.error('Failed to estimate gas:', error)
-      throw error
-    }
-  }, [wallet?.address, multiSendContract, multiSendTxData, web3ReadOnly])
 
   const onExecute = async () => {
     if (
@@ -139,10 +116,6 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
       : { gasPrice: maxFeePerGas?.toString() }
 
     overrides.nonce = userNonce
-
-    if (advancedParams.gasLimit) {
-      overrides.gasLimit = advancedParams.gasLimit
-    }
 
     await dispatchBatchExecution(
       txsWithDetails,
@@ -209,35 +182,19 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
 
         {multiSendContract && <SendToBlock address={multisendContractAddress} title="Interact with" />}
 
-        {multiSendTxData && <HexEncodedData title="Data (hex-encoded)" hexData={multiSendTxData} />}
+        {multiSendTxData && <HexEncodedData title="Data" hexData={multiSendTxData} />}
 
         <div>
           <DecodedTxs txs={txsWithDetails} />
         </div>
       </TxCard>
 
-      {multiSendTxs && (
-        <TxCard>
-          <Typography variant="h5">Transaction checks</Typography>
-
-          <TxSimulation transactions={multiSendTxs} disabled={submitDisabled} />
-        </TxCard>
-      )}
+      {multiSendTxs && <TxChecks disabled={submitDisabled} transaction={multiSendTxs} />}
 
       <TxCard>
         <ConfirmationTitle variant={ConfirmationTitleTypes.execute} />
 
         <NetworkWarning />
-
-        {/* Add AdvancedParams to show sponsored fee message */}
-        <AdvancedParams
-          willExecute
-          params={advancedParams}
-          recommendedGasLimit={gasLimit}
-          onFormSubmit={setAdvancedParams}
-          gasLimitError={gasLimitError}
-          willRelay={willRelay}
-        />
 
         {canRelay ? (
           <>
