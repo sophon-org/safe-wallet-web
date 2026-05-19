@@ -19,14 +19,10 @@ import { useCurrentChain } from '@/hooks/useChains'
 import { PAYMASTER_ADDRESSES } from '@/config/constants'
 
 const PayNowPayLater = ({
-  totalFee,
-  canRelay,
   isMultiChain,
   payMethod,
   setPayMethod,
 }: {
-  totalFee: string
-  canRelay: boolean
   isMultiChain: boolean
   payMethod: PayMethod
   setPayMethod: Dispatch<SetStateAction<PayMethod>>

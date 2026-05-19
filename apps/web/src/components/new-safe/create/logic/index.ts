@@ -1,4 +1,5 @@
 import type { SafeVersion, TransactionOptions } from '@safe-global/types-kit'
+import { BrowserProvider as ZKBrowserProvider, Provider as ZKProvider, Signer, utils } from 'zksync-ethers'
 import { type TransactionResponse, type Eip1193Provider, type Provider, type BrowserProvider } from 'ethers'
 import semverSatisfies from 'semver/functions/satisfies'
 import { type SafeState, cgwApi as safesApi } from '@safe-global/store/gateway/AUTO_GENERATED/safes'
@@ -106,8 +107,10 @@ export const createNewSafe = async (
  */
 export const computeNewSafeAddress = async (
   provider: Eip1193Provider | string,
-  props: PredictedSafeProps,
+  props: UndeployedSafeProps,
   chain: Chain,
+  safeVersion?: SafeVersion,
+  isL1SafeSingleton?: boolean,
 ): Promise<string> => {
   const safeProvider = new SafeProvider({ provider })
   const saltNonce = 'saltNonce' in props ? props.saltNonce : '0'

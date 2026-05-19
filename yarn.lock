@@ -13780,6 +13780,7 @@ __metadata:
     vite: "npm:^7.3.1"
     vite-plugin-svgr: "npm:^4.5.0"
     wait-on: "npm:^9.0.3"
+    zksync-ethers: "npm:6.11.2"
     zodiac-roles-deployments: "npm:^2.3.4"
   languageName: unknown
   linkType: soft
@@ -44645,6 +44646,15 @@ __metadata:
   version: 2.1.2
   resolution: "yoctocolors-cjs@npm:2.1.2"
   checksum: 10/d731e3ba776a0ee19021d909787942933a6c2eafb2bbe85541f0c59aa5c7d475ce86fcb860d5803105e32244c3dd5ba875b87c4c6bf2d6f297da416aa54e556f
+  languageName: node
+  linkType: hard
+
+"zksync-ethers@npm:6.11.2":
+  version: 6.11.2
+  resolution: "zksync-ethers@npm:6.11.2"
+  peerDependencies:
+    ethers: ^6.7.1
+  checksum: 10/75aaaa6b85c215389dddcfbc025528567df5ac7713bf1ad8f4fc780a19711738ed6390c2fa7a227f75f88a9d9ae8fad52b95135322e96ef6608157991517a3bc
   languageName: node
   linkType: hard
 

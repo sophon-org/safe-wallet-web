@@ -109,6 +109,7 @@
     "react-papaparse": "^4.0.2",
     "react-redux": "^9.1.2",
     "semver": "^7.7.1",
+    "zksync-ethers": "6.11.2",
     "zodiac-roles-deployments": "^2.3.4"
   },
   "devDependencies": {
