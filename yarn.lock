@@ -13356,7 +13356,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@safe-global/protocol-kit@npm:^5.1.1, @safe-global/protocol-kit@npm:^5.2.25":
+"@safe-global/protocol-kit@npm:5.2.25, @safe-global/protocol-kit@npm:^5.1.1":
   version: 5.2.25
   resolution: "@safe-global/protocol-kit@npm:5.2.25"
   dependencies:
@@ -13374,6 +13374,27 @@ __metadata:
     "@peculiar/asn1-schema":
       optional: true
   checksum: 10/e3225881121e48deb32ac9f15efbf735e9ba0f746b3350cfa22d1af6f2a64dda906eb66aa7bf3afaeb5937a8cd9d847934784634f479fd72ac0b82fa7a558250
+  languageName: node
+  linkType: hard
+
+"@safe-global/protocol-kit@patch:@safe-global/protocol-kit@npm%3A5.2.25#~/.yarn/patches/@safe-global-protocol-kit-npm-5.2.25-b03ecd99a5.patch":
+  version: 5.2.25
+  resolution: "@safe-global/protocol-kit@patch:@safe-global/protocol-kit@npm%3A5.2.25#~/.yarn/patches/@safe-global-protocol-kit-npm-5.2.25-b03ecd99a5.patch::version=5.2.25&hash=4c5eb3"
+  dependencies:
+    "@noble/curves": "npm:^1.6.0"
+    "@peculiar/asn1-schema": "npm:^2.3.13"
+    "@safe-global/safe-deployments": "npm:^1.37.51"
+    "@safe-global/safe-modules-deployments": "npm:^2.2.23"
+    "@safe-global/types-kit": "npm:^1.0.5"
+    abitype: "npm:^1.0.2"
+    semver: "npm:^7.6.3"
+    viem: "npm:^2.21.8"
+  dependenciesMeta:
+    "@noble/curves":
+      optional: true
+    "@peculiar/asn1-schema":
+      optional: true
+  checksum: 10/e14ca866e1ff5c451cba564f38ac226c3c20193521b6afe1f8b8defe514aa5d7d1514d7a5861ff062ded2ef38499895edd320c9278b37895cbccf776f4f6a3ca
   languageName: node
   linkType: hard
 

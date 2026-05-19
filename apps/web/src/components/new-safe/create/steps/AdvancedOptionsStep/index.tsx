@@ -1,5 +1,6 @@
-import { predictAddressBasedOnReplayData } from '@/features/multichain'
-import { useWeb3ReadOnly } from '@/hooks/wallets/web3ReadOnly'
+// import { predictAddressBasedOnReplayData } from '@/features/multichain/utils/utils'
+// import { useWeb3ReadOnly } from '@/hooks/wallets/web3'
+import { getRpcServiceUrl } from '@/hooks/wallets/web3'
 import { Button, MenuItem, Divider, Box, TextField, Stack, Skeleton, SvgIcon, Tooltip, Typography } from '@mui/material'
 import { Controller, FormProvider, useForm } from 'react-hook-form'
 import { type ReactElement, useMemo } from 'react'
@@ -13,10 +14,12 @@ import { type SafeVersion } from '@safe-global/types-kit'
 import NumberField from '@/components/common/NumberField'
 import { useCurrentChain } from '@/hooks/useChains'
 import useAsync from '@safe-global/utils/hooks/useAsync'
-import { createNewUndeployedSafeWithoutSalt } from '../../logic'
+import { computeNewSafeAddress, createNewUndeployedSafeWithoutSalt, isZkSyncLikeChain } from '../../logic'
+import { getReadOnlyFallbackHandlerContract } from '@/services/contracts/safeContracts'
 import EthHashInfo from '@/components/common/EthHashInfo'
 import InfoIcon from '@/public/images/notifications/info.svg'
 import { isSmartContract } from '@/utils/wallets'
+import useWallet from '@/hooks/wallets/useWallet'
 
 enum AdvancedOptionsFields {
   safeVersion = 'safeVersion',
@@ -35,7 +38,9 @@ const ADVANCED_OPTIONS_STEP_FORM_ID = 'create-safe-advanced-options-step-form'
 const AdvancedOptionsStep = ({ onSubmit, onBack, data, setStep }: StepRenderProps<NewSafeFormData>): ReactElement => {
   useSyncSafeCreationStep(setStep, data.networks)
   const chain = useCurrentChain()
-  const provider = useWeb3ReadOnly()
+  const wallet = useWallet()
+  debugger
+  // const provider = useWeb3ReadOnly()
 
   const formMethods = useForm<AdvancedOptionsStepForm>({
     mode: 'onChange',
@@ -46,31 +51,62 @@ const AdvancedOptionsStep = ({ onSubmit, onBack, data, setStep }: StepRenderProp
 
   const selectedSafeVersion = watch(AdvancedOptionsFields.safeVersion)
   const selectedSaltNonce = watch(AdvancedOptionsFields.saltNonce)
-  const selectedPaymentReceiver = watch(AdvancedOptionsFields.paymentReceiver)
+  // const selectedPaymentReceiver = watch(AdvancedOptionsFields.paymentReceiver)
 
-  const newSafeProps = useMemo(
-    () =>
-      chain
-        ? createNewUndeployedSafeWithoutSalt(
-            selectedSafeVersion,
-            {
-              owners: data.owners.map((owner) => owner.address),
-              threshold: data.threshold,
-              paymentReceiver: selectedPaymentReceiver,
-            },
-            chain,
-          )
-        : undefined,
-    [chain, data.owners, data.threshold, selectedSafeVersion, selectedPaymentReceiver],
+  const [readOnlyFallbackHandlerContract] = useAsync(
+    () => (chain ? getReadOnlyFallbackHandlerContract(selectedSafeVersion) : undefined),
+    [chain, selectedSafeVersion],
   )
 
+  // const newSafeProps = useMemo(
+  //   () =>
+  //     chain
+  //       ? createNewUndeployedSafeWithoutSalt(
+  //           selectedSafeVersion,
+  //           {
+  //             owners: data.owners.map((owner) => owner.address),
+  //             threshold: data.threshold,
+  //             paymentReceiver: selectedPaymentReceiver,
+  //           },
+  //           chain,
+  //         )
+  //       : undefined,
+  //   [chain, data.owners, data.threshold, selectedSafeVersion, selectedPaymentReceiver],
+  // )
+
   const [predictedSafeAddress] = useAsync(async () => {
-    if (!provider || !newSafeProps) return
+    // if (!provider || !newSafeProps) return
 
-    const replayedSafeWithNonce = { ...newSafeProps, saltNonce: selectedSaltNonce.toString() }
+    // const replayedSafeWithNonce = { ...newSafeProps, saltNonce: selectedSaltNonce.toString() }
 
-    return predictAddressBasedOnReplayData(replayedSafeWithNonce, provider)
-  }, [provider, newSafeProps, selectedSaltNonce])
+    // return predictAddressBasedOnReplayData(replayedSafeWithNonce, provider)
+    if (!chain || !readOnlyFallbackHandlerContract || !wallet) {
+      return undefined
+    }
+    debugger
+    return computeNewSafeAddress(
+      wallet.provider,
+      {
+        safeAccountConfig: {
+          owners: data.owners.map((owner) => owner.address),
+          threshold: data.threshold,
+          fallbackHandler: readOnlyFallbackHandlerContract.getAddress(),
+        },
+        saltNonce: selectedSaltNonce.toString(),
+      },
+      chain,
+      selectedSafeVersion,
+      true,
+    )
+  }, [
+    chain,
+    data.owners,
+    data.threshold,
+    wallet,
+    readOnlyFallbackHandlerContract,
+    selectedSafeVersion,
+    selectedSaltNonce,
+  ])
 
   const [isDeployed] = useAsync(
     async () => (predictedSafeAddress ? await isSmartContract(predictedSafeAddress) : false),

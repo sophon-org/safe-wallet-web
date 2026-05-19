@@ -4,7 +4,6 @@ import {
   safeCreationDispatch,
   SafeCreationEvent,
   replayCounterfactualSafeDeployment,
-  activateReplayedSafe,
 } from '@/features/counterfactual/services'
 import { PayNowPayLater } from '@/features/counterfactual/components'
 import { CF_TX_GROUP_KEY } from '@/features/counterfactual'
@@ -13,9 +12,10 @@ import { NetworkLogosList, predictAddressBasedOnReplayData } from '@/features/mu
 import type { StepRenderProps } from '@/components/new-safe/CardStepper/useCardStepper'
 import type { NewSafeFormData } from '@/components/new-safe/create'
 import {
-  createNewSafe,
+  computeNewSafeAddress,
   createNewUndeployedSafeWithoutSalt,
   relaySafeCreation,
+  signAndExecuteSafeCreation,
 } from '@/components/new-safe/create/logic'
 import { getAvailableSaltNonce } from '@/components/new-safe/create/logic/utils'
 import css from '@/components/new-safe/create/steps/ReviewStep/styles.module.css'
@@ -56,12 +56,12 @@ import { useAllSafes } from '@/hooks/safes'
 import uniq from 'lodash/uniq'
 import { selectRpc } from '@/store/settingsSlice'
 import { AppRoutes } from '@/config/routes'
-import type { CreateSafeResult, ReplayedSafeProps } from '@safe-global/utils/features/counterfactual/store/types'
-import { createWeb3ReadOnly } from '@/hooks/wallets/web3'
+import type { ReplayedSafeProps } from '@safe-global/utils/features/counterfactual/store/types'
+import { createWeb3ReadOnly, getRpcServiceUrl } from '@/hooks/wallets/web3'
 import { updateAddressBook } from '../../logic/address-book'
 import { FEATURES, hasFeature } from '@safe-global/utils/utils/chains'
 import { PayMethod } from '@safe-global/utils/features/counterfactual/types'
-import { type TransactionOptions } from '@safe-global/types-kit'
+import { PAYMASTER_ADDRESSES } from '@/config/constants'
 import { getTotalFeeFormatted } from '@safe-global/utils/hooks/useDefaultGasPrice'
 
 export const NetworkFee = ({
@@ -177,7 +177,6 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
   const [submitError, setSubmitError] = useState<string>()
   const isCounterfactualEnabled = useHasFeature(FEATURES.COUNTERFACTUAL)
   const isEIP1559 = chain && hasFeature(chain, FEATURES.EIP1559)
-
   const ownerAddresses = useMemo(() => data.owners.map((owner) => owner.address), [data.owners])
   const [minRelays] = useLeastRemainingRelays(ownerAddresses)
 
@@ -216,9 +215,10 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
   const { gasLimit } = useEstimateSafeCreationGas(safePropsForGasEstimation, data.safeVersion)
 
   const maxFeePerGas = gasPrice?.maxFeePerGas
-  const maxPriorityFeePerGas = gasPrice?.maxPriorityFeePerGas
 
-  const walletCanPay = useWalletCanPay({ gasLimit, maxFeePerGas })
+  const hasPaymaster = chain && PAYMASTER_ADDRESSES[chain.chainId]
+  const walletCanPayResult = useWalletCanPay({ gasLimit, maxFeePerGas })
+  const walletCanPay = hasPaymaster || walletCanPayResult
 
   const totalFee = getTotalFeeFormatted(maxFeePerGas, gasLimit, chain)
 
@@ -237,6 +237,10 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
 
       setIsCreating(true)
 
+      const customRpcUrl = customRpc[chain.chainId]
+      const provider = createWeb3ReadOnly(chain, customRpcUrl)
+      if (!provider) return
+
       // Figure out the shared available nonce across chains
       const nextAvailableNonce =
         data.saltNonce !== undefined
@@ -245,31 +249,29 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
 
       const replayedSafeWithNonce = { ...newSafeProps, saltNonce: nextAvailableNonce }
 
-      const customRpcUrl = customRpc[chain.chainId]
-      const provider = createWeb3ReadOnly(chain, customRpcUrl)
-      if (!provider) return
+      const safeAddress = hasPaymaster
+        ? await computeNewSafeAddress(
+            customRpcUrl || getRpcServiceUrl(chain.rpcUri),
+            replayedSafeWithNonce,
+            chain,
+            replayedSafeWithNonce.safeVersion,
+            true,
+          )
+        : await predictAddressBasedOnReplayData(replayedSafeWithNonce, provider)
 
-      const safeAddress = await predictAddressBasedOnReplayData(replayedSafeWithNonce, provider)
-
-      const createSafeResults: CreateSafeResult[] = []
       for (const network of data.networks) {
-        const result = await createSafe(network, replayedSafeWithNonce, safeAddress)
-        createSafeResults.push(result)
+        await createSafe(network, replayedSafeWithNonce, safeAddress)
       }
 
-      // Update the addressbook with owners and Safe on all successfully created networks
-      const successfulChains = createSafeResults.filter((result) => result.success)
-      if (successfulChains.length > 0) {
-        dispatch(
-          updateAddressBook(
-            successfulChains.map((res) => res.chain.chainId),
-            safeAddress,
-            data.name,
-            data.owners,
-            data.threshold,
-          ),
-        )
-      }
+      dispatch(
+        updateAddressBook(
+          data.networks.map((network) => network.chainId),
+          safeAddress,
+          data.name,
+          data.owners,
+          data.threshold,
+        ),
+      )
 
       gtmSetChainId(chain.chainId)
 
@@ -292,8 +294,8 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
     }
   }
 
-  const createSafe = async (chain: Chain, props: ReplayedSafeProps, safeAddress: string): Promise<CreateSafeResult> => {
-    if (!wallet) return { chain, safeAddress, success: false }
+  const createSafe = async (chain: Chain, props: ReplayedSafeProps, safeAddress: string) => {
+    if (!wallet) return
 
     gtmSetChainId(chain.chainId)
 
@@ -310,7 +312,9 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
           ? 'Pay-later'
           : willRelay
             ? 'Sponsored'
-            : 'Self-paid',
+            : hasPaymaster
+              ? 'Paymaster'
+              : 'Self-paid',
     })
 
     try {
@@ -320,16 +324,16 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
         trackEvent({ ...OVERVIEW_EVENTS.PROCEED_WITH_TX, label: 'counterfactual', category: CREATE_SAFE_CATEGORY })
         replayCounterfactualSafeDeployment(chain.chainId, safeAddress, props, data.name, dispatch, payMethod)
 
-        return { chain, safeAddress, success: true }
+        return
       }
 
-      const options: TransactionOptions = isEIP1559
-        ? {
-            maxFeePerGas: maxFeePerGas?.toString(),
-            maxPriorityFeePerGas: maxPriorityFeePerGas?.toString(),
-            gasLimit: gasLimit?.toString(),
-          }
-        : { gasPrice: maxFeePerGas?.toString(), gasLimit: gasLimit?.toString() }
+      // const options: TransactionOptions = isEIP1559
+      //   ? {
+      //       maxFeePerGas: maxFeePerGas?.toString(),
+      //       maxPriorityFeePerGas: maxPriorityFeePerGas?.toString(),
+      //       gasLimit: gasLimit?.toString(),
+      //     }
+      //   : { gasPrice: maxFeePerGas?.toString(), gasLimit: gasLimit?.toString() }
 
       const onSubmitCallback = async (taskId?: string, txHash?: string) => {
         // Create a counterfactual Safe
@@ -357,16 +361,14 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
         const taskId = await relaySafeCreation(chain, props)
         onSubmitCallback(taskId)
       } else {
-        await createNewSafe(
-          wallet.provider,
-          props,
+        await signAndExecuteSafeCreation(
           chain,
-          options,
+          props,
+          wallet,
           (txHash) => {
             onSubmitCallback(undefined, txHash)
           },
-          true,
-          activateReplayedSafe,
+          data.safeVersion,
         )
       }
     } catch (_err) {
@@ -379,11 +381,8 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
       if (isWalletRejection(error)) {
         trackEvent(CREATE_SAFE_EVENTS.REJECT_CREATE_SAFE)
       }
-
-      return { chain, safeAddress, success: false }
     }
-
-    return { chain, safeAddress, success: true }
+    setIsCreating(false)
   }
 
   const showNetworkWarning =
@@ -402,9 +401,7 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
           <Divider />
           <Box data-testid="pay-now-later-message-box" className={layoutCss.row}>
             <PayNowPayLater
-              totalFee={totalFee}
               isMultiChain={isMultiChainDeployment}
-              canRelay={canRelay}
               payMethod={payMethod}
               setPayMethod={setPayMethod}
             />
@@ -439,7 +436,7 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
               </Box>
             )}
 
-            {payMethod === PayMethod.PayNow && (
+            {payMethod === PayMethod.PayNow && !hasPaymaster && (
               <Grid item>
                 <Typography
                   component="div"
@@ -487,18 +484,23 @@ const ReviewStep = ({ data, onSubmit, onBack, setStep }: StepRenderProps<NewSafe
                 name="Est. network fee"
                 value={
                   <>
-                    <NetworkFee totalFee={totalFee} isWaived={willRelay} chain={chain} />
-
-                    {!willRelay && (
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          color: 'text.secondary',
-                          mt: 1,
-                        }}
-                      >
-                        You will have to confirm a transaction with your connected wallet.
-                      </Typography>
+                    {hasPaymaster ? (
+                      <Typography variant="body2">Free (Sponsored by Sophon)</Typography>
+                    ) : (
+                      <>
+                        <NetworkFee totalFee={totalFee} isWaived={willRelay} chain={chain} />
+                        {!willRelay && (
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: 'text.secondary',
+                              mt: 1,
+                            }}
+                          >
+                            You will have to confirm a transaction with your connected wallet.
+                          </Typography>
+                        )}
+                      </>
                     )}
                   </>
                 }

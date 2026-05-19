@@ -10,7 +10,8 @@ import type { UrlObject } from 'url'
 import { AppRoutes } from '@/config/routes'
 import { SAFE_APPS_EVENTS, trackEvent } from '@/services/analytics'
 import Safe, { predictSafeAddress, SafeProvider } from '@safe-global/protocol-kit'
-import type { PredictedSafeProps } from '@safe-global/protocol-kit'
+import type { ContractNetworkConfig, PredictedSafeProps } from '@safe-global/protocol-kit'
+import type { ConnectedWallet } from '@/hooks/wallets/useOnboard'
 
 import { backOff } from 'exponential-backoff'
 import { EMPTY_DATA, ZERO_ADDRESS } from '@safe-global/protocol-kit/dist/src/utils/constants'
@@ -38,6 +39,14 @@ import {
 import { createWeb3 } from '@/hooks/wallets/web3'
 import { hasMultiChainCreationFeatures } from '@/features/multichain'
 import { getLatestSafeVersion } from '@safe-global/utils/utils/chains'
+import { BrowserProvider as EthersBrowserProvider } from 'ethers'
+import { PAYMASTER_ADDRESSES } from '@/config/constants'
+
+export const ZKSYNC_LIKE_CHAIN_IDS = new Set<string>(['50104', '531050104'])
+export const isZkSyncLikeChain = (chainId?: string): boolean => {
+  if (!chainId) return false
+  return ZKSYNC_LIKE_CHAIN_IDS.has(chainId)
+}
 
 // Type for the lazy-loaded activateReplayedSafe function
 export type ActivateReplayedSafeFn = (
@@ -101,12 +110,50 @@ export const computeNewSafeAddress = async (
   chain: Chain,
 ): Promise<string> => {
   const safeProvider = new SafeProvider({ provider })
+  const saltNonce = 'saltNonce' in props ? props.saltNonce : '0'
+  const propsWithNonce = 'saltNonce' in props ? props : { ...props, saltNonce }
+  const chainIdString = chain.chainId?.toString()
+  const chainIdBigInt = BigInt(chainIdString ?? chain.chainId)
+
+  let replayedSafeProps: ReplayedSafeProps | undefined
+  let resolvedSafeVersion = safeVersion
+
+  try {
+    replayedSafeProps = assertNewUndeployedSafeProps(propsWithNonce, chain)
+    resolvedSafeVersion = resolvedSafeVersion ?? replayedSafeProps.safeVersion ?? getLatestSafeVersion(chain)
+  } catch (error) {
+    if (!isPredictedSafeProps(propsWithNonce)) {
+      throw error
+    }
+    resolvedSafeVersion =
+      resolvedSafeVersion ?? (propsWithNonce as PredictedSafeProps).safeDeploymentConfig?.safeVersion ?? getLatestSafeVersion(chain)
+  }
+
+  if (!resolvedSafeVersion) {
+    throw new Error('Failed to resolve Safe version')
+  }
+
+  const customContracts: ContractNetworkConfig | undefined = replayedSafeProps
+    ? {
+        safeSingletonAddress: replayedSafeProps.masterCopy,
+        safeProxyFactoryAddress: replayedSafeProps.factoryAddress,
+        fallbackHandlerAddress: replayedSafeProps.safeAccountConfig.fallbackHandler,
+      }
+    : undefined
+
+  // Sophon is ZKSync-based but uses different chain IDs for deployment address prediction
+  const predictionChainId = isZkSyncLikeChain(chainIdString) ? 324n : chainIdBigInt
 
   return predictSafeAddress({
     safeProvider,
-    chainId: BigInt(chain.chainId),
-    safeAccountConfig: props.safeAccountConfig,
-    safeDeploymentConfig: props.safeDeploymentConfig,
+    chainId: predictionChainId,
+    safeAccountConfig: replayedSafeProps?.safeAccountConfig ?? propsWithNonce.safeAccountConfig,
+    safeDeploymentConfig: {
+      saltNonce,
+      safeVersion: resolvedSafeVersion,
+    },
+    isL1SafeSingleton,
+    customContracts,
   })
 }
 
@@ -356,4 +403,170 @@ export const assertNewUndeployedSafeProps = (props: UndeployedSafeProps, chain: 
   }
 
   return props
+}
+
+export const signAndExecuteSafeCreation = async (
+  chain: Chain,
+  undeployedSafeProps: UndeployedSafeProps,
+  wallet: ConnectedWallet,
+  callback: (txHash: string) => void,
+  version?: SafeVersion,
+) => {
+  const { createProxyWithNonceCallData, proxyFactoryAddress } = await generateCreateProxyWithNonceCallData(
+    chain,
+    undeployedSafeProps,
+    version,
+  )
+
+  const hasPaymaster = PAYMASTER_ADDRESSES[chain.chainId]
+
+  if (hasPaymaster) {
+    const paymasterParams = utils.getPaymasterParams(
+      PAYMASTER_ADDRESSES[chain.chainId], // Paymaster address
+      {
+        type: 'General',
+        innerInput: new Uint8Array(),
+      },
+    )
+
+    const browserProvider = new ZKBrowserProvider(wallet.provider)
+
+    let signer
+    try {
+      // Use hardcoded RPC URLs for Sophon as fallback if gateway RPC fails
+      let rpcUrl = chain.rpcUri.value
+
+      if (chain.chainId === '531050104') {
+        // Sophon Testnet - use the correct RPC URL
+        rpcUrl = 'https://rpc.testnet.sophon.xyz'
+      } else if (chain.chainId === '50104') {
+        // Sophon Mainnet
+        rpcUrl = 'https://rpc.sophon.xyz'
+      }
+
+      const zkProvider = new ZKProvider(rpcUrl, { name: chain.chainName, chainId: Number(chain.chainId) })
+
+      const browserSigner = await browserProvider.getSigner()
+
+      // Get the private key from the browser signer (this might not work in browser)
+      try {
+        // This approach might not work in browser environment
+        throw new Error('Wallet pattern not suitable for browser')
+      } catch (error) {
+        // Use Signer (L2) as required for Sophon
+        signer = Signer.from(browserSigner, Number(chain.chainId), zkProvider)
+
+        // @ts-ignore - Accessing protected property
+        signer.providerL2 = zkProvider
+
+        // Also try to set it through the prototype if needed
+        Object.defineProperty(signer, 'providerL2', {
+          value: zkProvider,
+          writable: true,
+          enumerable: true,
+          configurable: true,
+        })
+      }
+    } catch (error) {
+      console.error('❌ [PAYMASTER] Error creating signer:', error)
+      throw error
+    }
+
+    const transactionData = {
+      type: utils.EIP712_TX_TYPE,
+      from: wallet.address,
+      to: proxyFactoryAddress,
+      data: createProxyWithNonceCallData,
+      customData: {
+        gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+        paymasterParams,
+      },
+    }
+
+    // Override populateFeeData to bypass the providerL2 check
+    // @ts-ignore - Accessing protected method
+    const originalPopulateFeeData = signer.populateFeeData.bind(signer)
+    // @ts-ignore - Overriding protected method
+    signer.populateFeeData = async function (transaction: any) {
+      // Call the original method but catch the providerL2 error
+      try {
+        return await originalPopulateFeeData(transaction)
+      } catch (error) {
+        if ((error as Error).message === 'Initialize provider L2') {
+          console.log('💳 [PAYMASTER] Bypassing providerL2 check error')
+          // Manually populate fee data without providerL2 check
+          const tx = { ...transaction }
+
+          // Get current gas prices from the provider
+          const feeData = await this.provider.getFeeData()
+
+          // Set higher gas values for faster transaction processing
+          if (!tx.gasLimit) {
+            tx.gasLimit = 5000000 // Much higher gas limit for faster processing
+          }
+          if (!tx.maxFeePerGas) {
+            // Use much higher gas prices for faster confirmation
+            tx.maxFeePerGas = feeData.maxFeePerGas
+              ? feeData.maxFeePerGas * 3n // 3x current price for speed
+              : 100000000000 // 100 gwei default (very high for speed)
+          }
+          if (!tx.maxPriorityFeePerGas) {
+            tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas
+              ? feeData.maxPriorityFeePerGas * 3n // 3x current price for speed
+              : 10000000000 // 10 gwei default (very high for speed)
+          }
+
+          return tx
+        }
+        throw error
+      }
+    }
+
+    const boundSendTransaction = signer.sendTransaction.bind(signer)
+    const tx = await boundSendTransaction(transactionData)
+
+    console.log('✅ [PAYMASTER] Transaction sent successfully:', tx.hash)
+    callback(tx.hash)
+  } else {
+    console.log('🔧 [PAYMASTER] No paymaster found, using standard EVM transaction')
+
+    try {
+      const ethersBrowserProvider = new EthersBrowserProvider(wallet.provider)
+      const signer = await ethersBrowserProvider.getSigner()
+
+      const transactionData = {
+        from: wallet.address,
+        to: proxyFactoryAddress,
+        data: createProxyWithNonceCallData,
+      }
+
+      const tx = await signer.sendTransaction(transactionData)
+
+      console.log('✅ Transaction sent successfully:', tx.hash)
+      callback(tx.hash)
+    } catch (error) {
+      console.error('❌ Error sending transaction:', error)
+      throw error
+    }
+  }
+}
+
+const generateCreateProxyWithNonceCallData = async (
+  chain: Chain,
+  undeployedSafeProps: UndeployedSafeProps,
+  version?: SafeVersion,
+) => {
+  const safeVersion = version ?? getLatestSafeVersion(chain)
+  const readOnlyProxyFactoryContract = await getReadOnlyProxyFactoryContract(safeVersion)
+  const proxyFactoryAddress = readOnlyProxyFactoryContract.getAddress()
+  const replayedSafeProps = assertNewUndeployedSafeProps(undeployedSafeProps, chain)
+  const createProxyWithNonceCallData = Safe_proxy_factory__factory.createInterface().encodeFunctionData(
+    'createProxyWithNonce',
+    [
+      replayedSafeProps.masterCopy,
+      encodeSafeSetupCall(replayedSafeProps.safeAccountConfig),
+      BigInt(replayedSafeProps.saltNonce),
+    ],
+  )
+  return { createProxyWithNonceCallData, proxyFactoryAddress }
 }

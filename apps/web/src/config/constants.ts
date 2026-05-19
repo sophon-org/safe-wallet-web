@@ -135,6 +135,11 @@ export enum SafeAppsName {
   TRANSACTION_BUILDER = 'Transaction Builder',
 }
 
+export const PAYMASTER_ADDRESSES = {
+  [chains['sophon-testnet']]: '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
+  [chains.sophon]: '0x98546B226dbbA8230cf620635a1e4ab01F6A99B2',
+}
+
 // Legal
 export const IS_OFFICIAL_HOST = process.env.NEXT_PUBLIC_IS_OFFICIAL_HOST === 'true'
 export const OFFICIAL_HOSTS = /app\.safe\.global|.+\.5afe\.dev|localhost:3000|localhost:4000|localhost:6006/

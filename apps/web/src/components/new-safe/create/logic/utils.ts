@@ -3,7 +3,7 @@ import { type Chain } from '@safe-global/store/gateway/AUTO_GENERATED/chains'
 import { sameAddress } from '@safe-global/utils/utils/addresses'
 import { createWeb3ReadOnly, getRpcServiceUrl } from '@/hooks/wallets/web3'
 import { type ReplayedSafeProps } from '@safe-global/utils/features/counterfactual/store/types'
-import { predictAddressBasedOnReplayData } from '@/features/multichain'
+import { computeNewSafeAddress, isZkSyncLikeChain } from '.'
 
 export const getAvailableSaltNonce = async (
   customRpcs: {
@@ -33,7 +33,13 @@ export const getAvailableSaltNonce = async (
     if (!web3ReadOnly) {
       throw new Error('Could not initiate RPC')
     }
-    const safeAddress = await predictAddressBasedOnReplayData(replayedSafe, web3ReadOnly)
+    const safeAddress = await computeNewSafeAddress(
+      rpcUrl,
+      replayedSafe,
+      chain,
+      replayedSafe.safeVersion,
+      isZkSyncLikeChain(chain.chainId),
+    )
 
     const isKnown = knownSafeAddresses.some((knownAddress) => sameAddress(knownAddress, safeAddress))
     if (isKnown || (await isSmartContract(safeAddress, web3ReadOnly))) {
