@@ -22,6 +22,8 @@ import { txDispatch, TxEvent } from '@/services/tx/txEvents'
 import { didRevert } from '@/utils/ethers-utils'
 import { getUncheckedSigner } from '@/services/tx/tx-sender/sdk'
 import { asError } from '@safe-global/utils/services/exceptions/utils'
+import { PAYMASTER_ADDRESSES } from '@/config/constants'
+import { utils } from 'zksync-ethers'
 
 export const createNewSpendingLimitTx = async (
   data: NewSpendingLimitData,
@@ -100,31 +102,85 @@ export const dispatchSpendingLimitTxExecution = async (
   txParams: SpendingLimitTxParams,
   txOptions: TransactionOptions,
   provider: Eip1193Provider,
-  chainId: SafeState['chainId'],
+  signerAddress: string,
   safeAddress: string,
   safeModules: SafeState['modules'],
+  chain: Chain,
 ) => {
   const id = JSON.stringify(txParams)
 
   let result: ContractTransactionResponse | undefined
   try {
-    const signer = await getUncheckedSigner(provider)
-    const contract = getSpendingLimitContract(chainId, safeModules, signer)
+    console.log('Called dispatchSpendingLimitTxExecution with params:.........');
 
-    result = await contract.executeAllowanceTransfer(
-      txParams.safeAddress,
-      txParams.token,
-      txParams.to,
-      txParams.amount,
-      txParams.paymentToken,
-      txParams.payment,
-      txParams.delegate,
-      txParams.signature,
-      txOptions,
-    )
-    txDispatch(TxEvent.EXECUTING, { groupKey: id, chainId, safeAddress })
+    const isPaymasterSupported = PAYMASTER_ADDRESSES[chain.chainId];
+
+    if (isPaymasterSupported) {
+      // Use paymaster for bulk transactions - same approach as SDK patch
+      const paymasterParams = utils.getPaymasterParams(
+        PAYMASTER_ADDRESSES[chain.chainId], // Paymaster address
+        {
+          type: 'General',
+          innerInput: new Uint8Array(),
+        },
+      )
+
+      // Use zksync-ethers approach like the SDK patch
+      const { BrowserProvider, Provider: ZKProvider, Signer } = await import('zksync-ethers')
+      const browserProvider = new BrowserProvider(provider)
+      const signer = Signer.from(
+        await browserProvider.getSigner(),
+        Number(chain.chainId),
+        new ZKProvider(chain.rpcUri.value, { name: chain.chainName, chainId: Number(chain.chainId) }),
+      )
+
+      const contract = getSpendingLimitContract(chain.chainId, safeModules, signer);
+
+      let txData = contract.interface.encodeFunctionData('executeAllowanceTransfer', [
+        txParams.safeAddress,
+        txParams.token,
+        txParams.to,
+        txParams.amount,
+        txParams.paymentToken,
+        txParams.payment,
+        txParams.delegate,
+        txParams.signature,
+      ]);
+
+      result = (await signer.sendTransaction({
+        type: utils.EIP712_TX_TYPE,
+        from: signerAddress,
+        to: contract.getAddress(),
+        data: txData,
+        ...txOptions,
+        customData: {
+          gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+          paymasterParams,
+        },
+      })) as unknown as ContractTransactionResponse;
+
+      console.log('Called dispatchSpendingLimitTxExecution with result:', result);
+    } else {
+      const signer = await getUncheckedSigner(provider)
+
+      const contract = getSpendingLimitContract(chain.chainId, safeModules, signer)
+
+      result = await contract.executeAllowanceTransfer(
+        txParams.safeAddress,
+        txParams.token,
+        txParams.to,
+        txParams.amount,
+        txParams.paymentToken,
+        txParams.payment,
+        txParams.delegate,
+        txParams.signature,
+        txOptions,
+      )
+    }
+
+    txDispatch(TxEvent.EXECUTING, { groupKey: id, chainId: chain.chainId, safeAddress })
   } catch (error) {
-    txDispatch(TxEvent.FAILED, { groupKey: id, chainId, safeAddress, error: asError(error) })
+    txDispatch(TxEvent.FAILED, { groupKey: id, chainId: chain.chainId, safeAddress, error: asError(error) })
     throw error
   }
 
@@ -139,23 +195,23 @@ export const dispatchSpendingLimitTxExecution = async (
       if (receipt === null) {
         txDispatch(TxEvent.FAILED, {
           groupKey: id,
-          chainId,
+          chainId: chain.chainId,
           safeAddress,
           error: new Error('No transaction receipt found'),
         })
       } else if (didRevert(receipt)) {
         txDispatch(TxEvent.REVERTED, {
           groupKey: id,
-          chainId,
+          chainId: chain.chainId,
           safeAddress,
           error: new Error('Transaction reverted by EVM'),
         })
       } else {
-        txDispatch(TxEvent.PROCESSED, { groupKey: id, chainId, safeAddress, txHash: receipt.hash })
+        txDispatch(TxEvent.PROCESSED, { groupKey: id, chainId: chain.chainId, safeAddress, txHash: receipt.hash })
       }
     })
     .catch((err) => {
-      txDispatch(TxEvent.FAILED, { groupKey: id, chainId, safeAddress, error: asError(err) })
+      txDispatch(TxEvent.FAILED, { groupKey: id, chainId: chain.chainId, safeAddress, error: asError(err) })
     })
 
   return result?.hash

@@ -1,3 +1,15 @@
+diff --git a/dist/src/Safe.d.ts b/dist/src/Safe.d.ts
+--- a/dist/src/Safe.d.ts
++++ b/dist/src/Safe.d.ts
+@@ -374,7 +374,7 @@ class Safe {
+      * @throws "There are X signatures missing"
+      * @throws "Cannot specify gas and gasLimit together in transaction options"
+      */
+-    executeTransaction(safeTransaction: SafeTransaction | SafeMultisigTransactionResponse, options?: TransactionOptions): Promise<TransactionResult>;
++    executeTransaction(safeTransaction: SafeTransaction | SafeMultisigTransactionResponse, options?: TransactionOptions, chain?: unknown): Promise<TransactionResult>;
+     /**
+      * Returns the Safe Transaction encoded
+      *
 diff --git a/dist/src/Safe.js b/dist/src/Safe.js
 index 86b55c4221375e031c0aae41cbe28cc6ed29de1a..66fce0a57a4b590ba17d6e607300b37372d32721 100644
 --- a/dist/src/Safe.js
@@ -62,7 +74,7 @@ index 2818ebbfa49d2a9d6fecc9a949694f403c5da79f..2534be7bfe8dc640992fd6c5fd767e19
  Object.defineProperty(exports, "__esModule", { value: true });
  const actions_1 = require("viem/actions");
  const SafeBaseContract_1 = __importDefault(require("../../../contracts/Safe/SafeBaseContract"));
-@@ -200,7 +201,67 @@ class SafeContract_v1_3_0 extends SafeBaseContract_1.default {
+@@ -200,7 +201,84 @@ class SafeContract_v1_3_0 extends SafeBaseContract_1.default {
       * @param options - Transaction options.
       * @returns Transaction result.
       */
@@ -101,16 +113,33 @@ index 2818ebbfa49d2a9d6fecc9a949694f403c5da79f..2534be7bfe8dc640992fd6c5fd767e19
 +                safeTransaction.encodedSignatures()
 +            ]);
 +
-+            // Create zkSync-compatible signer
++            // Create zkSync-compatible signer with hardcoded RPC to avoid gateway URL issues
 +            const browserProvider = new BrowserProvider(this.safeProvider.provider);
-+            const signer = Signer.from(
-+                await browserProvider.getSigner(),
-+                Number(chain.chainId),
-+                new ZKProvider(chain.rpcUri.value, {
-+                    name: chain.chainName,
-+                    chainId: Number(chain.chainId)
-+                })
-+            );
++            const rpcUrl = chain.chainId === '531050104' ? 'https://rpc.testnet.sophon.xyz'
++                         : chain.chainId === '50104' ? 'https://rpc.sophon.xyz'
++                         : chain.rpcUri.value;
++            const zkProvider = new ZKProvider(rpcUrl, { name: chain.chainName, chainId: Number(chain.chainId) });
++            const browserSigner = await browserProvider.getSigner();
++            const signer = Signer.from(browserSigner, Number(chain.chainId), zkProvider);
++            // Force-set providerL2 to fix "Initialize provider L2" error in zksync-ethers
++            Object.defineProperty(signer, 'providerL2', { value: zkProvider, writable: true, enumerable: true, configurable: true });
++            // Override populateFeeData to catch providerL2 initialization errors
++            const _origPopulateFeeData = signer.populateFeeData.bind(signer);
++            signer.populateFeeData = async function(transaction) {
++                try {
++                    return await _origPopulateFeeData(transaction);
++                } catch (err) {
++                    if (err.message === 'Initialize provider L2') {
++                        const tx = { ...transaction };
++                        const feeData = await this.provider.getFeeData();
++                        if (!tx.gasLimit) tx.gasLimit = 5000000;
++                        if (!tx.maxFeePerGas) tx.maxFeePerGas = feeData.maxFeePerGas ? feeData.maxFeePerGas * 3n : 100000000000n;
++                        if (!tx.maxPriorityFeePerGas) tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ? feeData.maxPriorityFeePerGas * 3n : 10000000000n;
++                        return tx;
++                    }
++                    throw err;
++                }
++            };
 +
 +            // Execute EIP712 transaction with paymaster
 +            const tx = await signer.sendTransaction({
@@ -143,7 +172,7 @@ index 6a9a71eac47c7b546eb182b1b5633e7d481ffd45..9e9d7eff2fed5c78234b0ce294798685
  Object.defineProperty(exports, "__esModule", { value: true });
  const actions_1 = require("viem/actions");
  const SafeBaseContract_1 = __importDefault(require("../../../contracts/Safe/SafeBaseContract"));
-@@ -200,7 +201,67 @@ class SafeContract_v1_4_1 extends SafeBaseContract_1.default {
+@@ -200,7 +201,84 @@ class SafeContract_v1_4_1 extends SafeBaseContract_1.default {
       * @param options - Transaction options.
       * @returns Transaction result.
       */
@@ -158,7 +187,7 @@ index 6a9a71eac47c7b546eb182b1b5633e7d481ffd45..9e9d7eff2fed5c78234b0ce294798685
 +        // Check if Sophon chain and use paymaster
 +        if (chain && PAYMASTER_ADDRESSES[chain.chainId]) {
 +            const safeAddress = await this.getAddress();
-+            
++
 +            // Setup paymaster parameters
 +            const paymasterParams = utils.getPaymasterParams(
 +                PAYMASTER_ADDRESSES[chain.chainId],
@@ -182,16 +211,33 @@ index 6a9a71eac47c7b546eb182b1b5633e7d481ffd45..9e9d7eff2fed5c78234b0ce294798685
 +                safeTransaction.encodedSignatures()
 +            ]);
 +
-+            // Create zkSync-compatible signer
++            // Create zkSync-compatible signer with hardcoded RPC to avoid gateway URL issues
 +            const browserProvider = new BrowserProvider(this.safeProvider.provider);
-+            const signer = Signer.from(
-+                await browserProvider.getSigner(),
-+                Number(chain.chainId),
-+                new ZKProvider(chain.rpcUri.value, {
-+                    name: chain.chainName,
-+                    chainId: Number(chain.chainId)
-+                })
-+            );
++            const rpcUrl = chain.chainId === '531050104' ? 'https://rpc.testnet.sophon.xyz'
++                         : chain.chainId === '50104' ? 'https://rpc.sophon.xyz'
++                         : chain.rpcUri.value;
++            const zkProvider = new ZKProvider(rpcUrl, { name: chain.chainName, chainId: Number(chain.chainId) });
++            const browserSigner = await browserProvider.getSigner();
++            const signer = Signer.from(browserSigner, Number(chain.chainId), zkProvider);
++            // Force-set providerL2 to fix "Initialize provider L2" error in zksync-ethers
++            Object.defineProperty(signer, 'providerL2', { value: zkProvider, writable: true, enumerable: true, configurable: true });
++            // Override populateFeeData to catch providerL2 initialization errors
++            const _origPopulateFeeData = signer.populateFeeData.bind(signer);
++            signer.populateFeeData = async function(transaction) {
++                try {
++                    return await _origPopulateFeeData(transaction);
++                } catch (err) {
++                    if (err.message === 'Initialize provider L2') {
++                        const tx = { ...transaction };
++                        const feeData = await this.provider.getFeeData();
++                        if (!tx.gasLimit) tx.gasLimit = 5000000;
++                        if (!tx.maxFeePerGas) tx.maxFeePerGas = feeData.maxFeePerGas ? feeData.maxFeePerGas * 3n : 100000000000n;
++                        if (!tx.maxPriorityFeePerGas) tx.maxPriorityFeePerGas = feeData.maxPriorityFeePerGas ? feeData.maxPriorityFeePerGas * 3n : 10000000000n;
++                        return tx;
++                    }
++                    throw err;
++                }
++            };
 +
 +            // Execute EIP712 transaction with paymaster
 +            const tx = await signer.sendTransaction({

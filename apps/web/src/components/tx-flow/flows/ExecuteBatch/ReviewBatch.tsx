@@ -147,8 +147,9 @@ export const ReviewBatch = ({ params }: { params: ExecuteBatchFlowProps }) => {
       safe.address.value,
       overrides,
       safe.nonce,
+      chain,
     )
-  }, [userNonce, onboard, wallet, multiSendTxData, multiSendContract, txsWithDetails, gasPrice, isEIP1559, safe])
+  }, [userNonce, onboard, wallet, multiSendTxData, multiSendContract, txsWithDetails, gasPrice, isEIP1559, safe, chain])
 
   const [safeTx] = useAsync<SafeTransaction | undefined>(async () => {
     const safeTx = multiSendTxs ? await createMultiSendCallOnlyTx(multiSendTxs) : undefined

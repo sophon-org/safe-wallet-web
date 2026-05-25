@@ -34,6 +34,8 @@ import { createWeb3, getUserNonce } from '@/hooks/wallets/web3'
 import { asError } from '@safe-global/utils/services/exceptions/utils'
 import chains from '@/config/chains'
 import { createExistingTx } from './create'
+import { PAYMASTER_ADDRESSES } from '@/config/constants'
+import { BrowserProvider as ZKBrowserProvider, Provider as ZKProvider, Signer, utils } from 'zksync-ethers'
 
 import { getLatestSafeVersion } from '@safe-global/utils/utils/chains'
 
@@ -148,7 +150,7 @@ export const dispatchOnChainSigning = async (
   const eventParams = { txId, nonce: safeTx.data.nonce, chainId, safeAddress }
 
   const options =
-    chainId === chains.zksync || chainId === chains.lens
+    chainId === chains.zksync || chainId === chains.lens || chainId === chains['sophon-testnet'] || chainId === chains.sophon
       ? { gasLimit: ZK_SYNC_ON_CHAIN_SIGNATURE_GAS_LIMIT }
       : undefined
   let txHashOrParentSafeTxHash: string
@@ -156,13 +158,38 @@ export const dispatchOnChainSigning = async (
     // TODO: This is a workaround until there is a fix for unchecked transactions in the protocol-kit
     const encodedApproveHashTx = await prepareApproveTxHash(safeTxHash, provider)
 
-    // Note: SafeWalletProvider returns transaction hash if it exists, otherwise the safeTxHash
-    // If the parent immediately executes, this will be the transaction hash of the approveHash
-    // otherwise the safeTxHash of it
-    txHashOrParentSafeTxHash = await provider.request({
-      method: 'eth_sendTransaction',
-      params: [{ from: signerAddress, to: safeAddress, data: encodedApproveHashTx, gas: options?.gasLimit }],
-    })
+    const isPaymasterSupported = PAYMASTER_ADDRESSES[chainId]
+
+    if (isPaymasterSupported) {
+      const paymasterParams = utils.getPaymasterParams(PAYMASTER_ADDRESSES[chainId], {
+        type: 'General',
+        innerInput: new Uint8Array(),
+      })
+
+      txHashOrParentSafeTxHash = await provider.request({
+        method: 'eth_sendTransaction',
+        params: [
+          {
+            from: signerAddress,
+            to: safeAddress,
+            data: encodedApproveHashTx,
+            gas: options?.gasLimit,
+            customData: {
+              gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+              paymasterParams,
+            },
+          },
+        ],
+      })
+    } else {
+      // Note: SafeWalletProvider returns transaction hash if it exists, otherwise the safeTxHash
+      // If the parent immediately executes, this will be the transaction hash of the approveHash
+      // otherwise the safeTxHash of it
+      txHashOrParentSafeTxHash = await provider.request({
+        method: 'eth_sendTransaction',
+        params: [{ from: signerAddress, to: safeAddress, data: encodedApproveHashTx, gas: options?.gasLimit }],
+      })
+    }
 
     txDispatch(TxEvent.ONCHAIN_SIGNATURE_REQUESTED, eventParams)
   } catch (err) {
@@ -289,6 +316,7 @@ export const dispatchTxExecution = async (
   signerAddress: string,
   safeAddress: string,
   isSmartAccount: boolean,
+  chain?: Chain,
 ): Promise<string> => {
   const sdk = await getSafeSDKWithSigner(provider)
   const eventParams = { txId, nonce: safeTx.data.nonce, chainId, safeAddress }
@@ -311,7 +339,7 @@ export const dispatchTxExecution = async (
         transactionResponse: null,
       }
     } else {
-      result = await sdk.executeTransaction(safeTx, txOptions)
+      result = await sdk.executeTransaction(safeTx, txOptions, chain)
     }
     txDispatch(TxEvent.EXECUTING, { ...eventParams })
   } catch (error) {
@@ -342,6 +370,7 @@ export const dispatchBatchExecution = async (
   safeAddress: string,
   overrides: Omit<Overrides, 'nonce'> & { nonce: number },
   nonce: number,
+  chain?: Chain,
 ) => {
   const groupKey = multiSendTxData
 
@@ -354,14 +383,44 @@ export const dispatchBatchExecution = async (
     if (signerNonce === undefined || signerNonce === null) {
       signerNonce = await getUserNonce(signerAddress)
     }
-    const signer = await getUncheckedSigner(provider)
 
-    result = await signer.sendTransaction({
-      to: multiSendContract.getAddress(),
-      value: '0',
-      data: txData,
-      ...overrides,
-    })
+    const isPaymasterSupported = chain && PAYMASTER_ADDRESSES[chain.chainId]
+
+    if (isPaymasterSupported) {
+      const paymasterParams = utils.getPaymasterParams(PAYMASTER_ADDRESSES[chain.chainId], {
+        type: 'General',
+        innerInput: new Uint8Array(),
+      })
+
+      const browserProvider = new ZKBrowserProvider(provider)
+      const zkSigner = Signer.from(
+        await browserProvider.getSigner(),
+        Number(chain.chainId),
+        new ZKProvider(chain.rpcUri.value, { name: chain.chainName, chainId: Number(chain.chainId) }),
+      )
+
+      const txResponse = await zkSigner.sendTransaction({
+        type: utils.EIP712_TX_TYPE,
+        from: signerAddress,
+        to: multiSendContract.getAddress(),
+        data: txData,
+        customData: {
+          gasPerPubdata: utils.DEFAULT_GAS_PER_PUBDATA_LIMIT,
+          paymasterParams,
+        },
+      })
+
+      result = txResponse as unknown as TransactionResponse
+    } else {
+      const signer = await getUncheckedSigner(provider)
+
+      result = await signer.sendTransaction({
+        to: multiSendContract.getAddress(),
+        value: '0',
+        data: txData,
+        ...overrides,
+      })
+    }
 
     txIds.forEach((txId) => {
       txDispatch(TxEvent.EXECUTING, { txId, groupKey, nonce, chainId, safeAddress })

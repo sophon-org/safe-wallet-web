@@ -171,6 +171,7 @@ export const useTxActions = (): TxActions => {
           signer.address,
           safeAddress,
           isSmartAccount,
+          chain,
         )
       }
 

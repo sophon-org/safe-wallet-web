@@ -13379,7 +13379,7 @@ __metadata:
 
 "@safe-global/protocol-kit@patch:@safe-global/protocol-kit@npm%3A5.2.25#~/.yarn/patches/@safe-global-protocol-kit-npm-5.2.25-b03ecd99a5.patch":
   version: 5.2.25
-  resolution: "@safe-global/protocol-kit@patch:@safe-global/protocol-kit@npm%3A5.2.25#~/.yarn/patches/@safe-global-protocol-kit-npm-5.2.25-b03ecd99a5.patch::version=5.2.25&hash=4c5eb3"
+  resolution: "@safe-global/protocol-kit@patch:@safe-global/protocol-kit@npm%3A5.2.25#~/.yarn/patches/@safe-global-protocol-kit-npm-5.2.25-b03ecd99a5.patch::version=5.2.25&hash=106f42"
   dependencies:
     "@noble/curves": "npm:^1.6.0"
     "@peculiar/asn1-schema": "npm:^2.3.13"
@@ -13394,7 +13394,7 @@ __metadata:
       optional: true
     "@peculiar/asn1-schema":
       optional: true
-  checksum: 10/e14ca866e1ff5c451cba564f38ac226c3c20193521b6afe1f8b8defe514aa5d7d1514d7a5861ff062ded2ef38499895edd320c9278b37895cbccf776f4f6a3ca
+  checksum: 10/133db07eff100b85214652f3d9b77099c43ea4cf10d25f177e3d08fe6443b49d85281e053f9f71d5e921dca10d3d9a524d26ee5670111630b327b56e0cdae2d9
   languageName: node
   linkType: hard
 

@@ -28,6 +28,7 @@ import { safeParseUnits } from '@safe-global/utils/utils/formatters'
 import CheckWallet from '@/components/common/CheckWallet'
 import NetworkWarning from '@/components/new-safe/create/NetworkWarning'
 import type { SpendingLimitTxParams } from '../../types'
+import type { Chain } from '@safe-global/store/gateway/AUTO_GENERATED/chains'
 
 export type TokenTransferParams = {
   recipient: string
@@ -94,9 +95,10 @@ const ReviewSpendingLimitTx = ({
         txParams,
         txOptions,
         wallet.provider,
-        safe.chainId,
+        wallet.address,
         safeAddress,
         safe.modules,
+        currentChain as Chain,
       )
       onSubmit('', true)
       setTxFlow(undefined)

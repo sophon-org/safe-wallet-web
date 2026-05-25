@@ -22,6 +22,7 @@ import css from './styles.module.css'
 import accordionCss from '@/styles/accordion.module.css'
 import madProps from '@/utils/mad-props'
 import { getTotalFee } from '@safe-global/utils/hooks/useDefaultGasPrice'
+import { PAYMASTER_ADDRESSES } from '@/config/constants'
 
 const GasDetail = ({ name, value, isLoading }: { name: string; value: string; isLoading: boolean }): ReactElement => {
   const valueSkeleton = <Skeleton variant="text" sx={{ minWidth: '5em' }} />
@@ -67,6 +68,8 @@ export const _GasParams = ({
 
   const isLoading = !gasLimit || !maxFeePerGas
   const isError = gasLimitError && !gasLimit
+
+  const hasPaymaster = chain && !!PAYMASTER_ADDRESSES[chain.chainId]
 
   // Total gas cost
   const totalFee = !isLoading
@@ -145,7 +148,16 @@ export const _GasParams = ({
                       </Tooltip>
                     </>
                   ) : (
-                    <span>{willRelay ? 'Free' : `${totalFee} ${chain?.nativeCurrency.symbol}`}</span>
+                    <span>
+                      {willRelay || hasPaymaster
+                        ? 'Free'
+                        : `${totalFee} ${chain?.nativeCurrency.symbol}`}
+                      {hasPaymaster && (
+                        <Typography component="span" variant="body2" sx={{ ml: 0.5 }}>
+                          (Sponsored by Sophon)
+                        </Typography>
+                      )}
+                    </span>
                   )}
                 </div>
               )}
