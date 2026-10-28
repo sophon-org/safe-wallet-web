@@ -1,5 +1,5 @@
 import { type ReactElement } from 'react'
-import { Typography } from '@mui/material'
+import { Link, Typography } from '@mui/material'
 import ErrorMessage from '@/components/tx/ErrorMessage'
 import useChainId from '@/hooks/useChainId'
 import { useHasFeature } from '@/hooks/useChains'
@@ -16,6 +16,11 @@ const SunsetBanner = (): ReactElement | null => {
   return (
     <ErrorMessage level="warning" title={banner.title}>
       <Typography variant="body2">{banner.description}</Typography>
+      {banner.link && (
+        <Link href={banner.link.href} target="_blank" rel="noopener noreferrer" variant="body2" fontWeight="bold">
+          {banner.link.label}
+        </Link>
+      )}
     </ErrorMessage>
   )
 }

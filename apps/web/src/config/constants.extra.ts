@@ -24,7 +24,18 @@ const CROSSFI_SUNSET_BANNER = {
     'Dear users, Support for Safe on CrossFi will end soon. Please withdraw your funds until April 17, 2029.',
 }
 
-export const SUNSET_BANNERS: Record<string, { title: string; description: string }> = {
+const SOPHON_SUNSET_BANNER = {
+  title: 'Sophon mainnet shuts down on November 30, 2026',
+  description: 'This Safe interface will be discontinued on that date. Please withdraw or move your funds before then.',
+  link: { href: 'https://x.com/Sophon/status/2112253258030882831', label: 'Read the official announcement →' },
+}
+
+export const SUNSET_BANNERS: Record<
+  string,
+  { title: string; description: string; link?: { href: string; label: string } }
+> = {
+  '50104': SOPHON_SUNSET_BANNER,
+  '531050104': SOPHON_SUNSET_BANNER,
   '4158': CROSSFI_SUNSET_BANNER,
   '4157': CROSSFI_SUNSET_BANNER,
 }
